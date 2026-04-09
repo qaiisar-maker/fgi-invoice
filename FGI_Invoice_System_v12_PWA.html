@@ -344,6 +344,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 #pdf-overlay{position:fixed;inset:0;z-index:9998;background:#f4f6f9;overflow-y:auto;display:none;}
 #pdf-overlay-bar{background:#0d1b2a;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:9;border-bottom:2px solid #c9a84c;}
 @media print{
+  @page{margin:8mm;size:A4;}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   body>*{display:none!important;}
   #pdf-overlay{display:block!important;position:static!important;overflow:visible!important;background:#fff!important;z-index:auto!important;}
   #pdf-overlay-bar{display:none!important;}
@@ -2097,11 +2099,7 @@ function openCustomerReport(custName){
 function doSaveImage(){
   if(!previewData){toast('⚠️ Pehle invoice open karo');return;}
   toast('📸 Image ban rahi hai...',4000);
-  
-  // Build a fresh clean invoice HTML for image capture
   var invHtml=buildInvoiceImageHTML(previewData);
-  
-  // Create hidden div for rendering
   var wrap=document.getElementById('img-render-wrap');
   if(!wrap){
     wrap=document.createElement('div');
@@ -2111,14 +2109,13 @@ function doSaveImage(){
   }
   wrap.innerHTML=invHtml;
   wrap.style.left='-9999px';
-  
   setTimeout(function(){
     if(typeof html2canvas==='undefined'){
       toast('❌ Image library load nahi hui. Internet check karo.');
       return;
     }
     html2canvas(wrap,{
-      scale:2,
+      scale:3,
       useCORS:true,
       allowTaint:true,
       backgroundColor:'#ffffff',
@@ -2128,35 +2125,23 @@ function doSaveImage(){
       logging:false
     }).then(function(canvas){
       wrap.style.left='-9999px';
-      var imgData=canvas.toDataURL('image/png');
       var inv=previewData;
-      var fname=(inv.inv_no||'FGI')+'_'+(inv.cust_name||'invoice')+'.png';
-      
-      // Try Web Share API first (WhatsApp direct share on Android)
-      if(navigator.share&&navigator.canShare){
-        canvas.toBlob(function(blob){
-          var file=new File([blob],fname,{type:'image/png'});
-          if(navigator.canShare({files:[file]})){
-            navigator.share({
-              title:'FGI Invoice '+inv.inv_no,
-              text:'Invoice from Faisal Goraya Industry',
-              files:[file]
-            }).then(function(){
-              toast('✅ Shared!');
-            }).catch(function(){
-              downloadImage(imgData,fname);
-            });
-          } else {
-            downloadImage(imgData,fname);
-          }
-        },'image/png');
-      } else {
-        downloadImage(imgData,fname);
-      }
+      var fname='FGI_'+( inv.inv_no||'Invoice')+'_'+(inv.cust_name||'').replace(/\s+/g,'_')+'.png';
+      // Always direct download — gallery mein save hoga
+      canvas.toBlob(function(blob){
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement('a');
+        a.href=url;
+        a.download=fname;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
+        toast('✅ Image gallery mein save ho gayi!');
+      },'image/png',1.0);
     }).catch(function(e){
       toast('❌ Image error: '+e.message);
     });
-  },300);
+  },400);
 }
 
 function downloadImage(dataUrl,fname){
@@ -2166,7 +2151,7 @@ function downloadImage(dataUrl,fname){
   document.body.appendChild(a);
   a.click();
   setTimeout(function(){document.body.removeChild(a);},2000);
-  toast('📥 Image saved! WhatsApp se share karo.');
+  toast('✅ Image gallery mein save ho gayi!');
 }
 
 function quickImage(id){
@@ -2197,27 +2182,31 @@ function buildInvoiceImageHTML(inv){
   var hasCode=inv.items.some(function(it){return it.code;});
   var hasDD=inv.items.some(function(it){return it.delDate;});
   
+  // Define styles FIRST before using in tRows
+  var thC='padding:9px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:center;';
+  var thL='padding:9px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:left;padding-left:10px;';
+  var thR='padding:9px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:right;padding-right:8px;';
+  var tdS='padding:8px 5px;font-size:11px;border-bottom:1px solid #edf0f5;color:#222;';
+
   var tRows='';
   inv.items.forEach(function(it,i){
-    tRows+='<tr style="background:'+(i%2===0?'#fff':'#f8f9fc')+'">';
-    tRows+='<td style="'+tdS+'text-align:center;">'+(i+1)+'</td>';
-    if(hasCode) tRows+='<td style="'+tdS+'text-align:center;">'+(it.code||'')+'</td>';
-    tRows+='<td style="'+tdS+'text-align:left;padding-left:10px;">'+it.desc+'</td>';
-    if(hasDD) tRows+='<td style="'+tdS+'text-align:center;">'+(it.delDate||'')+'</td>';
-    tRows+='<td style="'+tdS+'text-align:center;">'+it.qty+'</td>';
-    tRows+='<td style="'+tdS+'text-align:center;">'+fn(it.rate)+'</td>';
-    tRows+='<td style="'+tdS+'text-align:right;font-weight:800;padding-right:10px;">'+fn(it.total)+'</td>';
+    var rowBg=i%2===0?'#fff':'#f4f6fa';
+    tRows+='<tr style="background:'+rowBg+'">';
+    tRows+='<td style="'+tdS+'text-align:center;color:#666;">'+(i+1)+'</td>';
+    if(hasCode) tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.code||'')+'</td>';
+    tRows+='<td style="'+tdS+'text-align:left;padding-left:10px;font-weight:600;">'+it.desc+'</td>';
+    if(hasDD) tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.delDate||'')+'</td>';
+    tRows+='<td style="'+tdS+'text-align:center;font-weight:600;">'+it.qty+'</td>';
+    tRows+='<td style="'+tdS+'text-align:right;padding-right:8px;">'+fn(it.rate)+'</td>';
+    tRows+='<td style="'+tdS+'text-align:right;font-weight:800;padding-right:8px;color:#0d1b2a;">'+fn(it.total)+'</td>';
     tRows+='</tr>';
   });
-  
-  var thS='padding:8px 5px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;text-align:center;letter-spacing:.5px;';
-  var tdS='padding:7px 5px;font-size:11px;border-bottom:1px solid #edf0f5;color:#222;';
-  
-  var tHead='<th style="'+thS+'">#</th>';
-  if(hasCode) tHead+='<th style="'+thS+'">Code</th>';
-  tHead+='<th style="'+thS+'">Description</th>';
-  if(hasDD) tHead+='<th style="'+thS+'">Del.Date</th>';
-  tHead+='<th style="'+thS+'">Qty</th><th style="'+thS+'">Rate</th><th style="'+thS+'">Total</th>';
+
+  var tHead='<th style="'+thC+'">#</th>';
+  if(hasCode) tHead+='<th style="'+thC+'">Code</th>';
+  tHead+='<th style="'+thL+'">Description</th>';
+  if(hasDD) tHead+='<th style="'+thC+'">Del.Date</th>';
+  tHead+='<th style="'+thC+'">Qty</th><th style="'+thR+'">Rate</th><th style="'+thR+'">Total</th>';
   
   // Prev bal rows - live from DB
   var prevRows='';
@@ -2269,50 +2258,87 @@ function buildInvoiceImageHTML(inv){
   var addRow=aA>0?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;color:#1a6630;"><span>Add'+(inv.add_type==='percent'?' ('+inv.add_val+'%)':'')+'</span><span>+ Rs. '+fn(aA)+'</span></div>':'';
   var balRow=bal!==iT?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;"><span>Balance</span><span style="font-weight:700;">Rs. '+fn(bal)+'</span></div>':'';
   
-  return '<div style="font-family:Arial,sans-serif;background:#fff;width:420px;color:#000;">'+
+  // ── Professional Bank-Slip Style Invoice Image ──
+  var H='background:#f0f4f8;'; // light gray bg
+  return '<div style="font-family:Arial,sans-serif;'+H+'width:420px;color:#000;border:1px solid #dde3ec;">'+
+    // Top accent bar
+    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:6px;"></div>'+
     // Header
-    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;">'+
-    '<div><div style="color:#c9a84c;font-size:18px;font-weight:900;letter-spacing:1px;">Faisal Goraya Industry</div>'+
-    '<div style="color:#aaa;font-size:9px;margin-top:2px;">Mob: 03338058007  |  Ali Pur Chattha</div></div>'+
-    '<div style="text-align:right;"><div style="background:#c9a84c;color:#0d1b2a;font-size:13px;font-weight:800;padding:4px 12px;border-radius:5px;display:inline-block;">'+inv.inv_no+'</div>'+
-    '<div style="color:#bbb;font-size:10px;margin-top:4px;">'+inv.inv_date+'</div></div></div>'+
-    // Customer
-    '<div style="background:#1b2d42;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">'+
-    '<div><div style="color:#fff;font-size:14px;font-weight:700;">'+inv.cust_name+'</div>'+
-    (inv.cust_mobile?'<div style="color:#bbb;font-size:10px;">'+inv.cust_mobile+'</div>':'')+
-    '</div>'+(inv.cust_city?'<div style="color:#bbb;font-size:11px;">📍 '+inv.cust_city+'</div>':'')+
+    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;">'+
+    '<div>'+
+    '<div style="color:#c9a84c;font-size:19px;font-weight:900;letter-spacing:.5px;line-height:1.1;">Faisal Goraya Industry</div>'+
+    '<div style="color:#aaa;font-size:9.5px;margin-top:3px;letter-spacing:.3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div>'+
     '</div>'+
-    // Table
-    '<table style="width:100%;border-collapse:collapse;">'+
-    '<thead><tr style="background:#1b2d42;">'+tHead+'</tr></thead>'+
+    '<div style="text-align:right;">'+
+    '<div style="background:#c9a84c;color:#0d1b2a;font-size:14px;font-weight:900;padding:5px 14px;border-radius:6px;letter-spacing:1px;">'+inv.inv_no+'</div>'+
+    '<div style="color:#bbb;font-size:10px;margin-top:5px;font-weight:600;">📅 '+inv.inv_date+'</div>'+
+    '</div></div>'+
+    // Customer band
+    '<div style="background:#0d1b2a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;">'+
+    '<div>'+
+    '<div style="color:#fff;font-size:15px;font-weight:800;letter-spacing:.3px;">'+inv.cust_name+'</div>'+
+    (inv.cust_mobile?'<div style="color:#c9a84c;font-size:10px;margin-top:2px;">📞 '+inv.cust_mobile+'</div>':'')+
+    '</div>'+
+    (inv.cust_city?'<div style="background:#1b3a5c;color:#e8c96a;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+inv.cust_city+'</div>':'')+
+    '</div>'+
+    // Table with fixed column widths
+    '<div style="background:#fff;padding:0;">'+
+    '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'+
+    '<colgroup>'+
+    '<col style="width:7%">'+
+    (hasCode?'<col style="width:10%">':'')+
+    (hasDD?'<col style="width:'+Math.max(30,50-10)+'%"><col style="width:15%">':'<col style="width:'+Math.max(35,55)+'%">')+
+    '<col style="width:10%">'+
+    '<col style="width:14%">'+
+    '<col style="width:14%">'+
+    '</colgroup>'+
+    '<thead><tr>'+tHead+'</tr></thead>'+
     '<tbody>'+tRows+'</tbody></table>'+
-    // Summary
-    '<div style="background:#f8f9fc;border-top:1px solid #dde3ec;">'+
-    '<div style="display:flex;justify-content:space-between;padding:6px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;"><span>Items Total</span><span style="font-weight:800;">Rs. '+fn(iT)+'</span></div>'+
+    '</div>'+
+    // Summary box
+    '<div style="background:#fff;margin:0;border-top:1px solid #e0e7ef;border-bottom:1px solid #e0e7ef;">'+
+    '<div style="display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;border-bottom:1px dotted #dde3ec;"><span style="color:#555;">Items Total</span><span style="font-weight:800;color:#0d1b2a;">Rs. '+fn(iT)+'</span></div>'+
     lessRow+addRow+balRow+prevRows+
     '</div>'+
-    // Grand Total
-    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;">'+
-    '<div style="color:#c9a84c;font-size:14px;font-weight:800;text-transform:uppercase;">GRAND TOTAL</div>'+
-    '<div style="color:#fff;font-size:20px;font-weight:900;">Rs. '+fn(grand)+'</div></div>'+
-    // Payments
-    (pays.length?'<div style="background:#fff;border-top:3px solid #c9a84c;padding-top:6px;">'+
-    '<div style="padding:5px 14px;font-size:10px;font-weight:800;color:#0d1b2a;text-transform:uppercase;letter-spacing:1px;">Payment History</div>'+
+    // Grand Total — bold prominent
+    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;">'+
+    '<div style="color:#c9a84c;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Grand Total</div>'+
+    '<div style="color:#fff;font-size:22px;font-weight:900;letter-spacing:.5px;">Rs. '+fn(grand)+'</div></div>'+
+    // Payment History
+    (pays.length?
+    '<div style="background:#fff;border-top:3px solid #c9a84c;">'+
+    '<div style="padding:6px 16px 3px;font-size:9.5px;font-weight:800;color:#0d1b2a;text-transform:uppercase;letter-spacing:1px;">Payment History</div>'+
     payRows+'</div>':'')+
-    // Remaining
-    (pays.length?'<div style="background:#1a4a35;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">'+
-    '<div style="color:rgba(255,255,255,.7);font-size:11px;font-weight:700;text-transform:uppercase;">REMAINING BALANCE</div>'+
-    '<div style="color:#7dffbc;font-size:16px;font-weight:900;">'+(rem<=0?'✅ FULLY PAID':'Rs. '+fn(rem))+'</div></div>':'')+
-    // Bank details
-    '<div style="background:#fff;border-top:2px solid #e8ecf1;padding:8px 14px 10px;">'+
-    '<div style="font-size:9px;font-weight:800;color:#0d1b2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid #e0e5ed;">Payment Details</div>'+
-    '<div style="display:flex;gap:6px;">'+
-    '<div style="flex:1;background:#f4f6f9;border-radius:5px;padding:6px 7px;border-top:3px solid #c9a84c;"><div style="font-size:9px;font-weight:800;color:#0d1b2a;margin-bottom:3px;">🏦 Meezan Bank</div><div style="font-size:8px;color:#444;line-height:1.5;">Qaisar Naeem<br>A/C: 98650103586783<br>IBAN: PK59MEZN...6783</div></div>'+
-    '<div style="flex:1;background:#f4f6f9;border-radius:5px;padding:6px 7px;border-top:3px solid #c9a84c;"><div style="font-size:9px;font-weight:800;color:#0d1b2a;margin-bottom:3px;">📲 JazzCash</div><div style="font-size:8px;color:#444;line-height:1.5;">Qaisar Naeem<br>03008648624</div></div>'+
-    '<div style="flex:1;background:#f4f6f9;border-radius:5px;padding:6px 7px;border-top:3px solid #c9a84c;"><div style="font-size:9px;font-weight:800;color:#0d1b2a;margin-bottom:3px;">💳 EasyPaisa</div><div style="font-size:8px;color:#444;line-height:1.5;">Qaisar Naeem<br>03338058007</div></div>'+
+    // Remaining Balance
+    (pays.length?
+    '<div style="background:'+(rem<=0?'#1a4a35':'#7a1a1a')+';display:flex;justify-content:space-between;align-items:center;padding:10px 16px;">'+
+    '<div style="color:rgba(255,255,255,.8);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Remaining Balance</div>'+
+    '<div style="color:'+(rem<=0?'#7dffbc':'#ffb3b3')+';font-size:17px;font-weight:900;">'+(rem<=0?'✅ FULLY PAID':'Rs. '+fn(rem))+'</div></div>':'')+
+    // Divider
+    '<div style="height:1px;background:linear-gradient(90deg,#c9a84c,#e8c96a,#c9a84c);margin:0;"></div>'+
+    // Bank Details — clean card style
+    '<div style="background:#fff;padding:10px 16px 12px;">'+
+    '<div style="font-size:9px;font-weight:900;color:#0d1b2a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0d1b2a;">Payment Details</div>'+
+    '<div style="display:flex;gap:7px;">'+
+    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;">'+
+    '<div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div>'+
+    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div>'+
+    '</div>'+
+    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;">'+
+    '<div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div>'+
+    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03008648624</div>'+
+    '</div>'+
+    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;">'+
+    '<div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div>'+
+    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03338058007</div>'+
+    '</div>'+
     '</div></div>'+
     // Footer
-    '<div style="text-align:center;font-size:8px;color:#aaa;padding:6px;background:#f4f6f9;border-top:1px solid #e0e5ed;">FGI Invoice System • '+inv.inv_no+' • '+inv.inv_date+'</div>'+
+    '<div style="background:#0d1b2a;text-align:center;padding:7px;border-top:2px solid #c9a84c;">'+
+    '<div style="color:#c9a84c;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; '+inv.inv_no+' &nbsp;•&nbsp; '+inv.inv_date+'</div>'+
+    '</div>'+
+    // Bottom accent
+    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:4px;"></div>'+
     '</div>';
 }
 
