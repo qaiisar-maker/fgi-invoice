@@ -39,7 +39,7 @@
   // ── Service Worker (inline blob) ──
   if('serviceWorker' in navigator){
     var swCode = `
-const CACHE = 'fgi-invoice-v12';
+const CACHE = 'fgi-invoice-v15';
 const CDNS = [
   'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
@@ -92,7 +92,7 @@ self.addEventListener('fetch', e => {
   }
 })();
 </script>
-<title>FGI Invoice System v12 PWA</title>
+<title>FGI Invoice System v15 PWA</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -369,12 +369,13 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .ldg-sum-lbl{font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:2px;}
 .ldg-table-wrap{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 16px rgba(13,27,42,.07);margin-bottom:14px;}
 .ldg-table-title{background:var(--navy2);padding:12px 14px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between;}
-.ldg-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.ldg-tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.ldg-tbl{width:100%;min-width:520px;border-collapse:collapse;font-size:12px;table-layout:auto;font-family:Arial,sans-serif;}
 .ldg-tbl thead tr{background:var(--navy);}
-.ldg-tbl th{padding:9px 7px;font-size:10px;font-weight:700;color:var(--gold-light);text-transform:uppercase;letter-spacing:.4px;text-align:center;border-bottom:2px solid var(--gold);}
-.ldg-tbl th.left{text-align:left;padding-left:12px;}
-.ldg-tbl td{padding:9px 7px;border-bottom:1px solid var(--gray2);text-align:center;color:var(--text);vertical-align:middle;}
-.ldg-tbl td.left{text-align:left;padding-left:12px;}
+.ldg-tbl th{padding:10px 8px;font-size:10px;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:.5px;text-align:center;border-bottom:2px solid var(--gold);white-space:nowrap;}
+.ldg-tbl th.left{text-align:left;padding-left:10px;}
+.ldg-tbl td{padding:9px 8px;border-bottom:1px solid var(--gray2);text-align:center;color:var(--text);vertical-align:middle;font-size:12px;font-weight:600;white-space:nowrap;}
+.ldg-tbl td.left{text-align:left;padding-left:10px;font-weight:600;}
 .ldg-tbl tr:nth-child(even) td{background:#f8f9fc;}
 .ldg-tbl tr.ldg-opening td{background:#fff8e8;font-weight:700;}
 .ldg-tbl tr.ldg-invoice td{border-left:3px solid var(--accent);}
@@ -688,7 +689,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 // ============================================================
 //  GLOBALS
 // ============================================================
-let db, curItems=[], advEntries=[], previewData=null, curPayInvId=null;
+let db, curItems=[], advEntries=[], previewData=null, curPayInvId=null, currentLedgerData=null;
 let pinBuf='', pinMode='enter', newPinTmp='';
 let prevBalRef=null;
 let unpaidInvoicesList=[]; // stores [{inv_no, rem}] for multiple unpaid invoices
@@ -1058,6 +1059,28 @@ function openEditInvoice(id){
   if(inv.prev_bal>0){
     setOpt('prev',true);
     document.getElementById('prev-bal').value=inv.prev_bal;
+    // FIX 1 (v14): Restore prevBalRef and unpaidInvoicesList so that gold FGI# tag
+    // remains intact after edit+save. prev_bal_ref format: "FGI#14:5000+FGI#12:3000"
+    prevBalRef = inv.prev_bal_ref || null;
+    unpaidInvoicesList = [];
+    if(inv.prev_bal_ref){
+      try{
+        inv.prev_bal_ref.split('+').forEach(function(ref){
+          var parts = ref.split(':');
+          var label = (parts[0]||'').trim();
+          if(!label) return;
+          // Query LIVE remaining from DB (do not trust stored amount)
+          var rr = db.exec("SELECT id,grand_total FROM invoices WHERE inv_no='"+label+"' LIMIT 1");
+          if(rr && rr[0] && rr[0].values.length){
+            var iid = rr[0].values[0][0];
+            var gt  = rr[0].values[0][1] || 0;
+            var paid = getTotalPaid(iid);
+            var liveRem = Math.max(0, gt - paid);
+            unpaidInvoicesList.push({inv_no:label, rem:liveRem});
+          }
+        });
+      }catch(e){ /* keep going — better to have raw ref than nothing */ }
+    }
   }
   if(inv.notes){
     setOpt('notes',true);
@@ -2195,7 +2218,7 @@ function buildInvoiceImageHTML(inv){
     tRows+='<td style="'+tdS+'text-align:center;color:#666;">'+(i+1)+'</td>';
     if(hasCode) tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.code||'')+'</td>';
     tRows+='<td style="'+tdS+'text-align:left;padding-left:10px;font-weight:600;">'+it.desc+'</td>';
-    if(hasDD) tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.delDate||'')+'</td>';
+    if(hasDD) tRows+='<td style="'+tdS+'text-align:center;color:#555;white-space:nowrap;">'+(it.delDate||'')+'</td>';
     tRows+='<td style="'+tdS+'text-align:center;font-weight:600;">'+it.qty+'</td>';
     tRows+='<td style="'+tdS+'text-align:right;padding-right:8px;">'+fn(it.rate)+'</td>';
     tRows+='<td style="'+tdS+'text-align:right;font-weight:800;padding-right:8px;color:#0d1b2a;">'+fn(it.total)+'</td>';
@@ -2287,7 +2310,7 @@ function buildInvoiceImageHTML(inv){
     '<colgroup>'+
     '<col style="width:7%">'+
     (hasCode?'<col style="width:10%">':'')+
-    (hasDD?'<col style="width:'+Math.max(30,50-10)+'%"><col style="width:15%">':'<col style="width:'+Math.max(35,55)+'%">')+
+    (hasDD?'<col style="width:'+Math.max(28,48-10)+'%"><col style="width:18%">':'<col style="width:'+Math.max(35,55)+'%">')+
     '<col style="width:10%">'+
     '<col style="width:14%">'+
     '<col style="width:14%">'+
@@ -2387,7 +2410,8 @@ function openLedger(custName){
   if(!db) return;
   // Get all invoices
   var invRes;
-  try{invRes=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile,notes FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id ASC");}
+  // FIX 2 (v14): fetch items_total, prev_bal, prev_bal_ref as well
+  try{invRes=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile,notes,items_total,prev_bal,prev_bal_ref FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id ASC");}
   catch(e){return;}
   if(!invRes||!invRes[0]||!invRes[0].values.length) return;
 
@@ -2400,22 +2424,49 @@ function openLedger(custName){
 
   invRes[0].values.forEach(function(v){
     var invId=v[0], invNo=v[1], invDate=v[2], itemsJson=v[3], grand=v[4]||0, notes=v[7]||'';
+    var itemsTotal=v[8]||0, prevBal=v[9]||0, prevBalRefVal=v[10]||'';
     var items=[];
     try{items=JSON.parse(itemsJson||'[]');}catch(e){}
-    var desc=items.map(function(it){return it.desc+' ('+it.qty+'×'+fn(it.rate)+')';}).join(', ');
+    var itemCount=items.length;
+    var itemCountTxt=itemCount===1?'1 item':itemCount+' items';
+    // FIX 2 (v14): compact particulars = "FGI#15 • 4 items" instead of full items list
+    var compactParticulars='<b style="color:#c9a84c">'+invNo+'</b> <span style="font-size:11px;opacity:0.7">• '+itemCountTxt+'</span>';
 
-    // Invoice entry = Debit (customer ke zimme aaya)
-    runningBalance+=grand;
+    // FIX 2 (v14): credit = items_total (NOT grand_total) to avoid double entry
+    // If items_total is 0 (older data without this field), fallback to grand_total - prev_bal
+    var creditAmount = itemsTotal>0 ? itemsTotal : Math.max(0, grand - prevBal);
+
+    // Invoice entry
+    runningBalance+=creditAmount;
     ledgerEntries.push({
       date:invDate,
       type:'invoice',
       invNo:invNo,
-      particulars:desc||'Invoice — '+invNo,
+      itemCount:itemCount,
+      particulars:compactParticulars,
+      particularsPlain:invNo+' • '+itemCountTxt,
       notes:notes,
-      debit:0,         // Debit = Credit to customer (invoice = customer ne maal liya)
-      credit:grand,    // Credit = Invoice amount (jo customer pe charge hua)
+      debit:0,
+      credit:creditAmount,
       balance:runningBalance
     });
+
+    // FIX 2 (v14): Prev.Balance row ONLY IF prev_bal>0 AND prev_bal_ref is EMPTY
+    // (If ref is set, those older invoices are already in the ledger as their own rows)
+    if(prevBal>0 && !prevBalRefVal){
+      runningBalance+=prevBal;
+      ledgerEntries.push({
+        date:invDate,
+        type:'invoice',
+        invNo:invNo,
+        particulars:'<b style="color:#ffcc44">Pre.Balance</b> <span style="font-size:11px;opacity:0.7">• carried over</span>',
+        particularsPlain:'Pre.Balance • carried over',
+        notes:'',
+        debit:0,
+        credit:prevBal,
+        balance:runningBalance
+      });
+    }
 
     // Get payments for this invoice (sorted by date)
     var pays=getPayments(invId);
@@ -2427,7 +2478,8 @@ function openLedger(custName){
         type:'payment',
         invNo:invNo,
         particulars:payDesc,
-        debit:p.amount,   // Debit = Payment received (customer ne diya)
+        particularsPlain:payDesc,
+        debit:p.amount,
         credit:0,
         balance:runningBalance
       });
@@ -2456,6 +2508,29 @@ function openLedger(custName){
   var totalDebit=ledgerEntries.reduce(function(s,e){return s+e.debit;},0);
   var finalBalance=totalCredit-totalDebit;
 
+  // FIX (v15): Store ledger data for image rendering (invoice-style)
+  // particularsPlain use karo (HTML tags ke bina) — image builder apna HTML banata hai
+  currentLedgerData={
+    custName:custName,
+    city:city,
+    mobile:mobile,
+    entries:ledgerEntries.map(function(e){
+      return {
+        date:e.date,
+        particulars:e.type==='payment'?e.particularsPlain:'',
+        type:e.type,
+        invNo:e.type==='invoice'?(e.invNo||''):'',
+        itemCount:e.type==='invoice'?(e.itemCount||0):0,
+        debit:e.debit,
+        credit:e.credit,
+        balance:e.balance
+      };
+    }),
+    totalDebit:totalDebit,
+    totalCredit:totalCredit,
+    finalBalance:finalBalance
+  };
+
   // Build table rows
   var rows='';
   ledgerEntries.forEach(function(e,idx){
@@ -2467,7 +2542,8 @@ function openLedger(custName){
     rows+='<tr class="'+rowCls+'">';
     rows+='<td>'+(idx+1)+'</td>';
     rows+='<td>'+e.date+'</td>';
-    rows+='<td class="left">'+e.particulars+typeTag+'<br><span style="font-size:10px;color:#888;">'+e.invNo+'</span></td>';
+    // FIX 2 (v14): use compact particulars (already has invoice# + item count formatting)
+    rows+='<td class="left">'+e.particulars+typeTag+'</td>';
     rows+='<td class="ldg-debit">'+(e.debit>0?'Rs.'+fn(e.debit):'—')+'</td>';
     rows+='<td class="ldg-credit">'+(e.credit>0?'Rs.'+fn(e.credit):'—')+'</td>';
     rows+='<td class="'+balCls+'">'+(e.balance>0?'Rs.'+fn(e.balance):'✅ Clear')+'</td>';
@@ -2479,7 +2555,7 @@ function openLedger(custName){
 
   var html=
     '<div class="ldg-header">'+
-    '<button class="btn btn-gray btn-sm" id="ldg-back-btn" style="margin-bottom:10px;">◀ Wapas</button>'+
+    '<button class="btn btn-gray btn-sm" onclick="document.getElementById(\'ldg-detail-state\').style.display=\'none\';document.getElementById(\'ldg-search-state\').style.display=\'block\';renderLedgerList();" style="margin-bottom:10px;">◀ Wapas</button>'+
     '<div class="ldg-cust-name">📒 '+custName+'</div>'+
     '<div class="ldg-cust-meta">'+(city?'📍 '+city+'   ':'')+( mobile?'📞 '+mobile:'')+'</div>'+
     '<div class="ldg-summary-row">'+
@@ -2491,9 +2567,9 @@ function openLedger(custName){
     '<div class="ldg-table-wrap">'+
     '<div class="ldg-table-title">'+
     '<span>📋 Khata — Ledger Statement</span>'+
-    '<button class="btn btn-gold btn-sm" onclick="printLedger(\''+custName.replace(/'/g,"\\'").replace(/"/g,'&quot;')+'\')">🖨️ Print</button>'+
+    '<button class="btn btn-gold btn-sm" onclick="downloadLedgerImage()">📷 Save Image</button>'+
     '</div>'+
-    '<div style="overflow-x:auto;">'+
+    '<div class="ldg-tbl-scroll">'+
     '<table class="ldg-tbl">'+
     '<thead><tr>'+
     '<th>#</th>'+
@@ -2521,159 +2597,203 @@ function openLedger(custName){
   document.getElementById('ldg-search-state').style.display='none';
   document.getElementById('ldg-detail-state').style.display='block';
 
-  document.getElementById('ldg-back-btn').addEventListener('click',function(){
-    document.getElementById('ldg-detail-state').style.display='none';
-    document.getElementById('ldg-search-state').style.display='block';
-    renderLedgerList();
-  });
   window.scrollTo(0,0);
 }
 
 function printLedger(custName){
-  if(!db) return;
-  var invRes;
-  try{invRes=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id ASC");}
-  catch(e){return;}
-  if(!invRes||!invRes[0]) return;
-
-  var city=invRes[0].values[0][5]||'';
-  var mobile=invRes[0].values[0][6]||'';
-  var ledgerEntries=[];
-
-  invRes[0].values.forEach(function(v){
-    var invId=v[0],invNo=v[1],invDate=v[2],itemsJson=v[3],grand=v[4]||0;
-    var items=[];try{items=JSON.parse(itemsJson||'[]');}catch(e){}
-    var desc=items.map(function(it){return it.desc+' ('+it.qty+'x'+fn(it.rate)+')';}).join(', ');
-    ledgerEntries.push({date:invDate,type:'invoice',invNo:invNo,particulars:desc||'Invoice',debit:0,credit:grand,balance:0});
-    getPayments(invId).forEach(function(p){
-      ledgerEntries.push({date:p.date||invDate,type:'payment',invNo:invNo,particulars:p.method+(p.note?' - '+p.note:''),debit:p.amount,credit:0,balance:0});
-    });
-  });
-
-  ledgerEntries.sort(function(a,b){
-    if(a.date<b.date)return -1;if(a.date>b.date)return 1;
-    if(a.type==='invoice'&&b.type==='payment')return -1;
-    if(a.type==='payment'&&b.type==='invoice')return 1;return 0;
-  });
-  var bal=0;
-  ledgerEntries.forEach(function(e){bal+=e.credit;bal-=e.debit;e.balance=bal;});
-  var totalCredit=ledgerEntries.reduce(function(s,e){return s+e.credit;},0);
-  var totalDebit=ledgerEntries.reduce(function(s,e){return s+e.debit;},0);
-  var finalBal=totalCredit-totalDebit;
-  var today=new Date().toLocaleDateString('en-PK');
-
-  toast('📄 Khata PDF ban rahi hai...',3000);
-  try{
-    var {jsPDF}=window.jspdf;
-    var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var W=210,margin=10,y=margin;
-
-    // Header
-    doc.setFillColor(13,27,42);doc.rect(0,0,W,26,'F');
-    doc.setFontSize(15);doc.setFont('helvetica','bold');doc.setTextColor(201,168,76);
-    doc.text('Faisal Goraya Industry',margin,10);
-    doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(170,170,170);
-    doc.text('Ali Pur Chattha  |  03338058007',margin,16);
-    doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
-    doc.text('KHATA BOOK',W-margin,10,{align:'right'});
-    doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(187,187,187);
-    doc.text('Printed: '+today,W-margin,16,{align:'right'});
-    y=28;
-
-    // Customer bar
-    doc.setFillColor(27,45,66);doc.rect(0,y,W,16,'F');
-    doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
-    doc.text(custName,margin,y+7);
-    doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(187,187,187);
-    var custMeta=(city?city+'   ':'')+( mobile?'Ph: '+mobile:'');
-    if(custMeta) doc.text(custMeta,margin,y+13);
-    doc.setFontSize(8);doc.setTextColor(201,168,76);
-    doc.text('Statement of Account',W-margin,y+10,{align:'right'});
-    y+=19;
-
-    // Summary strip
-    doc.setFillColor(244,246,249);doc.rect(margin,y,W-margin*2,12,'F');
-    doc.setDrawColor(201,168,76);doc.setLineWidth(0.5);doc.line(margin,y,W-margin,y);
-    var sW=(W-margin*2)/3;
-    [[fn(totalCredit),'Total Billed',[37,99,235]],[fn(totalDebit),'Total Paid',[26,127,90]],
-     [finalBal>0?fn(finalBal):'CLEAR','Balance',finalBal>0?[192,57,43]:[26,127,90]]
-    ].forEach(function(s,si){
-      var sx=margin+si*sW;
-      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(s[2][0],s[2][1],s[2][2]);
-      doc.text('Rs. '+s[0],sx+sW/2,y+6,{align:'center'});
-      doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
-      doc.text(s[1],sx+sW/2,y+10.5,{align:'center'});
-      if(si<2){doc.setDrawColor(200,200,200);doc.setLineWidth(0.3);doc.line(sx+sW,y+1,sx+sW,y+11);}
-    });
-    y+=15;
-
-    // Ledger table
-    var tableBody=ledgerEntries.map(function(e,i){
-      return [
-        String(i+1),
-        e.date,
-        (e.type==='invoice'?'[INV] ':' [PAY] ')+e.particulars+'\n'+e.invNo,
-        e.debit>0?'Rs. '+fn(e.debit):'—',
-        e.credit>0?'Rs. '+fn(e.credit):'—',
-        e.balance>0?'Rs. '+fn(e.balance):'CLEAR'
-      ];
-    });
-
-    // Totals row
-    tableBody.push(['','','TOTAL / REMAINING BALANCE','Rs. '+fn(totalDebit),'Rs. '+fn(totalCredit),finalBal>0?'Rs. '+fn(finalBal):'CLEAR']);
-
-    doc.autoTable({
-      startY:y,
-      head:[['#','Date','Particulars','Debit\n(Payment In)','Credit\n(Invoice Out)','Balance']],
-      body:tableBody,
-      margin:{left:margin,right:margin},
-      styles:{fontSize:8,cellPadding:2.2,overflow:'linebreak'},
-      headStyles:{fillColor:[13,27,42],textColor:[201,168,76],fontStyle:'bold',fontSize:8,halign:'center'},
-      alternateRowStyles:{fillColor:[248,249,252]},
-      columnStyles:{
-        0:{halign:'center',cellWidth:8},
-        1:{halign:'center',cellWidth:22},
-        2:{halign:'left',cellWidth:72},
-        3:{halign:'right',cellWidth:28,textColor:[26,127,90],fontStyle:'bold'},
-        4:{halign:'right',cellWidth:28,textColor:[37,99,235],fontStyle:'bold'},
-        5:{halign:'right',cellWidth:28,fontStyle:'bold'}
-      },
-      didParseCell:function(d){
-        // color last row (totals)
-        if(d.row.index===tableBody.length-1){
-          d.cell.styles.fillColor=[13,27,42];
-          d.cell.styles.textColor=[255,255,255];
-          d.cell.styles.fontStyle='bold';
-        }
-        // color balance column by value
-        if(d.column.index===5&&d.row.index<tableBody.length-1){
-          var entry=ledgerEntries[d.row.index];
-          if(entry){d.cell.styles.textColor=entry.balance>0?[192,57,43]:[26,127,90];}
-        }
-      },
-      theme:'grid'
-    });
-
-    y=doc.lastAutoTable.finalY+4;
-
-    // Final status bar
-    doc.setFillColor(finalBal>0?192:26,finalBal>0?57:74,finalBal>0?43:53);
-    doc.rect(margin,y,W-margin*2,10,'F');
-    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(200,200,200);
-    doc.text('FINAL BALANCE:',margin+3,y+6.5);
-    doc.setFontSize(11);doc.setTextColor(255,255,255);
-    doc.text(finalBal>0?'Rs. '+fn(finalBal)+' REMAINING':'ALL CLEAR',W-margin-2,y+6.5,{align:'right'});
-
-    // Footer
-    y+=14;
-    doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(170,170,170);
-    doc.text('FGI Invoice System  •  Khata: '+custName+'  •  '+today,W/2,y,{align:'center'});
-
-    var fname=custName.replace(/\s+/g,'_')+'_Khata.pdf';
-    doc.save(fname);
-    toast('✅ Khata PDF saved: '+fname);
-  }catch(e){toast('❌ PDF error: '+e.message);}
+  // FIX 3 (v14): Ledger "Save" ab image download karta hai (PDF nahi) —
+  // invoice page ki tarah consistent workflow ke liye.
+  downloadLedgerImage(custName);
 }
+
+
+function downloadLedgerImage(custName){
+  // FIX (v15): Ledger image ab invoice jaisi professional bank-slip style mein render hoti hai.
+  // Off-screen wrap mein build karke html2canvas se capture, phir blob download (invoice method).
+  var el=document.getElementById('ldg-detail-container');
+  if(!el){toast('❌ Ledger nahi mili');return;}
+  if(!custName){
+    var nmEl=el.querySelector('.ldg-cust-name');
+    if(nmEl){custName=(nmEl.textContent||'').replace(/^[^A-Za-z0-9ا-ی]+/,'').trim();}
+  }
+  custName=custName||'Customer';
+  if(!currentLedgerData){toast('❌ Ledger data nahi mila');return;}
+  toast('📷 Image ban rahi hai...',4000);
+
+  var ledgerHtml=buildLedgerImageHTML(currentLedgerData);
+  var wrap=document.getElementById('ldg-img-render-wrap');
+  if(!wrap){
+    wrap=document.createElement('div');
+    wrap.id='ldg-img-render-wrap';
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:460px;background:#fff;z-index:-1;';
+    document.body.appendChild(wrap);
+  }
+  wrap.innerHTML=ledgerHtml;
+
+  setTimeout(function(){
+    if(typeof html2canvas==='undefined'){
+      toast('❌ Image library load nahi hui. Internet check karo.');
+      return;
+    }
+    html2canvas(wrap,{
+      scale:3,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:'#ffffff',
+      width:460,
+      scrollX:0,
+      scrollY:0,
+      logging:false
+    }).then(function(canvas){
+      var ts=new Date().toISOString().slice(0,10);
+      var safeName=String(custName).replace(/\s+/g,'_').replace(/[^A-Za-z0-9_\-ا-ی]/g,'');
+      var fname='FGI_Khata_'+safeName+'_'+ts+'.png';
+      canvas.toBlob(function(blob){
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement('a');
+        a.href=url;
+        a.download=fname;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
+        toast('✅ Khata image download ho gayi!');
+      },'image/png',1.0);
+    }).catch(function(e){
+      toast('❌ Image error: '+e.message);
+    });
+  },400);
+}
+
+function buildLedgerImageHTML(L){
+  // L = {custName, city, mobile, entries:[{date,particulars,type,debit,credit,balance,invNo,itemCount}], totalDebit, totalCredit, finalBalance}
+  var thC='padding:10px 5px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:center;';
+  var thL='padding:10px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:left;padding-left:10px;';
+  var tdS='padding:9px 5px;font-size:11px;border-bottom:1px solid #edf0f5;color:#222;text-align:center;vertical-align:middle;font-weight:600;';
+  var tdL='padding:9px 6px;font-size:11px;border-bottom:1px solid #edf0f5;color:#222;text-align:left;padding-left:10px;font-weight:600;vertical-align:middle;';
+
+  var rows='';
+  L.entries.forEach(function(e,i){
+    var rowBg=i%2===0?'#fff':'#f4f6fa';
+    var leftBorder=e.type==='invoice'?'border-left:3px solid #c0392b;':'border-left:3px solid #1a7f5a;';
+    var tag=e.type==='invoice'
+      ? '<span style="display:inline-block;background:#0d1b2a;color:#c9a84c;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;letter-spacing:.3px;">INV</span>'
+      : '<span style="display:inline-block;background:#d4f0e5;color:#1a7f5a;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;letter-spacing:.3px;">PAY</span>';
+    var partTxt=e.particulars||'';
+    // Highlight invoice number in gold
+    if(e.invNo){
+      partTxt='<span style="background:#c9a84c;color:#0d1b2a;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:800;margin-right:4px;">'+e.invNo+'</span>'+(e.itemCount?'<span style="color:#555;font-size:10px;">'+e.itemCount+' item'+(e.itemCount>1?'s':'')+'</span>':'');
+    }
+    rows+='<tr style="background:'+rowBg+';'+leftBorder+'">';
+    rows+='<td style="'+tdS+'color:#666;">'+(i+1)+'</td>';
+    rows+='<td style="'+tdS+'color:#555;font-size:10.5px;">'+e.date+'</td>';
+    rows+='<td style="'+tdL+'">'+partTxt+tag+'</td>';
+    rows+='<td style="'+tdS+'color:'+(e.debit>0?'#1a7f5a':'#aaa')+';font-weight:'+(e.debit>0?'800':'400')+';">'+(e.debit>0?'Rs. '+fn(e.debit):'—')+'</td>';
+    rows+='<td style="'+tdS+'color:'+(e.credit>0?'#c0392b':'#aaa')+';font-weight:'+(e.credit>0?'800':'400')+';">'+(e.credit>0?'Rs. '+fn(e.credit):'—')+'</td>';
+    rows+='<td style="'+tdS+'color:'+(e.balance>0?'#0d1b2a':'#1a7f5a')+';font-weight:800;">'+(e.balance>0?'Rs. '+fn(e.balance):'✅ Clear')+'</td>';
+    rows+='</tr>';
+  });
+
+  var finalStatus=L.finalBalance>0
+    ? '<div style="color:#ffcc44;font-size:18px;font-weight:900;letter-spacing:.5px;">Rs. '+fn(L.finalBalance)+' BAQI</div>'
+    : '<div style="color:#7dffbc;font-size:16px;font-weight:900;letter-spacing:.5px;">✅ CLEAR — Koi baqi nahi</div>';
+
+  return '<div style="font-family:Arial,sans-serif;background:#f0f4f8;width:460px;color:#000;border:1px solid #dde3ec;">'+
+    // Top accent
+    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:6px;"></div>'+
+    // Header
+    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;">'+
+    '<div>'+
+    '<div style="color:#c9a84c;font-size:19px;font-weight:900;letter-spacing:.5px;line-height:1.1;">Faisal Goraya Industry</div>'+
+    '<div style="color:#aaa;font-size:9.5px;margin-top:3px;letter-spacing:.3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div>'+
+    '</div>'+
+    '<div style="text-align:right;">'+
+    '<div style="background:#c9a84c;color:#0d1b2a;font-size:12px;font-weight:900;padding:5px 12px;border-radius:6px;letter-spacing:1px;">KHATA</div>'+
+    '<div style="color:#bbb;font-size:10px;margin-top:5px;font-weight:600;">📅 '+new Date().toISOString().slice(0,10)+'</div>'+
+    '</div></div>'+
+    // Customer band
+    '<div style="background:#0d1b2a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #1b3a5c;">'+
+    '<div>'+
+    '<div style="color:#fff;font-size:15px;font-weight:800;letter-spacing:.3px;">📒 '+L.custName+'</div>'+
+    (L.mobile?'<div style="color:#c9a84c;font-size:10px;margin-top:2px;">📞 '+L.mobile+'</div>':'')+
+    '</div>'+
+    (L.city?'<div style="background:#1b3a5c;color:#e8c96a;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+L.city+'</div>':'')+
+    '</div>'+
+    // Summary row
+    '<div style="background:#fff;display:flex;border-bottom:1px solid #e0e7ef;">'+
+    '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid #eef1f6;">'+
+    '<div style="font-size:15px;font-weight:900;color:#c0392b;">Rs. '+fn(L.totalCredit)+'</div>'+
+    '<div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Total Billed</div>'+
+    '</div>'+
+    '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid #eef1f6;">'+
+    '<div style="font-size:15px;font-weight:900;color:#1a7f5a;">Rs. '+fn(L.totalDebit)+'</div>'+
+    '<div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Total Paid</div>'+
+    '</div>'+
+    '<div style="flex:1;padding:10px;text-align:center;">'+
+    '<div style="font-size:15px;font-weight:900;color:'+(L.finalBalance>0?'#0d1b2a':'#1a7f5a')+';">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</div>'+
+    '<div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Balance</div>'+
+    '</div>'+
+    '</div>'+
+    // Table
+    '<div style="background:#fff;">'+
+    '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'+
+    '<colgroup>'+
+    '<col style="width:7%">'+
+    '<col style="width:15%">'+
+    '<col style="width:30%">'+
+    '<col style="width:15%">'+
+    '<col style="width:15%">'+
+    '<col style="width:18%">'+
+    '</colgroup>'+
+    '<thead><tr>'+
+    '<th style="'+thC+'">#</th>'+
+    '<th style="'+thC+'">Date</th>'+
+    '<th style="'+thL+'">Particulars</th>'+
+    '<th style="'+thC+'">Paid<br><span style="font-size:8px;font-weight:500;opacity:.8;">(In)</span></th>'+
+    '<th style="'+thC+'">Billed<br><span style="font-size:8px;font-weight:500;opacity:.8;">(Out)</span></th>'+
+    '<th style="'+thC+'">Balance</th>'+
+    '</tr></thead>'+
+    '<tbody>'+rows+'</tbody>'+
+    '<tfoot><tr style="background:#0d1b2a;">'+
+    '<td colspan="3" style="padding:10px;text-align:left;padding-left:12px;color:#fff;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;">Total / Remaining</td>'+
+    '<td style="padding:10px 5px;text-align:center;color:#7dffbc;font-size:12px;font-weight:900;">Rs. '+fn(L.totalDebit)+'</td>'+
+    '<td style="padding:10px 5px;text-align:center;color:#ff8080;font-size:12px;font-weight:900;">Rs. '+fn(L.totalCredit)+'</td>'+
+    '<td style="padding:10px 5px;text-align:center;color:#c9a84c;font-size:12px;font-weight:900;">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</td>'+
+    '</tr></tfoot>'+
+    '</table>'+
+    '</div>'+
+    // Final Status band
+    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-top:2px solid #c9a84c;">'+
+    '<div style="color:#c9a84c;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Final Status</div>'+
+    finalStatus+
+    '</div>'+
+    // Divider
+    '<div style="height:1px;background:linear-gradient(90deg,#c9a84c,#e8c96a,#c9a84c);"></div>'+
+    // Bank Details
+    '<div style="background:#fff;padding:10px 16px 12px;">'+
+    '<div style="font-size:9px;font-weight:900;color:#0d1b2a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0d1b2a;">Payment Details</div>'+
+    '<div style="display:flex;gap:7px;">'+
+    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;">'+
+    '<div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div>'+
+    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div>'+
+    '</div>'+
+    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;">'+
+    '<div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div>'+
+    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03008648624</div>'+
+    '</div>'+
+    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;">'+
+    '<div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div>'+
+    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03338058007</div>'+
+    '</div>'+
+    '</div></div>'+
+    // Footer
+    '<div style="background:#0d1b2a;text-align:center;padding:7px;border-top:2px solid #c9a84c;">'+
+    '<div style="color:#c9a84c;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; Khata: '+L.custName+' &nbsp;•&nbsp; '+new Date().toISOString().slice(0,10)+'</div>'+
+    '</div>'+
+    // Bottom accent
+    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:4px;"></div>'+
+    '</div>';
+}
+
 
 </script>
 
