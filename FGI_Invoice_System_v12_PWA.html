@@ -3,43 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0d1b2a">
+<meta name="theme-color" content="#0a4a6e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FGI">
 <link rel="manifest" id="fgi-manifest">
 <link rel="apple-touch-icon" id="fgi-apple-icon">
+<!-- CHANGE 3: Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 (function(){
   // ── Icon SVG ──
-  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#0d1b2a"/><rect x="0" y="400" width="512" height="20" fill="#c9a84c"/><text x="256" y="320" font-family="Arial Black,sans-serif" font-weight="900" font-size="220" fill="#c9a84c" text-anchor="middle">FGI</text><text x="256" y="390" font-family="Arial,sans-serif" font-size="60" fill="#e8c96a" text-anchor="middle" opacity="0.9">INVOICE</text></svg>';
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#0a4a6e"/><rect x="0" y="400" width="512" height="20" fill="#FFD700"/><text x="256" y="320" font-family="Arial Black,sans-serif" font-weight="900" font-size="220" fill="#FFD700" text-anchor="middle">FGI</text><text x="256" y="390" font-family="Arial,sans-serif" font-size="60" fill="#ffe066" text-anchor="middle" opacity="0.9">INVOICE</text></svg>';
   var url='data:image/svg+xml;base64,'+btoa(svg);
   var al=document.getElementById('fgi-apple-icon');
   if(al){al.href=url;al.setAttribute('sizes','512x512');}
 
-  // ── Manifest ──
   var m={
-    name:'FGI Invoice System',
-    short_name:'FGI Invoice',
+    name:'FGI Invoice System',short_name:'FGI Invoice',
     description:'Faisal Goraya Industry - Invoice Management',
-    start_url:'.',
-    display:'standalone',
-    orientation:'portrait',
-    background_color:'#0d1b2a',
-    theme_color:'#0d1b2a',
-    icons:[
-      {src:url,sizes:'192x192',type:'image/svg+xml'},
-      {src:url,sizes:'512x512',type:'image/svg+xml'}
-    ]
+    start_url:'.',display:'standalone',orientation:'portrait',
+    background_color:'#0a4a6e',theme_color:'#0a4a6e',
+    icons:[{src:url,sizes:'192x192',type:'image/svg+xml'},{src:url,sizes:'512x512',type:'image/svg+xml'}]
   };
   var ml=document.getElementById('fgi-manifest');
   if(ml){try{var b=new Blob([JSON.stringify(m)],{type:'application/json'});ml.href=URL.createObjectURL(b);}catch(e){}}
 
-  // ── Service Worker (inline blob) ──
   if('serviceWorker' in navigator){
     var swCode = `
-const CACHE = 'fgi-invoice-v15';
+const CACHE = 'fgi-invoice-v16';
 const CDNS = [
   'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
@@ -47,72 +40,63 @@ const CDNS = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js',
   'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap'
 ];
-
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => {
-      return Promise.allSettled(CDNS.map(url => c.add(url).catch(()=>null)));
-    }).then(() => self.skipWaiting())
-  );
+  e.waitUntil(caches.open(CACHE).then(c => Promise.allSettled(CDNS.map(url => c.add(url).catch(()=>null)))).then(() => self.skipWaiting()));
 });
-
 self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if(cached) return cached;
-      return fetch(e.request).then(resp => {
-        if(resp && resp.status === 200 && e.request.url.startsWith('https')){
-          var rc = resp.clone();
-          caches.open(CACHE).then(c => c.put(e.request, rc));
-        }
-        return resp;
-      }).catch(() => cached || new Response('Offline', {status:503}));
-    })
-  );
-});
-`;
-    try {
-      var swBlob = new Blob([swCode], {type:'application/javascript'});
-      var swUrl = URL.createObjectURL(swBlob);
-      navigator.serviceWorker.register(swUrl, {scope:'./'})
-        .then(function(reg){
-          console.log('FGI SW registered', reg.scope);
-        }).catch(function(e){
-          console.warn('SW reg failed (local file):', e.message);
-        });
-    } catch(e){ console.warn('SW blob error:', e); }
+  e.respondWith(caches.match(e.request).then(cached => {
+    if(cached) return cached;
+    return fetch(e.request).then(resp => {
+      if(resp && resp.status === 200 && e.request.url.startsWith('https')){
+        var rc = resp.clone();
+        caches.open(CACHE).then(c => c.put(e.request, rc));
+      }
+      return resp;
+    }).catch(() => cached || new Response('Offline', {status:503}));
+  }));
+});`;
+    try{var swBlob=new Blob([swCode],{type:'application/javascript'});var swUrl=URL.createObjectURL(swBlob);navigator.serviceWorker.register(swUrl,{scope:'./'}).then(function(reg){console.log('FGI SW registered',reg.scope);}).catch(function(e){console.warn('SW reg failed:',e.message);});}catch(e){console.warn('SW blob error:',e);}
   }
 })();
 </script>
-<title>FGI Invoice System v15 PWA</title>
+<title>FGI Invoice System v16</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
+
+/* ============================================================
+   CHANGE 1: COLOR SCHEME — Sky Blue + Yellow
+   Old: --navy:#0d1b2a  --gold:#c9a84c
+   New: --navy:#0a4a6e  --gold:#FFD700
+   ============================================================ */
 :root{
-  --navy:#0d1b2a;--navy2:#1b2d42;--navy3:#243447;
-  --gold:#c9a84c;--gold2:#e8c96a;--gold-light:#f5e4a8;
-  --white:#fff;--gray1:#f4f6f9;--gray2:#e8ecf1;--gray3:#c5cdd8;
-  --text:#1b2d42;--text2:#4a5568;
+  --navy:#0a4a6e;
+  --navy2:#0d5c8a;
+  --navy3:#1470a0;
+  --gold:#FFD700;
+  --gold2:#ffe033;
+  --gold-light:#fff4a8;
+  --white:#fff;
+  --gray1:#f0f7fc;
+  --gray2:#d6eaf8;
+  --gray3:#a0c4dc;
+  --text:#0a3550;
+  --text2:#2d6a8a;
   --green:#1a7f5a;--red:#c0392b;--accent:#2563eb;--orange:#e07b00;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);min-height:100vh;}
 
-/* PIN */
+/* PIN LOCK */
 #lock-screen{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;padding:20px;}
 .lock-logo{font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-size:38px;font-weight:800;letter-spacing:3px;margin-bottom:4px;}
-.lock-sub{color:var(--gray3);font-size:12px;margin-bottom:34px;letter-spacing:1.5px;text-transform:uppercase;}
+.lock-sub{color:var(--gray3);font-size:12px;margin-bottom:20px;letter-spacing:1.5px;text-transform:uppercase;}
 .pin-dots{display:flex;gap:14px;margin-bottom:28px;}
 .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold);background:transparent;transition:background .2s;}
 .pin-dot.filled{background:var(--gold);}
@@ -120,12 +104,34 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .pin-btn{width:72px;height:72px;background:var(--navy2);border:1.5px solid var(--navy3);border-radius:14px;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .pin-btn:active{background:var(--gold);color:var(--navy);transform:scale(.94);}
 .pin-error{color:#e74c3c;font-size:13px;font-weight:600;min-height:20px;text-align:center;}
-.pin-mode-lbl{color:#aaa;font-size:12px;margin-bottom:14px;letter-spacing:1px;}
+.pin-mode-lbl{color:#aad4ec;font-size:12px;margin-bottom:14px;letter-spacing:1px;}
 .change-pin-link{color:var(--gold);font-size:12px;text-decoration:underline;cursor:pointer;margin-top:14px;}
+
+/* CHANGE 2: Forgot PIN UI */
+.forgot-pin-link{color:#a8d8f0;font-size:12px;cursor:pointer;margin-top:8px;text-decoration:underline;}
+#forgot-pin-section{display:none;background:var(--navy2);border:1.5px solid var(--gold);border-radius:14px;padding:16px;margin-top:14px;width:280px;text-align:center;}
+#forgot-pin-section .fp-title{color:var(--gold);font-size:13px;font-weight:700;margin-bottom:10px;}
+#forgot-pin-section select,#forgot-pin-section input{width:100%;padding:9px 12px;border:1.5px solid var(--navy3);border-radius:8px;font-family:'Barlow',sans-serif;font-size:13px;color:var(--text);background:var(--gray1);margin-bottom:8px;}
+#forgot-pin-section .fp-btn{background:var(--gold);color:var(--navy);border:none;border-radius:8px;padding:10px;width:100%;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.5px;}
+#forgot-pin-section .fp-back{color:#a8d8f0;font-size:11px;cursor:pointer;margin-top:8px;display:block;text-decoration:underline;}
+
+/* CHANGE 3: Google Sign-In UI on lock screen */
+#google-signin-section{display:none;margin-top:16px;text-align:center;}
+#google-signin-section .gs-or{color:rgba(255,255,255,.4);font-size:11px;margin-bottom:8px;letter-spacing:1px;}
+#google-signin-section .gs-note{color:#a8d8f0;font-size:10px;margin-top:6px;}
+.google-btn{background:#fff;color:#444;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.google-btn img{width:18px;height:18px;}
+.google-btn:active{transform:scale(.97);}
 
 /* NAV */
 .nav{background:var(--navy);padding:0 14px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:100;height:54px;border-bottom:2px solid var(--gold);}
 .nav-logo{font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-size:20px;font-weight:800;letter-spacing:1px;flex:1;}
+
+/* User badge in nav */
+#nav-user-badge{display:none;align-items:center;gap:5px;background:var(--navy2);border:1px solid var(--gold);border-radius:20px;padding:3px 10px 3px 5px;}
+#nav-user-badge img{width:22px;height:22px;border-radius:50%;object-fit:cover;}
+#nav-user-badge span{color:var(--gold);font-size:11px;font-weight:700;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
 .btn{padding:7px 13px;border:none;border-radius:8px;cursor:pointer;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
 .btn:active{transform:scale(.95);}
 .btn-gold{background:var(--gold);color:var(--navy);}
@@ -137,7 +143,6 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .btn-blue{background:var(--accent);color:#fff;}
 .btn-gray{background:#607080;color:#fff;}
 .btn-orange{background:var(--orange);color:#fff;}
-.btn-purple{background:#6d28d9;color:#fff;}
 .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
 
 /* VIEWS */
@@ -146,20 +151,20 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .view.active{display:block;}
 
 /* CARD */
-.card{background:var(--white);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 16px rgba(13,27,42,.07);border:1px solid var(--gray2);}
+.card{background:var(--white);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 16px rgba(10,74,110,.07);border:1px solid var(--gray2);}
 .card-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.5px;}
 
 /* FORM */
 .fr{margin-bottom:10px;}
 .fr label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
 .fr input,.fr select,.fr textarea{width:100%;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--text);background:var(--gray1);transition:border .2s;}
-.fr input:focus,.fr select:focus{outline:none;border-color:var(--gold);background:var(--white);box-shadow:0 0 0 3px rgba(201,168,76,.15);}
-.fr input[readonly]{background:#edf0f4;color:#888;}
+.fr input:focus,.fr select:focus{outline:none;border-color:var(--gold);background:var(--white);box-shadow:0 0 0 3px rgba(255,215,0,.2);}
+.fr input[readonly]{background:#e8f0f5;color:#888;}
 .fr2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .fr3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px;}
 
 /* EDIT MODE BANNER */
-.edit-banner{background:linear-gradient(135deg,#1e3a5f,#2d5a8e);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #4a90d9;}
+.edit-banner{background:linear-gradient(135deg,#0a4a6e,#1470a0);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;border:1.5px solid #4ac0e8;}
 .edit-banner-icon{font-size:22px;}
 .edit-banner-text{flex:1;color:#fff;font-size:13px;font-weight:600;}
 .edit-banner-inv{color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;}
@@ -169,9 +174,9 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .itbl{width:100%;border-collapse:collapse;min-width:360px;}
 .itbl th{background:var(--navy);color:var(--gold-light);padding:8px 5px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:center;font-weight:700;}
 .itbl td{padding:7px 4px;border-bottom:1px solid var(--gray2);font-size:12px;text-align:center;vertical-align:middle;}
-.itbl tr:nth-child(even) td{background:#f8f9fc;}
+.itbl tr:nth-child(even) td{background:#f0f8ff;}
 .del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:4px;}
-.add-item-box{background:linear-gradient(135deg,#f0f4ff,#fafbff);border:1.5px dashed var(--gray3);border-radius:10px;padding:12px;margin-bottom:10px;}
+.add-item-box{background:linear-gradient(135deg,#e8f4fd,#f8fcff);border:1.5px dashed var(--gray3);border-radius:10px;padding:12px;margin-bottom:10px;}
 
 /* SUMMARY */
 .sum-box{background:var(--navy);border-radius:10px;padding:14px;margin-top:10px;}
@@ -196,8 +201,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .collap.closed{max-height:0!important;}
 
 /* ADVANCE */
-.adv-entry{background:#f0f4ff;border:1px solid #d0d8f0;border-radius:8px;padding:10px;margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.adv-entry select,.adv-entry input{flex:1;min-width:90px;padding:8px 10px;border:1.5px solid #d0d8f0;border-radius:6px;font-family:'Barlow',sans-serif;font-size:13px;}
+.adv-entry{background:#e8f4fd;border:1px solid #a0ccee;border-radius:8px;padding:10px;margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.adv-entry select,.adv-entry input{flex:1;min-width:90px;padding:8px 10px;border:1.5px solid #a0ccee;border-radius:6px;font-family:'Barlow',sans-serif;font-size:13px;}
 
 /* PAYMENT VIEW */
 #view-payment{padding:14px;max-width:500px;margin:0 auto;display:none;}
@@ -213,16 +218,16 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .pay-status-badge.paid{background:#1a7f5a;color:#fff;}
 .pay-status-badge.partial{background:#e07b00;color:#fff;}
 .pay-status-badge.unpaid{background:#c0392b;color:#fff;}
-.pay-form{background:var(--white);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--gray2);box-shadow:0 2px 12px rgba(13,27,42,.07);}
+.pay-form{background:var(--white);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--gray2);box-shadow:0 2px 12px rgba(10,74,110,.07);}
 .pay-form-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--gold);}
-.pay-history{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--gray2);box-shadow:0 2px 12px rgba(13,27,42,.07);}
+.pay-history{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--gray2);box-shadow:0 2px 12px rgba(10,74,110,.07);}
 .pay-hist-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--gold);}
 .pay-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2);}
 .pay-item:last-child{border-bottom:none;}
 .pay-type-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .pay-type-icon.cash{background:#d4f0e5;} .pay-type-icon.online{background:#dce8ff;}
 .pay-type-icon.jazzcash{background:#ffe8d4;} .pay-type-icon.easypaisa{background:#e0f0e0;}
-.pay-type-icon.bank{background:#e8e0ff;}
+.pay-type-icon.bank{background:#e8f0ff;}
 .pay-info{flex:1;}
 .pay-info-top{font-size:13px;font-weight:700;color:var(--text);}
 .pay-info-bot{font-size:11px;color:var(--text2);margin-top:2px;}
@@ -230,7 +235,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .pay-empty{text-align:center;padding:20px;color:var(--gray3);font-size:13px;}
 
 /* INVOICE LIST */
-.inv-card{background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(13,27,42,.07);border:1px solid var(--gray2);border-left:4px solid var(--gold);}
+.inv-card{background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(10,74,110,.07);border:1px solid var(--gray2);border-left:4px solid var(--gold);}
 .inv-card.status-paid{border-left-color:var(--green);}
 .inv-card.status-partial{border-left-color:var(--orange);}
 .inv-card.status-unpaid{border-left-color:var(--red);}
@@ -248,7 +253,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 
 /* STATS */
 .stats-strip{display:flex;gap:8px;margin-bottom:12px;}
-.stat-box{flex:1;background:var(--white);border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 8px rgba(13,27,42,.06);border:1px solid var(--gray2);border-top:3px solid var(--gold);}
+.stat-box{flex:1;background:var(--white);border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 8px rgba(10,74,110,.06);border:1px solid var(--gray2);border-top:3px solid var(--gold);}
 .stat-val{font-size:17px;font-weight:800;color:var(--navy);}
 .stat-lbl{font-size:10px;color:var(--text2);font-weight:600;margin-top:2px;text-transform:uppercase;}
 .search-wrap{position:relative;margin-bottom:12px;}
@@ -256,7 +261,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .search-bar:focus{outline:none;border-color:var(--gold);}
 .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--gray3);font-size:15px;}
 
-/* DATA BACKUP / RESTORE */
+/* DATA BACKUP */
 .backup-card{background:var(--navy2);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--navy3);}
 .backup-title{color:var(--gold);font-weight:700;font-size:13px;margin-bottom:8px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.5px;}
 .backup-row{display:flex;gap:8px;flex-wrap:wrap;}
@@ -267,44 +272,43 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 /* PRINT */
 #print-area{display:none;}
 .inv-print{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#000;width:100%;max-width:100%;}
-.ip-topband{background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:10px 14px 8px;}
-.ip-company-name{color:#c9a84c;font-size:17px;font-weight:800;letter-spacing:1px;font-family:'Barlow Condensed',Arial,sans-serif;}
-.ip-company-sub{color:#aaa;font-size:9px;margin-top:2px;}
-.ip-inv-no{background:#c9a84c;color:#0d1b2a;font-size:13px;font-weight:800;padding:3px 10px;border-radius:4px;display:inline-block;}
-.ip-inv-date{color:#bbb;font-size:10px;margin-top:3px;}
-.ip-cust-band{background:#1b2d42;padding:7px 14px;display:flex;justify-content:space-between;align-items:center;}
+.ip-topband{background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:10px 14px 8px;}
+.ip-company-name{color:#FFD700;font-size:17px;font-weight:800;letter-spacing:1px;font-family:'Barlow Condensed',Arial,sans-serif;}
+.ip-company-sub{color:#a0d0e8;font-size:9px;margin-top:2px;}
+.ip-inv-no{background:#FFD700;color:#0a4a6e;font-size:13px;font-weight:800;padding:3px 10px;border-radius:4px;display:inline-block;}
+.ip-inv-date{color:#b0d8f0;font-size:10px;margin-top:3px;}
+.ip-cust-band{background:#0d5c8a;padding:7px 14px;display:flex;justify-content:space-between;align-items:center;}
 .ip-cust-name{color:#fff;font-size:13px;font-weight:700;}
-.ip-cust-info{color:#bbb;font-size:10px;}
+.ip-cust-info{color:#a0d0e8;font-size:10px;}
 .ip-table{width:100%;border-collapse:collapse;}
-.ip-table thead tr{background:#f0f4fa;border-top:2px solid #c9a84c;border-bottom:1px solid #d0d8e8;}
-.ip-table th{padding:6px 4px;font-size:9.5px;font-weight:800;color:#1b2d42;text-align:center;text-transform:uppercase;}
-.ip-table td{padding:5px 4px;font-size:10px;border-bottom:1px solid #edf0f5;text-align:center;color:#222;}
+.ip-table thead tr{background:#e8f4fd;border-top:2px solid #FFD700;border-bottom:1px solid #a0c8e0;}
+.ip-table th{padding:6px 4px;font-size:9.5px;font-weight:800;color:#0a4a6e;text-align:center;text-transform:uppercase;}
+.ip-table td{padding:5px 4px;font-size:10px;border-bottom:1px solid #e0edf5;text-align:center;color:#222;}
 .ip-table td.desc{text-align:left;padding-left:8px;}
-.ip-table tr:nth-child(even) td{background:#f8f9fc;}
-.ip-summary{padding:8px 14px;background:#f8f9fc;border-top:1px solid #dde3ec;}
-.ip-sum-row{display:flex;justify-content:space-between;font-size:10.5px;padding:3.5px 0;border-bottom:1px dotted #e0e5ed;color:#333;}
+.ip-table tr:nth-child(even) td{background:#f0f8fc;}
+.ip-summary{padding:8px 14px;background:#f0f8fc;border-top:1px solid #d0e8f4;}
+.ip-sum-row{display:flex;justify-content:space-between;font-size:10.5px;padding:3.5px 0;border-bottom:1px dotted #c0dcea;color:#333;}
 .ip-sum-row:last-child{border-bottom:none;}
 .ip-sum-row.minus{color:#b22222;} .ip-sum-row.plus{color:#1a6630;}
-.ip-grand{background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;}
-.ip-grand-label{color:#c9a84c;font-size:13px;font-weight:800;text-transform:uppercase;}
+.ip-grand{background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;}
+.ip-grand-label{color:#FFD700;font-size:13px;font-weight:800;text-transform:uppercase;}
 .ip-grand-value{color:#fff;font-size:17px;font-weight:800;}
-.ip-payments{padding:8px 14px;background:#fff;border-top:2px solid #c9a84c;}
-.ip-pay-title{font-size:10px;font-weight:800;color:#0d1b2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.ip-pay-row{display:flex;justify-content:space-between;font-size:9.5px;padding:3px 0;border-bottom:1px dotted #e0e5ed;color:#333;}
+.ip-payments{padding:8px 14px;background:#fff;border-top:2px solid #FFD700;}
+.ip-pay-title{font-size:10px;font-weight:800;color:#0a4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.ip-pay-row{display:flex;justify-content:space-between;font-size:9.5px;padding:3px 0;border-bottom:1px dotted #d0e8f4;color:#333;}
 .ip-remaining{background:#1a4a35;display:flex;justify-content:space-between;align-items:center;padding:8px 14px;}
 .ip-rem-label{color:rgba(255,255,255,.7);font-size:11px;font-weight:700;text-transform:uppercase;}
 .ip-rem-value{color:#7dffbc;font-size:15px;font-weight:800;}
-.ip-notes{padding:6px 14px;background:#fffbee;border-top:1px solid #e8d98a;font-size:10px;color:#555;}
-.ip-bank{padding:8px 14px 10px;background:#fff;border-top:2px solid #e8ecf1;}
-.ip-bank-title{font-size:9.5px;font-weight:800;color:#0d1b2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid #e0e5ed;}
+.ip-notes{padding:6px 14px;background:#fffef0;border-top:1px solid #ffe066;font-size:10px;color:#555;}
+.ip-bank{padding:8px 14px 10px;background:#fff;border-top:2px solid #e0ecf4;}
+.ip-bank-title{font-size:9.5px;font-weight:800;color:#0a4a6e;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid #d0e8f4;}
 .ip-bank-cols{display:flex;gap:6px;}
-.ip-bank-col{flex:1;background:#f4f6f9;border:1px solid #dde3ec;border-radius:5px;padding:6px 7px;border-top:3px solid #c9a84c;}
-.ip-bank-col-head{font-size:9px;font-weight:800;color:#0d1b2a;margin-bottom:3px;}
+.ip-bank-col{flex:1;background:#f0f8fc;border:1px solid #c8e4f4;border-radius:5px;padding:6px 7px;border-top:3px solid #FFD700;}
+.ip-bank-col-head{font-size:9px;font-weight:800;color:#0a4a6e;margin-bottom:3px;}
 .ip-bank-col-body{font-size:8.5px;color:#444;line-height:1.5;}
-.ip-footer{text-align:center;font-size:8.5px;color:#aaa;padding:6px;background:#f4f6f9;border-top:1px solid #e0e5ed;}
+.ip-footer{text-align:center;font-size:8.5px;color:#7090a8;padding:6px;background:#e8f4fc;border-top:1px solid #c0dcea;}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text2);}
 .empty-state .es-icon{font-size:40px;margin-bottom:10px;}
-
 
 /* CUST SUGGESTIONS */
 #cust-suggestions{background:#fff;border:1.5px solid var(--gold);border-radius:8px;max-height:180px;overflow-y:auto;display:none;position:absolute;z-index:500;width:100%;box-shadow:0 6px 20px rgba(0,0,0,.18);top:100%;left:0;}
@@ -312,7 +316,6 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .cust-sug-item:last-child{border-bottom:none;}
 .cust-sug-item:active{background:var(--gold-light);}
 .cust-sug-name{font-weight:700;color:var(--navy);}
-.cust-sug-bal{font-size:11px;color:var(--green);margin-top:2px;}
 .prev-bal-hint{background:#e8f5ee;border:1.5px solid #a0dcc0;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--green);font-weight:600;display:none;flex-direction:column;gap:4px;}
 
 /* REPORT */
@@ -324,7 +327,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .rpt-stat{flex:1;min-width:60px;background:var(--gray1);border-radius:7px;padding:5px 6px;text-align:center;}
 .rpt-stat-val{font-size:12px;font-weight:800;color:var(--navy);}
 .rpt-stat-lbl{font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;margin-top:1px;}
-.rpt-inv-card{background:#fff;border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--gray2);border-left:4px solid var(--gold);box-shadow:0 1px 8px rgba(13,27,42,.06);}
+.rpt-inv-card{background:#fff;border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--gray2);border-left:4px solid var(--gold);box-shadow:0 1px 8px rgba(10,74,110,.06);}
 .rpt-inv-card.status-paid{border-left-color:var(--green);}
 .rpt-inv-card.status-partial{border-left-color:var(--orange);}
 .rpt-inv-card.status-unpaid{border-left-color:var(--red);}
@@ -337,12 +340,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .rpt-pay-amt{color:var(--green);font-weight:700;}
 
 /* PDF OVERLAY */
-#pdf-overlay{position:fixed;inset:0;z-index:9998;background:#f4f6f9;overflow-y:auto;display:none;}
-#pdf-overlay-bar{background:#0d1b2a;padding:10px 14px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:9;border-bottom:2px solid #c9a84c;}
-
-/* PDF OVERLAY */
-#pdf-overlay{position:fixed;inset:0;z-index:9998;background:#f4f6f9;overflow-y:auto;display:none;}
-#pdf-overlay-bar{background:#0d1b2a;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:9;border-bottom:2px solid #c9a84c;}
+#pdf-overlay{position:fixed;inset:0;z-index:9998;background:#f0f7fc;overflow-y:auto;display:none;}
+#pdf-overlay-bar{background:#0a4a6e;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:9;border-bottom:2px solid #FFD700;}
 @media print{
   @page{margin:8mm;size:A4;}
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -357,7 +356,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 }
 
 /* DB STATUS */
-.db-status{font-size:11px;text-align:center;padding:4px;color:#aaa;}
+.db-status{font-size:11px;text-align:center;padding:4px;color:#7090a8;}
 
 /* LEDGER */
 .ldg-header{background:var(--navy);border-radius:14px;padding:16px;margin-bottom:12px;color:var(--white);}
@@ -367,7 +366,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .ldg-sum-box{flex:1;background:rgba(255,255,255,.08);border-radius:8px;padding:8px 6px;text-align:center;}
 .ldg-sum-val{font-size:12px;font-weight:800;color:var(--white);}
 .ldg-sum-lbl{font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:2px;}
-.ldg-table-wrap{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 16px rgba(13,27,42,.07);margin-bottom:14px;}
+.ldg-table-wrap{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 16px rgba(10,74,110,.07);margin-bottom:14px;}
 .ldg-table-title{background:var(--navy2);padding:12px 14px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between;}
 .ldg-tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .ldg-tbl{width:100%;min-width:520px;border-collapse:collapse;font-size:12px;table-layout:auto;font-family:Arial,sans-serif;}
@@ -376,8 +375,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .ldg-tbl th.left{text-align:left;padding-left:10px;}
 .ldg-tbl td{padding:9px 8px;border-bottom:1px solid var(--gray2);text-align:center;color:var(--text);vertical-align:middle;font-size:12px;font-weight:600;white-space:nowrap;}
 .ldg-tbl td.left{text-align:left;padding-left:10px;font-weight:600;}
-.ldg-tbl tr:nth-child(even) td{background:#f8f9fc;}
-.ldg-tbl tr.ldg-opening td{background:#fff8e8;font-weight:700;}
+.ldg-tbl tr:nth-child(even) td{background:#f0f8fc;}
+.ldg-tbl tr.ldg-opening td{background:#fffbe8;font-weight:700;}
 .ldg-tbl tr.ldg-invoice td{border-left:3px solid var(--accent);}
 .ldg-tbl tr.ldg-payment td{border-left:3px solid var(--green);}
 .ldg-tbl tr.ldg-total td{background:var(--navy);color:var(--white);font-weight:800;border:none;}
@@ -392,8 +391,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .ldg-pay-tag{display:inline-block;background:#d4f0e5;color:var(--green);font-size:9px;font-weight:800;padding:1px 6px;border-radius:4px;margin-left:3px;}
 .ldg-empty{text-align:center;padding:30px;color:var(--gray3);}
 .ldg-print-area{display:none;}
-.ldg-search-item{background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(13,27,42,.07);border:1px solid var(--gray2);border-left:4px solid var(--gold);cursor:pointer;transition:border-color .15s,box-shadow .15s;}
-.ldg-search-item:active{border-left-color:var(--accent);box-shadow:0 2px 16px rgba(13,27,42,.15);}
+.ldg-search-item{background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(10,74,110,.07);border:1px solid var(--gray2);border-left:4px solid var(--gold);cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.ldg-search-item:active{border-left-color:var(--accent);box-shadow:0 2px 16px rgba(10,74,110,.15);}
 .ldg-search-item .name{font-size:14px;font-weight:700;color:var(--text);}
 .ldg-search-item .meta{font-size:11px;color:var(--text2);margin-top:3px;}
 .ldg-search-item .badges{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center;}
@@ -408,7 +407,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .prevbal-popup-close:active{background:rgba(255,255,255,.1);}
 .prevbal-popup-body{overflow-y:auto;padding:12px;flex:1;}
 .prevbal-inv-item{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:10px;border:1.5px solid var(--gray2);margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s;}
-.prevbal-inv-item.selected{border-color:var(--gold);background:#fff8e8;}
+.prevbal-inv-item.selected{border-color:var(--gold);background:#fffbe8;}
 .prevbal-inv-item:active{background:var(--gray1);}
 .prevbal-inv-left{display:flex;align-items:center;gap:10px;}
 .prevbal-inv-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--gray3);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s;}
@@ -425,32 +424,76 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 </head>
 <body>
 
-<!-- PIN LOCK -->
+<!-- ============================================================
+     PIN LOCK SCREEN
+     CHANGE 2: Forgot PIN added
+     CHANGE 3: Google Sign-In added
+     ============================================================ -->
 <div id="lock-screen">
-  <div class="lock-logo" style="display:flex;flex-direction:column;align-items:center;margin-bottom:4px;"><div style="background:#0d1b2a;border:3px solid #c9a84c;border-radius:20px;padding:10px 28px;"><span style="font-family:'Barlow Condensed',sans-serif;color:#c9a84c;font-size:48px;font-weight:900;letter-spacing:4px;line-height:1;">FGI</span></div></div>
+  <div class="lock-logo" style="display:flex;flex-direction:column;align-items:center;margin-bottom:4px;">
+    <div style="background:var(--navy2);border:3px solid var(--gold);border-radius:20px;padding:10px 28px;">
+      <span style="font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-size:48px;font-weight:900;letter-spacing:4px;line-height:1;">FGI</span>
+    </div>
+  </div>
   <div class="lock-sub">Faisal Goraya Industry</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="dot0"></div><div class="pin-dot" id="dot1"></div>
-    <div class="pin-dot" id="dot2"></div><div class="pin-dot" id="dot3"></div>
+
+  <!-- Normal PIN entry -->
+  <div id="pin-entry-ui">
+    <div class="pin-dots">
+      <div class="pin-dot" id="dot0"></div><div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div><div class="pin-dot" id="dot3"></div>
+    </div>
+    <div class="pin-mode-lbl" id="pin-mode-label">ENTER PIN</div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn" onclick="pinPress('C')" style="font-size:18px;">✕</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn" onclick="pinPress('DEL')" style="font-size:18px;">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="change-pin-link" onclick="startChangePin()">🔑 Change PIN</div>
+    <!-- CHANGE 2: Forgot PIN link -->
+    <div class="forgot-pin-link" onclick="showForgotPin()">🔓 PIN bhool gaye?</div>
   </div>
-  <div class="pin-mode-lbl" id="pin-mode-label">ENTER PIN</div>
-  <div class="pin-grid">
-    <button class="pin-btn" onclick="pinPress('1')">1</button>
-    <button class="pin-btn" onclick="pinPress('2')">2</button>
-    <button class="pin-btn" onclick="pinPress('3')">3</button>
-    <button class="pin-btn" onclick="pinPress('4')">4</button>
-    <button class="pin-btn" onclick="pinPress('5')">5</button>
-    <button class="pin-btn" onclick="pinPress('6')">6</button>
-    <button class="pin-btn" onclick="pinPress('7')">7</button>
-    <button class="pin-btn" onclick="pinPress('8')">8</button>
-    <button class="pin-btn" onclick="pinPress('9')">9</button>
-    <button class="pin-btn" onclick="pinPress('C')" style="font-size:18px;">✕</button>
-    <button class="pin-btn" onclick="pinPress('0')">0</button>
-    <button class="pin-btn" onclick="pinPress('DEL')" style="font-size:18px;">⌫</button>
+
+  <!-- CHANGE 2: Forgot PIN Section -->
+  <div id="forgot-pin-section">
+    <div class="fp-title">🔓 PIN Recovery</div>
+    <p style="color:#a8d8f0;font-size:11px;margin-bottom:10px;">Security question ka jawab dein:</p>
+    <select id="fp-question">
+      <option value="">-- Question choose karein --</option>
+      <option value="apki_company">Apki company ka naam? (FGI)</option>
+      <option value="apka_sheher">Apka sheher? (Ali Pur Chattha)</option>
+      <option value="apka_mobile">Apka mobile number? (last 4 digits)</option>
+    </select>
+    <input type="text" id="fp-answer" placeholder="Jawab likhein..." autocomplete="off">
+    <button class="fp-btn" onclick="verifyForgotPin()">✅ Verify karein</button>
+    <div id="fp-error" style="color:#ff8080;font-size:12px;min-height:16px;margin-top:6px;"></div>
+    <span class="fp-back" onclick="hideForgotPin()">← Wapas PIN screen</span>
   </div>
-  <div class="pin-error" id="pin-error"></div>
-  <div class="change-pin-link" onclick="startChangePin()">Change PIN</div>
+
+  <!-- CHANGE 3: Google Sign-In section -->
+  <div id="google-signin-section">
+    <div class="gs-or">── YA ──</div>
+    <button class="google-btn" onclick="googleSignInBtn()">
+      <img src="https://www.google.com/favicon.ico" alt="G">
+      Google se sign in karein
+    </button>
+    <div class="gs-note">Sirf pehli dafa setup ke waqt use karein</div>
+  </div>
 </div>
+<!-- Show Google option by default -->
+<script>
+  document.getElementById('google-signin-section').style.display='block';
+</script>
 
 <div class="toast" id="toast"></div>
 <div id="print-area"></div>
@@ -462,9 +505,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
       <span class="prevbal-popup-title">📋 Previous Invoice Balance</span>
       <button class="prevbal-popup-close" onclick="closePrevBalPopup()">✕</button>
     </div>
-    <div class="prevbal-popup-body" id="prevbal-popup-body">
-      <!-- dynamic content -->
-    </div>
+    <div class="prevbal-popup-body" id="prevbal-popup-body"></div>
     <div class="prevbal-popup-footer">
       <div class="prevbal-selected-total">
         <span>Selected Total:</span>
@@ -479,6 +520,11 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 <div class="nav" id="main-nav" style="display:none;">
   <button class="btn btn-gray btn-sm" id="nav-back-btn" onclick="navGoBack()" style="display:none;padding:6px 10px;">◀</button>
   <span class="nav-logo">⚡ FGI</span>
+  <!-- CHANGE 3: Google user badge in nav -->
+  <div id="nav-user-badge">
+    <img id="nav-user-pic" src="" alt="">
+    <span id="nav-user-name"></span>
+  </div>
   <button class="btn btn-gold" onclick="showView('new-invoice')">＋ New</button>
   <button class="btn btn-outline" onclick="showView('invoice-list')">☰ List</button>
   <button class="btn btn-purple btn-sm" onclick="showView('report')">📊</button>
@@ -489,12 +535,11 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 
 <!-- =================== NEW / EDIT INVOICE =================== -->
 <div class="view" id="view-new-invoice">
-  <!-- Edit mode banner (hidden by default) -->
   <div class="edit-banner" id="edit-banner" style="display:none;">
     <div class="edit-banner-icon">✏️</div>
     <div class="edit-banner-text">
       Editing Invoice: <span class="edit-banner-inv" id="edit-inv-no-label"></span>
-      <div style="font-size:11px;color:#aaa;margin-top:2px;">Changes will update the saved invoice</div>
+      <div style="font-size:11px;color:#a0d0e8;margin-top:2px;">Changes will update the saved invoice</div>
     </div>
     <button class="btn btn-gray btn-sm" onclick="cancelEdit()">✕ Cancel</button>
   </div>
@@ -588,8 +633,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 <!-- =================== INVOICE LIST =================== -->
 <div class="view" id="view-invoice-list">
   <div id="stats-strip" class="stats-strip"></div>
-  <div style="background:#1b2d42;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-    <span style="color:#aaa;font-size:11px;">&#128274; Data safe rakhne ke liye backup zaroor karo</span>
+  <div style="background:var(--navy2);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <span style="color:#a0d0e8;font-size:11px;">&#128274; Data safe rakhne ke liye backup zaroor karo</span>
     <button class="btn btn-green btn-sm" onclick="exportData()">&#128228; Backup</button>
   </div>
   <div class="card" style="padding:12px;">
@@ -655,7 +700,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
     <div class="card-title">⚙️ Settings</div>
     <div class="backup-card">
       <div class="backup-title">💾 Data Backup & Restore</div>
-      <div style="color:#ccc;font-size:12px;margin-bottom:10px;">Data alag jagah save karo taake file change karne pe bhi data safe rahe</div>
+      <div style="color:#a0d0e8;font-size:12px;margin-bottom:10px;">Data alag jagah save karo taake file change karne pe bhi data safe rahe</div>
       <div class="backup-row">
         <button class="btn btn-green btn-sm" onclick="exportData()" style="flex:1;justify-content:center;">📤 Export Data</button>
         <button class="btn btn-blue btn-sm" onclick="document.getElementById('import-file').click()" style="flex:1;justify-content:center;">📥 Import Data</button>
@@ -666,21 +711,34 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
       <div class="backup-title">🔐 PIN Settings</div>
       <button class="btn btn-gold btn-sm" onclick="startChangePin();document.getElementById('lock-screen').style.display='flex';" style="width:100%;justify-content:center;">Change PIN</button>
     </div>
+    <!-- CHANGE 3: Google Account in Settings -->
     <div class="backup-card">
-      <div class="backup-title">📱 Home Screen Install (Opera/Browser)</div>
-      <div style="color:#ccc;font-size:12px;line-height:1.7;">
+      <div class="backup-title">🔗 Google Account</div>
+      <div id="settings-google-status" style="color:#a0d0e8;font-size:12px;margin-bottom:10px;">Google account connect karo taake PIN recovery aur backup asaan ho.</div>
+      <div id="settings-google-connected" style="display:none;background:rgba(255,255,255,.08);border-radius:8px;padding:8px;margin-bottom:8px;display:none;align-items:center;gap:8px;">
+        <img id="settings-user-pic" src="" style="width:32px;height:32px;border-radius:50%;" alt="">
+        <div>
+          <div id="settings-user-name" style="color:#fff;font-size:13px;font-weight:700;"></div>
+          <div id="settings-user-email" style="color:#a0d0e8;font-size:11px;"></div>
+        </div>
+      </div>
+      <button class="google-btn" onclick="googleSignInBtn()" id="settings-google-btn" style="background:#fff;width:100%;justify-content:center;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;gap:8px;">
+        <img src="https://www.google.com/favicon.ico" style="width:18px;" alt="G"> Google se Connect karein
+      </button>
+      <button onclick="googleSignOut()" id="settings-google-signout" style="display:none;background:#c0392b;color:#fff;border:none;border-radius:8px;padding:10px;width:100%;margin-top:6px;font-size:13px;font-weight:700;cursor:pointer;">🚪 Sign Out</button>
+    </div>
+    <div class="backup-card">
+      <div class="backup-title">📱 Home Screen Install</div>
+      <div style="color:#a0d0e8;font-size:12px;line-height:1.7;">
         <b style="color:var(--gold);">Opera:</b> Menu (☰) → "Add to" → "Home screen"<br>
         <b style="color:var(--gold);">Samsung Internet:</b> Menu → "Add page to" → "Home screen"<br>
-        <b style="color:var(--gold);">Chrome:</b> 3 dots (⋮) → "Add to Home screen"<br>
-        <br>
-        <span style="color:#ffcc44;">⚠️ Data Problem Fix:</span> Hamesha same browser se kholo — Opera use karo toh Opera se hi kholo, Chrome se toh Chrome se.
+        <b style="color:var(--gold);">Chrome:</b> 3 dots (⋮) → "Add to Home screen"
       </div>
     </div>
     <div class="db-status" id="db-status">Loading...</div>
     <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12px;color:#856404;">
-      <b>⚠️ IP Change Warning:</b> Agar IP address badal jaye (ghar→karkhana) toh data na aaye.<br>
-      <b>Solution:</b> Hamesha pehle <b>Export Data</b> karo, phir naye IP pe <b>Import Data</b> karo.<br>
-      Ya KSWEB mein <b>fixed hostname</b> set karo.
+      <b>⚠️ IP Change Warning:</b> Agar IP address badal jaye toh data na aaye.<br>
+      <b>Solution:</b> Hamesha pehle <b>Export Data</b> karo, phir naye IP pe <b>Import Data</b> karo.
     </div>
   </div>
 </div>
@@ -692,14 +750,172 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 let db, curItems=[], advEntries=[], previewData=null, curPayInvId=null, currentLedgerData=null;
 let pinBuf='', pinMode='enter', newPinTmp='';
 let prevBalRef=null;
-let unpaidInvoicesList=[]; // stores [{inv_no, rem}] for multiple unpaid invoices
+let unpaidInvoicesList=[];
 let editMode=false, editInvId=null;
 const optState={less:false,add:false,advance:false,prev:false,notes:false};
 const PAY_ICONS={cash:'💵',online:'🌐',jazzcash:'📲',easypaisa:'💳',bank:'🏦'};
 
 // ============================================================
-//  FIX 3: PERSISTENT STORAGE — IndexedDB + localStorage fallback
-//  IndexedDB works regardless of content:// or file:// URL
+//  CHANGE 2: FORGOT PIN
+// ============================================================
+const FP_ANSWERS = {
+  apki_company: ['fgi','faisal goraya industry','faisal goraya','goraya'],
+  apka_sheher: ['ali pur chattha','alipur chattha','ali pur','alipur','chattha'],
+  apka_mobile: ['8007','058007','3338058007','03338058007']
+};
+
+function showForgotPin(){
+  document.getElementById('pin-entry-ui').style.display='none';
+  document.getElementById('forgot-pin-section').style.display='block';
+  document.getElementById('google-signin-section').style.display='none';
+}
+function hideForgotPin(){
+  document.getElementById('forgot-pin-section').style.display='none';
+  document.getElementById('pin-entry-ui').style.display='block';
+  document.getElementById('google-signin-section').style.display='block';
+  document.getElementById('fp-answer').value='';
+  document.getElementById('fp-question').value='';
+  document.getElementById('fp-error').textContent='';
+}
+function verifyForgotPin(){
+  var q = document.getElementById('fp-question').value;
+  var a = document.getElementById('fp-answer').value.trim().toLowerCase();
+  var errEl = document.getElementById('fp-error');
+  if(!q){errEl.textContent='⚠️ Pehle question choose karein!';return;}
+  if(!a){errEl.textContent='⚠️ Jawab likhein!';return;}
+  var validAnswers = FP_ANSWERS[q] || [];
+  if(validAnswers.some(function(v){return a===v||a.includes(v);})){
+    // Correct — allow PIN reset
+    errEl.style.color='#7dffbc';
+    errEl.textContent='✅ Sahi jawab! Naya PIN set karein:';
+    hideForgotPin();
+    setTimeout(function(){
+      document.getElementById('pin-mode-label').textContent='SET NEW PIN';
+      document.getElementById('pin-error').style.color='#2ecc71';
+      document.getElementById('pin-error').textContent='🔓 Security verified! Naya PIN set karein';
+      pinMode='set-new';pinBuf='';newPinTmp='';updDots();
+    },200);
+  } else {
+    errEl.style.color='#ff8080';
+    errEl.textContent='❌ Jawab galat hai. Dobara koshish karein.';
+  }
+}
+
+// ============================================================
+//  CHANGE 3: GOOGLE SIGN-IN
+// ============================================================
+var googleUser = null;
+
+function googleSignInBtn(){
+  // Use Google Identity Services popup
+  if(typeof google !== 'undefined' && google.accounts){
+    google.accounts.id.initialize({
+      client_id: '771476417685-p1lqcnnj7mtpk6nkgcp7kr5lhr0fjak1.apps.googleusercontent.com', // Replace with actual client ID
+      callback: handleGoogleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    google.accounts.id.prompt(function(notification){
+      if(notification.isNotDisplayed() || notification.isSkippedMoment()){
+        // Fallback: show one-tap or popup
+        google.accounts.id.renderButton(
+          document.createElement('div'),
+          {theme:'outline',size:'large'}
+        );
+        toast('⚠️ Google popup nahi khula — browser popup blocker check karein', 4000);
+      }
+    });
+  } else {
+    toast('⏳ Google library load ho rahi hai — thoda wait karein...', 3000);
+    // Retry after load
+    setTimeout(function(){
+      if(typeof google !== 'undefined'){
+        googleSignInBtn();
+      } else {
+        toast('❌ Google Sign-In load nahi hua. Internet check karein.', 4000);
+      }
+    }, 2000);
+  }
+}
+
+function handleGoogleCredential(response){
+  try {
+    // Decode JWT payload (base64)
+    var parts = response.credential.split('.');
+    var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+    googleUser = {name: payload.name, email: payload.email, picture: payload.picture};
+    localStorage.setItem('fgi_google_user', JSON.stringify(googleUser));
+    updateGoogleUI();
+    // Auto-unlock if Google user was previously registered
+    var savedEmail = localStorage.getItem('fgi_google_email');
+    if(!savedEmail){
+      // First time — save and unlock
+      localStorage.setItem('fgi_google_email', payload.email);
+      toast('✅ Google se connected: '+payload.name);
+    }
+    if(payload.email === localStorage.getItem('fgi_google_email')){
+      document.getElementById('lock-screen').style.display='none';
+      document.getElementById('main-nav').style.display='flex';
+      initDB();
+      toast('✅ Google se login: '+payload.name);
+    } else {
+      toast('❌ Yeh Google account registered nahi hai', 4000);
+    }
+  } catch(e){
+    toast('❌ Google login error: '+e.message);
+  }
+}
+
+function updateGoogleUI(){
+  var saved = localStorage.getItem('fgi_google_user');
+  if(!saved) return;
+  try {
+    var u = JSON.parse(saved);
+    googleUser = u;
+    // Nav badge
+    var badge = document.getElementById('nav-user-badge');
+    var pic = document.getElementById('nav-user-pic');
+    var name = document.getElementById('nav-user-name');
+    if(badge && u.picture){ pic.src=u.picture; name.textContent=u.name.split(' ')[0]; badge.style.display='flex'; }
+    // Settings
+    var sc = document.getElementById('settings-google-connected');
+    var sp = document.getElementById('settings-user-pic');
+    var sn = document.getElementById('settings-user-name');
+    var se = document.getElementById('settings-user-email');
+    var sb = document.getElementById('settings-google-btn');
+    var so = document.getElementById('settings-google-signout');
+    if(sc){ sc.style.display='flex'; if(sp) sp.src=u.picture||''; if(sn) sn.textContent=u.name; if(se) se.textContent=u.email; }
+    if(sb) sb.style.display='none';
+    if(so) so.style.display='block';
+    var ss = document.getElementById('settings-google-status');
+    if(ss) ss.textContent = '✅ '+u.name+' connected hai';
+  } catch(e){}
+}
+
+function googleSignOut(){
+  localStorage.removeItem('fgi_google_user');
+  localStorage.removeItem('fgi_google_email');
+  googleUser = null;
+  var badge = document.getElementById('nav-user-badge');
+  if(badge) badge.style.display='none';
+  var sc = document.getElementById('settings-google-connected');
+  if(sc) sc.style.display='none';
+  var sb = document.getElementById('settings-google-btn');
+  if(sb) sb.style.display='flex';
+  var so = document.getElementById('settings-google-signout');
+  if(so) so.style.display='none';
+  var ss = document.getElementById('settings-google-status');
+  if(ss) ss.textContent = 'Google account connect karo taake PIN recovery aur backup asaan ho.';
+  toast('👋 Google account disconnect ho gaya');
+}
+
+// On page load, restore Google user if saved
+window.addEventListener('load', function(){
+  updateGoogleUI();
+});
+
+// ============================================================
+//  PERSISTENT STORAGE — IndexedDB
 // ============================================================
 const IDB_NAME = 'FGI_InvoiceSystem';
 const IDB_STORE = 'appdata';
@@ -715,11 +931,7 @@ function idbSave(key, value) {
         tx.oncomplete = () => resolve(true);
         tx.onerror = () => resolve(false);
       };
-      req.onerror = () => {
-        // Fallback to localStorage
-        try { localStorage.setItem('fgi_idb_' + key, value); } catch(e2){}
-        resolve(false);
-      };
+      req.onerror = () => { try { localStorage.setItem('fgi_idb_' + key, value); } catch(e2){} resolve(false); };
     } catch(e) { resolve(false); }
   });
 }
@@ -733,23 +945,16 @@ function idbLoad(key) {
         const tx = e.target.result.transaction(IDB_STORE, 'readonly');
         const getReq = tx.objectStore(IDB_STORE).get(key);
         getReq.onsuccess = () => {
-          if (getReq.result !== undefined) {
-            resolve(getReq.result);
-          } else {
-            // Try localStorage fallback
-            resolve(localStorage.getItem('fgi_idb_' + key) || localStorage.getItem('fgi_' + key));
-          }
+          if (getReq.result !== undefined) { resolve(getReq.result); }
+          else { resolve(localStorage.getItem('fgi_idb_' + key) || localStorage.getItem('fgi_' + key)); }
         };
         getReq.onerror = () => resolve(localStorage.getItem('fgi_idb_' + key) || null);
       };
       req.onerror = () => resolve(localStorage.getItem('fgi_idb_' + key) || null);
-    } catch(e) {
-      resolve(localStorage.getItem('fgi_idb_' + key) || null);
-    }
+    } catch(e) { resolve(localStorage.getItem('fgi_idb_' + key) || null); }
   });
 }
 
-// PIN uses localStorage (small data, doesn't need IDB)
 function getPin(){return localStorage.getItem('fgi_pin')||'1234';}
 
 // ============================================================
@@ -794,23 +999,16 @@ function startChangePin(){pinMode='set-new';pinBuf='';newPinTmp='';document.getE
 function lockApp(){pinMode='enter';pinBuf='';document.getElementById('pin-mode-label').textContent='ENTER PIN';document.getElementById('pin-error').textContent='';updDots();document.getElementById('lock-screen').style.display='flex';document.getElementById('main-nav').style.display='none';hideAllViews();}
 
 // ============================================================
-//  DB  — using IndexedDB for storage (Fix 3)
+//  DB
 // ============================================================
 async function initDB(){
   if(db){setInvNo();setToday();showView('invoice-list');return;}
   const SQL=await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`});
-
-  // Load saved DB from IndexedDB (works with any URL/browser)
-  // Try multiple storage keys for cross-IP compatibility
   const saved = await idbLoad('db') || localStorage.getItem('fgi_db') || localStorage.getItem('fgi_db_backup') || sessionStorage.getItem('fgi_db');
   if(saved){
-    try {
-      const buf=Uint8Array.from(atob(saved),c=>c.charCodeAt(0));
-      db=new SQL.Database(buf);
-    } catch(e) { db=new SQL.Database(); }
-  } else {
-    db=new SQL.Database();
-  }
+    try { const buf=Uint8Array.from(atob(saved),c=>c.charCodeAt(0)); db=new SQL.Database(buf); }
+    catch(e) { db=new SQL.Database(); }
+  } else { db=new SQL.Database(); }
 
   db.run(`CREATE TABLE IF NOT EXISTS invoices(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -836,7 +1034,6 @@ async function sDB(){
   const d=db.export();
   const b64=btoa(String.fromCharCode(...d));
   await idbSave('db', b64);
-  // Save to ALL storage mechanisms for cross-IP access
   try { localStorage.setItem('fgi_db', b64); } catch(e){}
   try { localStorage.setItem('fgi_db_backup', b64); } catch(e){}
   try { sessionStorage.setItem('fgi_db', b64); } catch(e){}
@@ -853,7 +1050,6 @@ function getNextNo(){const r=db.exec("SELECT MAX(id) FROM invoices");return `FGI
 function setInvNo(){if(db)document.getElementById('inv-no').value=editMode?document.getElementById('inv-no').value:getNextNo();}
 function setToday(){if(!editMode)document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];}
 
-// payments helpers
 function getPayments(invId){
   const r=db.exec('SELECT id,method,amount,pay_date,note FROM payments WHERE invoice_id=? ORDER BY id ASC',[invId]);
   if(!r[0]) return [];
@@ -871,20 +1067,13 @@ function hideAllViews(){
 }
 var _navHistory=[];
 function navGoBack(){
-  if(_navHistory.length>1){
-    _navHistory.pop();
-    var prev=_navHistory[_navHistory.length-1];
-    _navHistory.pop();
-    showView(prev);
-  } else {
-    showView('invoice-list');
-  }
+  if(_navHistory.length>1){_navHistory.pop();var prev=_navHistory[_navHistory.length-1];_navHistory.pop();showView(prev);}
+  else{showView('invoice-list');}
 }
 function updateNavBack(name){
   var backBtn=document.getElementById('nav-back-btn');
   if(!backBtn) return;
-  var noBack=['invoice-list'];
-  backBtn.style.display=noBack.indexOf(name)===-1?'inline-flex':'none';
+  backBtn.style.display=['invoice-list'].indexOf(name)===-1?'inline-flex':'none';
 }
 function showView(name){
   closePdfOverlay();
@@ -909,14 +1098,12 @@ function toast(msg,ms=2500){const t=document.getElementById('toast');t.textConte
 // ============================================================
 function toggleOpt(k){
   if(k==='prev'){
-    // Agar OFF hai toh pehle popup dikhao
     if(!optState[k]){
       const custName=document.getElementById('cust-name').value.trim();
       if(!custName){toast('⚠️ Pehle customer name likhein!');return;}
       openPrevBalPopup(custName);
       return;
     }
-    // Agar ON hai toh OFF karo
     optState[k]=false;
     document.getElementById('toggle-prev').checked=false;
     document.getElementById('sw-prev').classList.remove('on');
@@ -978,7 +1165,6 @@ function editItemInline(i){
       <button class="del-btn" style="color:var(--green);font-size:18px;" onclick="saveItemEdit(${i})">✔</button>
       <button class="del-btn" onclick="renderItemsTable()">✕</button>
     </td>`;
-  // live total preview
   ['ei-qty-'+i,'ei-rate-'+i].forEach(id=>{
     document.getElementById(id).addEventListener('input',()=>{
       const q=parseFloat(document.getElementById('ei-qty-'+i).value)||0;
@@ -994,12 +1180,7 @@ function saveItemEdit(i){
   if(!desc){toast('⚠️ Description required!');return;}
   if(isNaN(qty)||qty<=0){toast('⚠️ Qty zaroori hai!');return;}
   if(isNaN(rate)||rate<=0){toast('⚠️ Price zaroori hai!');return;}
-  curItems[i]={
-    code:document.getElementById('ei-code-'+i).value.trim(),
-    desc,qty,rate,
-    total:qty*rate,
-    delDate:document.getElementById('ei-dd-'+i).value
-  };
+  curItems[i]={code:document.getElementById('ei-code-'+i).value.trim(),desc,qty,rate,total:qty*rate,delDate:document.getElementById('ei-dd-'+i).value};
   renderItemsTable();calcSummary();
   toast('✅ Item update ho gaya!');
 }
@@ -1019,48 +1200,29 @@ function renderItemsTable(){
 }
 
 // ============================================================
-//  FIX 1: EDIT INVOICE
+//  EDIT INVOICE
 // ============================================================
 function openEditInvoice(id){
   const inv=loadInvoice(id);
   if(!inv) return;
-  editMode=true;
-  editInvId=id;
-
-  // Show edit banner
+  editMode=true; editInvId=id;
   document.getElementById('edit-banner').style.display='flex';
   document.getElementById('edit-inv-no-label').textContent=inv.inv_no;
   document.getElementById('form-card-title').textContent='✏️ Edit Invoice';
   document.getElementById('save-btn').textContent='💾 Update Invoice';
   document.getElementById('save-btn').style.background='#2563eb';
-
-  // Fill form
   document.getElementById('inv-no').value=inv.inv_no;
   document.getElementById('inv-date').value=inv.inv_date;
   document.getElementById('cust-name').value=inv.cust_name;
   document.getElementById('cust-mobile').value=inv.cust_mobile||'';
   document.getElementById('cust-city').value=inv.cust_city||'';
-
-  // Items
   curItems=[...inv.items];
   renderItemsTable();
-
-  // Calculations
-  if(inv.less_val>0){
-    setOpt('less',true);
-    document.getElementById('less-val').value=inv.less_val;
-    document.getElementById('less-type').value=inv.less_type;
-  }
-  if(inv.add_val>0){
-    setOpt('add',true);
-    document.getElementById('add-val').value=inv.add_val;
-    document.getElementById('add-type').value=inv.add_type;
-  }
+  if(inv.less_val>0){setOpt('less',true);document.getElementById('less-val').value=inv.less_val;document.getElementById('less-type').value=inv.less_type;}
+  if(inv.add_val>0){setOpt('add',true);document.getElementById('add-val').value=inv.add_val;document.getElementById('add-type').value=inv.add_type;}
   if(inv.prev_bal>0){
     setOpt('prev',true);
     document.getElementById('prev-bal').value=inv.prev_bal;
-    // FIX 1 (v14): Restore prevBalRef and unpaidInvoicesList so that gold FGI# tag
-    // remains intact after edit+save. prev_bal_ref format: "FGI#14:5000+FGI#12:3000"
     prevBalRef = inv.prev_bal_ref || null;
     unpaidInvoicesList = [];
     if(inv.prev_bal_ref){
@@ -1069,23 +1231,17 @@ function openEditInvoice(id){
           var parts = ref.split(':');
           var label = (parts[0]||'').trim();
           if(!label) return;
-          // Query LIVE remaining from DB (do not trust stored amount)
           var rr = db.exec("SELECT id,grand_total FROM invoices WHERE inv_no='"+label+"' LIMIT 1");
           if(rr && rr[0] && rr[0].values.length){
-            var iid = rr[0].values[0][0];
-            var gt  = rr[0].values[0][1] || 0;
-            var paid = getTotalPaid(iid);
-            var liveRem = Math.max(0, gt - paid);
+            var iid = rr[0].values[0][0]; var gt = rr[0].values[0][1] || 0;
+            var paid = getTotalPaid(iid); var liveRem = Math.max(0, gt - paid);
             unpaidInvoicesList.push({inv_no:label, rem:liveRem});
           }
         });
-      }catch(e){ /* keep going — better to have raw ref than nothing */ }
+      }catch(e){}
     }
   }
-  if(inv.notes){
-    setOpt('notes',true);
-    document.getElementById('inv-notes').value=inv.notes;
-  }
+  if(inv.notes){setOpt('notes',true);document.getElementById('inv-notes').value=inv.notes;}
   calcSummary();
   showView('new-invoice');
   toast('✏️ Edit mode — make changes and save');
@@ -1132,43 +1288,35 @@ function calcSummary(){
   let adv=0,prev=0;
   if(optState.advance) adv=advEntries.reduce((s,e)=>s+(e.amount||0),0);
   if(optState.prev) prev=parseFloat(document.getElementById('prev-bal').value)||0;
-  // Grand Total = bal + prev (advance payment grand total se minus nahi, sirf remaining se minus hoga)
   const grand=bal+prev;
   document.getElementById('s-items').textContent='Rs. '+fn(iT);
   document.getElementById('s-balance').textContent='Rs. '+fn(bal);
   document.getElementById('s-grand').textContent='Rs. '+fn(grand);
   const sr=(rid,show,val,pre)=>{document.getElementById(rid).style.display=show&&val>0?'flex':'none';const el=document.getElementById(rid.replace('sr-','sv-'));if(el)el.textContent=pre+'Rs. '+fn(val);};
-  sr('sr-less',optState.less,lA,'− ');sr('sr-add',optState.add,aA,'+ ');
-  sr('sr-adv',optState.advance,adv,'− ');
-  // Render prev balance rows - multiple if multiple unpaid invoices
+  sr('sr-less',optState.less,lA,'− ');sr('sr-add',optState.add,aA,'+ ');sr('sr-adv',optState.advance,adv,'− ');
   const srCont=document.getElementById('sr-prev-container');
   if(srCont){
     if(optState.prev&&prev>0){
       if(unpaidInvoicesList&&unpaidInvoicesList.length>1){
         let rows='';
-        unpaidInvoicesList.forEach(function(u){
-          rows+='<div class="sum-row" style="display:flex;"><span class="sum-label" style="font-size:12px;"><span style="background:#c9a84c;color:#0d1b2a;padding:1px 5px;border-radius:3px;font-size:10px;margin-right:4px;">'+u.inv_no+'</span>Prev. Bal</span><span class="sum-val plus">+ Rs. '+fn(u.rem)+'</span></div>';
-        });
+        unpaidInvoicesList.forEach(function(u){rows+='<div class="sum-row" style="display:flex;"><span class="sum-label" style="font-size:12px;"><span style="background:var(--gold);color:var(--navy);padding:1px 5px;border-radius:3px;font-size:10px;margin-right:4px;">'+u.inv_no+'</span>Prev. Bal</span><span class="sum-val plus">+ Rs. '+fn(u.rem)+'</span></div>';});
         rows+='<div class="sum-row" style="display:flex;border-top:1px solid rgba(255,255,255,.2);"><span class="sum-label" style="font-weight:800;">Total Outstanding</span><span class="sum-val plus" style="font-weight:800;">+ Rs. '+fn(prev)+'</span></div>';
         srCont.innerHTML=rows;
       } else {
-        var sLabel=unpaidInvoicesList&&unpaidInvoicesList.length===1?'<span style="background:#c9a84c;color:#0d1b2a;padding:1px 5px;border-radius:3px;font-size:10px;margin-right:4px;">'+unpaidInvoicesList[0].inv_no+'</span>Prev. Bal':'Prev. Balance';
+        var sLabel=unpaidInvoicesList&&unpaidInvoicesList.length===1?'<span style="background:var(--gold);color:var(--navy);padding:1px 5px;border-radius:3px;font-size:10px;margin-right:4px;">'+unpaidInvoicesList[0].inv_no+'</span>Prev. Bal':'Prev. Balance';
         srCont.innerHTML='<div class="sum-row" style="display:flex;"><span class="sum-label">'+sLabel+'</span><span class="sum-val plus" style="color:#7dffbc;font-weight:800;">+ Rs. '+fn(prev)+'</span></div>';
       }
-    } else {
-      srCont.innerHTML='';
-    }
+    } else { srCont.innerHTML=''; }
   }
 }
 
 // ============================================================
-//  SAVE / UPDATE INVOICE
+//  SAVE / UPDATE
 // ============================================================
 async function saveInvoice(){
   const cn=document.getElementById('cust-name').value.trim();
   if(!cn){toast('⚠️ Customer name required!');return;}
   if(!curItems.length){toast('⚠️ Add at least one item!');return;}
-
   const iT=curItems.reduce((s,it)=>s+it.total,0);
   let lA=0,aA=0,adv=0,prev=0;
   const lv=parseFloat(document.getElementById('less-val').value)||0;
@@ -1179,24 +1327,15 @@ async function saveInvoice(){
   if(optState.add) aA=at==='percent'?iT*av/100:av;
   if(optState.advance) adv=advEntries.reduce((s,e)=>s+(e.amount||0),0);
   if(optState.prev) prev=parseFloat(document.getElementById('prev-bal').value)||0;
-  // Grand Total = items+prev (advance grand total se minus nahi, advance payment record ke zariye minus hoga)
   const grand=iT-lA+aA+prev;
   const itemsJson=JSON.stringify(curItems);
   const advJson=optState.advance?JSON.stringify(advEntries):'[]';
   const notes=document.getElementById('inv-notes').value.trim();
   const invDate=document.getElementById('inv-date').value;
-
   if(editMode && editInvId){
-    // UPDATE existing invoice
     const pRef2=optState.prev&&prevBalRef?prevBalRef:'';
-    db.run(`UPDATE invoices SET inv_date=?,cust_name=?,cust_mobile=?,cust_city=?,
-      items_json=?,less_val=?,less_type=?,add_val=?,add_type=?,advance_json=?,
-      prev_bal=?,prev_bal_ref=?,notes=?,items_total=?,grand_total=? WHERE id=?`,
-      [invDate,cn,
-       document.getElementById('cust-mobile').value.trim(),
-       document.getElementById('cust-city').value.trim(),
-       itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,
-       advJson,optState.prev?prev:0,pRef2,notes,iT,grand,editInvId]);
+    db.run(`UPDATE invoices SET inv_date=?,cust_name=?,cust_mobile=?,cust_city=?,items_json=?,less_val=?,less_type=?,add_val=?,add_type=?,advance_json=?,prev_bal=?,prev_bal_ref=?,notes=?,items_total=?,grand_total=? WHERE id=?`,
+      [invDate,cn,document.getElementById('cust-mobile').value.trim(),document.getElementById('cust-city').value.trim(),itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef2,notes,iT,grand,editInvId]);
     await sDB();
     toast('✅ Invoice updated: '+document.getElementById('inv-no').value);
     editMode=false; editInvId=null;
@@ -1206,24 +1345,16 @@ async function saveInvoice(){
     document.getElementById('save-btn').style.background='';
     showView('invoice-list');
   } else {
-    // NEW invoice
     const invNo=getNextNo();
     const pRef=optState.prev&&prevBalRef?prevBalRef:'';
     const stmt=db.prepare(`INSERT INTO invoices(inv_no,inv_date,cust_name,cust_mobile,cust_city,items_json,less_val,less_type,add_val,add_type,advance_json,prev_bal,prev_bal_ref,notes,items_total,grand_total,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
-    stmt.run([invNo,invDate,cn,
-      document.getElementById('cust-mobile').value.trim(),
-      document.getElementById('cust-city').value.trim(),
-      itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,
-      advJson,optState.prev?prev:0,pRef,notes,iT,grand,new Date().toISOString()]);
+    stmt.run([invNo,invDate,cn,document.getElementById('cust-mobile').value.trim(),document.getElementById('cust-city').value.trim(),itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef,notes,iT,grand,new Date().toISOString()]);
     stmt.free();
-
-    // Save advance payments as payment records too
     if(optState.advance && advEntries.length>0){
       const invId=db.exec("SELECT last_insert_rowid()")[0].values[0][0];
       const today=new Date().toISOString().split('T')[0];
       advEntries.filter(e=>e.amount>0).forEach(e=>{
-        db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at) VALUES(?,?,?,?,?,?)',
-          [invId,e.type,e.amount,today,'Advance (at creation)',new Date().toISOString()]);
+        db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at) VALUES(?,?,?,?,?,?)',[invId,e.type,e.amount,today,'Advance (at creation)',new Date().toISOString()]);
       });
     }
     await sDB();
@@ -1342,11 +1473,9 @@ async function addPayment(){
   const method=document.getElementById('pay-method').value;
   const date=document.getElementById('pay-date').value;
   const note=document.getElementById('pay-note').value.trim();
-  db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at) VALUES(?,?,?,?,?,?)',
-    [curPayInvId,method,amt,date,note,new Date().toISOString()]);
+  db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at) VALUES(?,?,?,?,?,?)',[curPayInvId,method,amt,date,note,new Date().toISOString()]);
   await sDB();
-  document.getElementById('pay-amount').value='';
-  document.getElementById('pay-note').value='';
+  document.getElementById('pay-amount').value='';document.getElementById('pay-note').value='';
   renderPayHeader(curPayInvId);renderPayHistory(curPayInvId);renderList();
   toast('✅ Payment: Rs. '+fn(amt));
 }
@@ -1367,30 +1496,20 @@ function loadInvoice(id){
   inv.advances=JSON.parse(inv.advance_json||'[]');
   inv.payments=getPayments(id);
   inv.totalPaid=getTotalPaid(id);
-  // Grand total recalculate from items (advance grand se minus nahi hota — sirf remaining se)
   var iCalc=inv.items_total||inv.items.reduce(function(s,it){return s+(it.total||0);},0);
   var lCalc=inv.less_val>0?(inv.less_type==='percent'?iCalc*inv.less_val/100:inv.less_val):0;
   var aCalc=inv.add_val>0?(inv.add_type==='percent'?iCalc*inv.add_val/100:inv.add_val):0;
-  // Live prev_bal calculate karo — agar ref invoices hain toh unka actual remaining use karo
   var livePrev=0;
   if(inv.prev_bal>0&&inv.prev_bal_ref&&db){
     var refs=inv.prev_bal_ref.split('+');
     refs.forEach(function(ref){
-      var label=ref.split(':')[0].trim();
-      if(!label) return;
+      var label=ref.split(':')[0].trim();if(!label)return;
       try{
         var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");
-        if(rr&&rr[0]&&rr[0].values.length){
-          var iid=rr[0].values[0][0];
-          var igt=rr[0].values[0][1]||0;
-          var ipaid=getTotalPaid(iid);
-          livePrev+=Math.max(0,igt-ipaid);
-        }
+        if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];var igt=rr[0].values[0][1]||0;var ipaid=getTotalPaid(iid);livePrev+=Math.max(0,igt-ipaid);}
       }catch(e){}
     });
-  } else {
-    livePrev=inv.prev_bal||0;
-  }
+  } else { livePrev=inv.prev_bal||0; }
   inv.grand_total=iCalc-lCalc+aCalc+livePrev;
   inv.remaining=inv.grand_total-inv.totalPaid;
   return inv;
@@ -1400,7 +1519,7 @@ function loadInvoice(id){
 //  PREVIEW
 // ============================================================
 function openPreview(id){previewData=loadInvoice(id);if(!previewData)return;document.getElementById('preview-container').innerHTML=buildPrintHTML(previewData);showView('print');}
-function quickPrint(id){previewData=loadInvoice(id);if(previewData)doPrint();}
+function quickPrint(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
 function quickPDF(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
 
 // ============================================================
@@ -1411,15 +1530,11 @@ function buildPrintHTML(inv){
   let lA=inv.less_val>0?(inv.less_type==='percent'?iT*inv.less_val/100:inv.less_val):0;
   let aA=inv.add_val>0?(inv.add_type==='percent'?iT*inv.add_val/100:inv.add_val):0;
   const bal=iT-lA+aA;
-  // Grand total: prev_bal_ref wale invoices ka LIVE remaining use karo (stored nahi)
   let livePrevPrint=0;
   if(inv.prev_bal>0&&inv.prev_bal_ref&&db){
     inv.prev_bal_ref.split('+').forEach(function(ref){
       var label=ref.split(':')[0].trim();if(!label)return;
-      try{
-        var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");
-        if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrevPrint+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}
-      }catch(e){}
+      try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrevPrint+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}}catch(e){}
     });
   } else { livePrevPrint=inv.prev_bal||0; }
   const grand=bal+livePrevPrint;
@@ -1438,32 +1553,15 @@ function buildPrintHTML(inv){
     (function(){
       if(!inv.prev_bal||inv.prev_bal<=0) return '';
       if(!inv.prev_bal_ref) return '<div class="ip-sum-row plus"><span>Previous Balance</span><span>+ Rs. '+fn(inv.prev_bal)+'</span></div>';
-      // Parse refs — always query DB live for ACTUAL remaining (payments ke baad)
-      var refs=inv.prev_bal_ref.split('+');
-      var rows='';
-      var liveTotal=0;
+      var refs=inv.prev_bal_ref.split('+');var rows='';var liveTotal=0;
       refs.forEach(function(ref){
-        var label=ref.split(':')[0].trim();
-        if(!label) return;
-        // ALWAYS get live remaining from DB — never use stored amount
+        var label=ref.split(':')[0].trim();if(!label)return;
         var liveRem=0;
-        if(db){
-          try{
-            var r=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");
-            if(r&&r[0]&&r[0].values.length){
-              var iid=r[0].values[0][0];
-              var igt=r[0].values[0][1]||0;
-              var ipaid=getTotalPaid(iid);
-              liveRem=Math.max(0,igt-ipaid);
-            }
-          }catch(e){}
-        }
+        if(db){try{var r=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(r&&r[0]&&r[0].values.length){var iid=r[0].values[0][0];var igt=r[0].values[0][1]||0;var ipaid=getTotalPaid(iid);liveRem=Math.max(0,igt-ipaid);}}catch(e){}}
         liveTotal+=liveRem;
-        rows+='<div class="ip-sum-row plus"><span>Prev. Bal <span style="background:#c9a84c;color:#0d1b2a;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:800;">'+label+'</span></span><span style="font-weight:700;color:#1a6630;">'+(liveRem>0?'+ Rs. '+fn(liveRem):'✅ Clear')+'</span></div>';
+        rows+='<div class="ip-sum-row plus"><span>Prev. Bal <span style="background:#FFD700;color:#0a4a6e;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:800;">'+label+'</span></span><span style="font-weight:700;color:#1a6630;">'+(liveRem>0?'+ Rs. '+fn(liveRem):'✅ Clear')+'</span></div>';
       });
-      if(refs.length>1){
-        rows+='<div class="ip-sum-row plus" style="font-weight:800;border-top:1px solid #c9a84c66;padding-top:4px;margin-top:2px;"><span>Total Outstanding</span><span style="color:#1a6630;font-weight:800;">+ Rs. '+fn(liveTotal)+'</span></div>';
-      }
+      if(refs.length>1){rows+='<div class="ip-sum-row plus" style="font-weight:800;border-top:1px solid #FFD70066;padding-top:4px;margin-top:2px;"><span>Total Outstanding</span><span style="color:#1a6630;font-weight:800;">+ Rs. '+fn(liveTotal)+'</span></div>';}
       return rows;
     })(),
   ].filter(Boolean).join('');
@@ -1500,212 +1598,130 @@ function buildPrintHTML(inv){
 }
 
 // ============================================================
-//  PDF ENGINE — jsPDF direct (no browser print dialog)
+//  PDF ENGINE
 // ============================================================
-function closePdfOverlay(){} // kept for compatibility
+function closePdfOverlay(){}
 
 function _makePDF(inv){
-  // inv = loadInvoice() result
   var {jsPDF}=window.jspdf;
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  var W=210, margin=10, y=margin, lineH=5;
-  var col1=margin, colW=W-margin*2;
-
-  // ── HEADER BAR ──
-  doc.setFillColor(13,27,42);
-  doc.rect(0,0,W,28,'F');
-  doc.setFontSize(16);doc.setFont('helvetica','bold');
-  doc.setTextColor(201,168,76);
+  var W=210,margin=10,y=margin;
+  // Header
+  doc.setFillColor(10,74,110);doc.rect(0,0,W,28,'F');
+  doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(255,215,0);
   doc.text('Faisal Goraya Industry',margin,11);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.setTextColor(170,170,170);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);
   doc.text('Mob: 03338058007  |  Ali Pur Chattha',margin,17);
-
-  // inv no badge (right)
-  doc.setFillColor(201,168,76);
-  doc.roundedRect(W-50,4,40,10,2,2,'F');
-  doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.setTextColor(13,27,42);
+  doc.setFillColor(255,215,0);doc.roundedRect(W-50,4,40,10,2,2,'F');
+  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);
   doc.text(inv.inv_no,W-30,11,{align:'center'});
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.setTextColor(187,187,187);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);
   doc.text('Date: '+inv.inv_date,W-30,18,{align:'center'});
-
   y=30;
-
-  // ── CUSTOMER BAR ──
-  doc.setFillColor(27,45,66);
-  doc.rect(0,y,W,14,'F');
+  // Customer
+  doc.setFillColor(13,92,138);doc.rect(0,y,W,14,'F');
   doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
   doc.text(inv.cust_name,margin,y+6);
-  if(inv.cust_mobile){doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(187,187,187);doc.text('Ph: '+inv.cust_mobile,margin,y+11);}
-  if(inv.cust_city){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(187,187,187);doc.text(inv.cust_city,W-margin,y+9,{align:'right'});}
+  if(inv.cust_mobile){doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);doc.text('Ph: '+inv.cust_mobile,margin,y+11);}
+  if(inv.cust_city){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);doc.text(inv.cust_city,W-margin,y+9,{align:'right'});}
   y+=18;
-
-  // ── ITEMS TABLE ──
+  // Items Table
   var hasCode=inv.items.some(function(it){return it.code;});
   var hasDD=inv.items.some(function(it){return it.delDate;});
-  var cols=['#','Description'];
-  var colWidths=[8,hasCode?(hasDD?50:60):(hasDD?60:70)];
+  var cols=['#','Description'];var colWidths=[8,hasCode?(hasDD?50:60):(hasDD?60:70)];
   if(hasCode){cols.splice(1,0,'Code');colWidths.splice(1,0,22);}
   if(hasDD){cols.push('Del.Date');colWidths.push(20);}
-  cols.push('Qty','Rate','Total');
-  colWidths.push(10,22,22);
-
+  cols.push('Qty','Rate','Total');colWidths.push(10,22,22);
   var tableBody=inv.items.map(function(it,i){
-    var row=[String(i+1)];
-    if(hasCode) row.push(it.code||'');
-    row.push(it.desc);
-    if(hasDD) row.push(it.delDate||'');
-    row.push(String(it.qty),fn(it.rate),fn(it.total));
-    return row;
+    var row=[String(i+1)];if(hasCode)row.push(it.code||'');row.push(it.desc);
+    if(hasDD)row.push(it.delDate||'');row.push(String(it.qty),fn(it.rate),fn(it.total));return row;
   });
-
   doc.autoTable({
-    startY:y,
-    head:[cols],
-    body:tableBody,
-    margin:{left:margin,right:margin},
+    startY:y,head:[cols],body:tableBody,margin:{left:margin,right:margin},
     styles:{fontSize:9,cellPadding:2.5,overflow:'linebreak'},
-    headStyles:{fillColor:[13,27,42],textColor:[201,168,76],fontStyle:'bold',fontSize:8.5},
-    alternateRowStyles:{fillColor:[248,249,252]},
+    headStyles:{fillColor:[10,74,110],textColor:[255,215,0],fontStyle:'bold',fontSize:8.5},
+    alternateRowStyles:{fillColor:[240,248,255]},
     columnStyles:(function(){
-      var cs={};
-      cs[0]={halign:'center',cellWidth:colWidths[0]};
-      var ci=1;
+      var cs={};cs[0]={halign:'center',cellWidth:colWidths[0]};var ci=1;
       if(hasCode){cs[ci]={halign:'center',cellWidth:colWidths[ci]};ci++;}
       cs[ci]={halign:'left',cellWidth:colWidths[ci]};ci++;
       if(hasDD){cs[ci]={halign:'center',cellWidth:colWidths[ci]};ci++;}
       cs[ci]={halign:'center',cellWidth:colWidths[ci]};ci++;
       cs[ci]={halign:'right',cellWidth:colWidths[ci]};ci++;
-      cs[ci]={halign:'right',fontStyle:'bold',cellWidth:colWidths[ci]};
-      return cs;
-    })(),
-    theme:'grid'
+      cs[ci]={halign:'right',fontStyle:'bold',cellWidth:colWidths[ci]};return cs;
+    })(),theme:'grid'
   });
-
   y=doc.lastAutoTable.finalY+4;
-
-  // ── SUMMARY BOX ──
+  // Summary
   var iT=inv.items_total||0;
   var lA=inv.less_val>0?(inv.less_type==='percent'?iT*inv.less_val/100:inv.less_val):0;
   var aA=inv.add_val>0?(inv.add_type==='percent'?iT*inv.add_val/100:inv.add_val):0;
   var bal=iT-lA+aA;
-
-  // prev bal live
   var livePrev=0;
   if(inv.prev_bal>0&&inv.prev_bal_ref&&db){
     inv.prev_bal_ref.split('+').forEach(function(ref){
       var label=ref.split(':')[0].trim();if(!label)return;
-      try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");
-        if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrev+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}}catch(e){}
+      try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrev+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}}catch(e){}
     });
   } else { livePrev=inv.prev_bal||0; }
-
   var grand=bal+livePrev;
-  var totalPaidAmt=inv.totalPaid||0;
-  var rem=Math.max(0,grand-totalPaidAmt);
-
-  // summary rows
-  var sumData=[];
-  sumData.push(['Items Total','Rs. '+fn(iT)]);
-  if(lA>0) sumData.push(['Less'+(inv.less_type==='percent'?' ('+inv.less_val+'%)':''),'- Rs. '+fn(lA)]);
-  if(aA>0) sumData.push(['Addition'+(inv.add_type==='percent'?' ('+inv.add_val+'%)':''),'+ Rs. '+fn(aA)]);
-  if(bal!==iT) sumData.push(['Balance','Rs. '+fn(bal)]);
-  if(livePrev>0) sumData.push(['Previous Balance','+ Rs. '+fn(livePrev)]);
-
+  var totalPaidAmt=inv.totalPaid||0;var rem=Math.max(0,grand-totalPaidAmt);
+  var sumData=[['Items Total','Rs. '+fn(iT)]];
+  if(lA>0)sumData.push(['Less'+(inv.less_type==='percent'?' ('+inv.less_val+'%)':''),'- Rs. '+fn(lA)]);
+  if(aA>0)sumData.push(['Addition'+(inv.add_type==='percent'?' ('+inv.add_val+'%)':''),'+ Rs. '+fn(aA)]);
+  if(bal!==iT)sumData.push(['Balance','Rs. '+fn(bal)]);
+  if(livePrev>0)sumData.push(['Previous Balance','+ Rs. '+fn(livePrev)]);
   var summaryX=W/2+10;
-  var summaryW=W/2-margin-10+margin;
   doc.autoTable({
-    startY:y,
-    body:sumData,
-    margin:{left:summaryX,right:margin},
-    styles:{fontSize:9,cellPadding:2},
-    bodyStyles:{fillColor:[248,249,252]},
-    theme:'plain',
-    columnStyles:{0:{fontStyle:'normal',textColor:[80,90,110]},1:{halign:'right',fontStyle:'bold',textColor:[13,27,42]}},
+    startY:y,body:sumData,margin:{left:summaryX,right:margin},
+    styles:{fontSize:9,cellPadding:2},bodyStyles:{fillColor:[240,248,252]},theme:'plain',
+    columnStyles:{0:{fontStyle:'normal',textColor:[80,90,110]},1:{halign:'right',fontStyle:'bold',textColor:[10,74,110]}}
   });
   y=doc.lastAutoTable.finalY+1;
-
-  // GRAND TOTAL bar
-  doc.setFillColor(13,27,42);
-  doc.rect(margin,y,colW,10,'F');
-  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(201,168,76);
+  doc.setFillColor(10,74,110);doc.rect(margin,y,W-margin*2,10,'F');
+  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(255,215,0);
   doc.text('GRAND TOTAL',margin+4,y+6.5);
   doc.setFontSize(13);doc.setTextColor(255,255,255);
   doc.text('Rs. '+fn(grand),W-margin-2,y+6.5,{align:'right'});
   y+=13;
-
-  // ── PAYMENTS ──
   var pays=inv.payments||[];
   if(pays.length){
-    doc.setFontSize(9);doc.setFont('helvetica','bold');
-    doc.setDrawColor(201,168,76);doc.setLineWidth(0.5);
-    doc.line(margin,y,W-margin,y);
-    y+=3;
-    doc.setTextColor(13,27,42);
-    doc.text('PAYMENT HISTORY',margin,y+3);
-    y+=6;
-    var payBody=pays.map(function(p){
-      return [p.date||'',p.method+(p.note?' - '+p.note:''),'- Rs. '+fn(p.amount)];
-    });
+    doc.setDrawColor(255,215,0);doc.setLineWidth(0.5);doc.line(margin,y,W-margin,y);y+=3;
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);
+    doc.text('PAYMENT HISTORY',margin,y+3);y+=6;
     doc.autoTable({
-      startY:y,
-      head:[['Date','Method / Note','Amount']],
-      body:payBody,
-      margin:{left:margin,right:margin},
-      styles:{fontSize:8.5,cellPadding:2},
+      startY:y,head:[['Date','Method / Note','Amount']],
+      body:pays.map(function(p){return[p.date||'',p.method+(p.note?' - '+p.note:''),'- Rs. '+fn(p.amount)];}),
+      margin:{left:margin,right:margin},styles:{fontSize:8.5,cellPadding:2},
       headStyles:{fillColor:[26,74,53],textColor:[255,255,255],fontSize:8},
-      theme:'striped',
-      columnStyles:{2:{halign:'right',fontStyle:'bold',textColor:[26,127,90]}}
+      theme:'striped',columnStyles:{2:{halign:'right',fontStyle:'bold',textColor:[26,127,90]}}
     });
     y=doc.lastAutoTable.finalY+2;
-
-    // Remaining balance bar
     doc.setFillColor(rem<=0?26:200,rem<=0?74:58,rem<=0?53:35);
-    doc.rect(margin,y,colW,10,'F');
+    doc.rect(margin,y,W-margin*2,10,'F');
     doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(200,200,200);
     doc.text('REMAINING BALANCE',margin+3,y+6.5);
     doc.setFontSize(12);doc.setTextColor(rem<=0?125:255,rem<=0?255:200,rem<=0?188:100);
     doc.text(rem<=0?'FULLY PAID':'Rs. '+fn(rem),W-margin-2,y+6.5,{align:'right'});
     y+=13;
   }
-
-  // ── NOTES ──
-  if(inv.notes){
-    doc.setFontSize(8.5);doc.setFont('helvetica','italic');doc.setTextColor(100,90,60);
-    doc.text('Note: '+inv.notes,margin,y+4);
-    y+=8;
-  }
-
-  // ── BANK DETAILS ──
+  if(inv.notes){doc.setFontSize(8.5);doc.setFont('helvetica','italic');doc.setTextColor(100,90,60);doc.text('Note: '+inv.notes,margin,y+4);y+=8;}
   if(y>250){doc.addPage();y=10;}
-  doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);
-  doc.line(margin,y,W-margin,y);y+=3;
-  doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(13,27,42);
+  doc.setDrawColor(200,220,230);doc.setLineWidth(0.3);doc.line(margin,y,W-margin,y);y+=3;
+  doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);
   doc.text('PAYMENT DETAILS',margin,y+3);y+=6;
-  var bankW=(colW-8)/3;
-  var banks=[
-    {name:'Meezan Bank',detail:'Qaisar Naeem\nA/C: 98650103586783\nIBAN: PK59MEZN...6783'},
-    {name:'JazzCash',detail:'Qaisar Naeem\n03008648624'},
-    {name:'EasyPaisa',detail:'Qaisar Naeem\n03338058007'}
-  ];
-  banks.forEach(function(b,i){
+  var bankW=(W-margin*2-8)/3;
+  [{name:'Meezan Bank',detail:'Qaisar Naeem\nA/C: 98650103586783\nIBAN: PK59MEZN...6783'},{name:'JazzCash',detail:'Qaisar Naeem\n03008648624'},{name:'EasyPaisa',detail:'Qaisar Naeem\n03338058007'}].forEach(function(b,i){
     var bx=margin+i*(bankW+4);
-    doc.setFillColor(244,246,249);doc.roundedRect(bx,y,bankW,16,1,1,'F');
-    doc.setDrawColor(201,168,76);doc.setLineWidth(0.5);doc.line(bx,y,bx+bankW,y);
-    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(13,27,42);
-    doc.text(b.name,bx+2,y+4);
+    doc.setFillColor(240,248,252);doc.roundedRect(bx,y,bankW,16,1,1,'F');
+    doc.setDrawColor(255,215,0);doc.setLineWidth(0.5);doc.line(bx,y,bx+bankW,y);
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);doc.text(b.name,bx+2,y+4);
     doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
-    var lines=b.detail.split('\n');
-    lines.forEach(function(l,li){doc.text(l,bx+2,y+8+li*3.5);});
+    b.detail.split('\n').forEach(function(l,li){doc.text(l,bx+2,y+8+li*3.5);});
   });
   y+=20;
-
-  // ── FOOTER ──
-  doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(170,170,170);
+  doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(120,150,170);
   doc.text('FGI Invoice System  •  '+inv.inv_no+'  •  '+inv.inv_date,W/2,y+3,{align:'center'});
-
   return doc;
 }
 
@@ -1715,42 +1731,21 @@ function doDownloadPDF(){
   try{
     var doc=_makePDF(previewData);
     var fname=(previewData.inv_no||'FGI')+'_'+(previewData.cust_name||'invoice').replace(/\s+/g,'_')+'.pdf';
-    doc.save(fname);
-    toast('✅ PDF saved: '+fname);
+    doc.save(fname);toast('✅ PDF saved: '+fname);
   }catch(e){toast('❌ PDF error: '+e.message);}
 }
-
-function doPrint(){
-  // On mobile jsPDF download is more reliable than window.print
-  doDownloadPDF();
-}
-
-function quickPDF(id){
-  var inv=loadInvoice(id);
-  if(!inv){toast('❌ Invoice nahi mili');return;}
-  previewData=inv;
-  toast('📄 PDF ban rahi hai...',3000);
-  try{
-    var doc=_makePDF(inv);
-    var fname=(inv.inv_no||'FGI')+'_'+(inv.cust_name||'invoice').replace(/\s+/g,'_')+'.pdf';
-    doc.save(fname);
-    toast('✅ '+fname+' saved!');
-  }catch(e){toast('❌ PDF error: '+e.message);}
-}
-
-function quickPrint(id){quickPDF(id);}
-
+function doPrint(){doDownloadPDF();}
+function quickPrint(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
 function doPrintOverlay(){doDownloadPDF();}
 
 // ============================================================
-//  BACKUP & RESTORE (Fix 3 extra safety)
+//  BACKUP & RESTORE
 // ============================================================
 function exportData(){
   const invRes=db.exec("SELECT * FROM invoices");
   const payRes=db.exec("SELECT * FROM payments");
   const data={
-    version:4,
-    exported:new Date().toISOString(),
+    version:4,exported:new Date().toISOString(),
     invoices:invRes[0]?invRes[0].values.map(v=>{const o={};invRes[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[],
     payments:payRes[0]?payRes[0].values.map(v=>{const o={};payRes[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[],
   };
@@ -1763,7 +1758,7 @@ function exportData(){
 async function importData(input){
   const file=input.files[0];if(!file)return;
   const text=await file.text();
-  try {
+  try{
     const data=JSON.parse(text);
     if(!data.invoices){toast('❌ Invalid backup file!');return;}
     if(!confirm(`Import ${data.invoices.length} invoices? This will REPLACE all current data!`)) return;
@@ -1779,7 +1774,7 @@ async function importData(input){
         [p.id,p.invoice_id,p.method,p.amount,p.pay_date,p.note,p.created_at]);
     });
     await sDB();renderList();toast(`✅ Imported ${data.invoices.length} invoices!`);
-  } catch(e){toast('❌ Import failed: '+e.message);}
+  }catch(e){toast('❌ Import failed: '+e.message);}
   input.value='';
 }
 
@@ -1819,51 +1814,31 @@ function fn(n){return(parseFloat(n)||0).toLocaleString('en-PK',{minimumFractionD
   Object.assign(bar.style,{display:'none',position:'fixed',top:'54px',left:'0',right:'0',zIndex:'300',background:'#c0392b',color:'#fff',textAlign:'center',padding:'7px 12px',fontSize:'12px',fontWeight:'700'});
   bar.textContent='📵 Offline — Data safe, PDF/Print work';
   document.body.appendChild(bar);
-  function upd(){bar.style.display=navigator.onLine?'none':'block';const nav=document.getElementById('main-nav');if(nav)nav.style.top=navigator.onLine?'0':'34px';}
+  function upd(){bar.style.display=navigator.onLine?'none':'block';}
   window.addEventListener('online',upd);window.addEventListener('offline',upd);upd();
 })();
 
 // ============================================================
 //  PREV BAL POPUP
 // ============================================================
-var _prevPopupSelections={}; // {inv_no: rem_amount}
+var _prevPopupSelections={};
 
 function openPrevBalPopup(custName){
   if(!db){toast('⚠️ DB load nahi hua');return;}
   var res;
-  try{
-    res=db.exec("SELECT i.id,i.inv_no,i.inv_date,i.grand_total,COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id=i.id),0) as paid FROM invoices i WHERE LOWER(i.cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY i.id ASC");
-  }catch(e){toast('❌ Error: '+e.message);return;}
-  
+  try{res=db.exec("SELECT i.id,i.inv_no,i.inv_date,i.grand_total,COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id=i.id),0) as paid FROM invoices i WHERE LOWER(i.cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY i.id ASC");}
+  catch(e){toast('❌ Error: '+e.message);return;}
   var unpaidList=[];
-  if(res&&res[0]){
-    res[0].values.forEach(function(v){
-      var rem=v[3]-v[4];
-      if(rem>0) unpaidList.push({id:v[0],inv_no:v[1],inv_date:v[2],grand:v[3],rem:rem});
-    });
-  }
-  
-  if(!unpaidList.length){
-    toast('✅ '+custName+' ka koi outstanding balance nahi');
-    return;
-  }
-  
+  if(res&&res[0]){res[0].values.forEach(function(v){var rem=v[3]-v[4];if(rem>0)unpaidList.push({id:v[0],inv_no:v[1],inv_date:v[2],grand:v[3],rem:rem});});}
+  if(!unpaidList.length){toast('✅ '+custName+' ka koi outstanding balance nahi');return;}
   _prevPopupSelections={};
   var html='';
   unpaidList.forEach(function(u){
     html+='<div class="prevbal-inv-item" id="pbi-'+u.inv_no.replace('#','')+'" onclick="togglePrevBalItem(\''+u.inv_no+'\','+u.rem+')">';
-    html+='<div class="prevbal-inv-left">';
-    html+='<div class="prevbal-inv-check" id="pbc-'+u.inv_no.replace('#','')+'">&nbsp;</div>';
-    html+='<div>';
-    html+='<span class="prevbal-inv-no">'+u.inv_no+'</span>';
-    html+='<div class="prevbal-inv-date">📅 '+u.inv_date+'</div>';
-    html+='</div></div>';
-    html+='<div style="text-align:right;">';
-    html+='<div class="prevbal-inv-amount">Rs. '+fn(u.rem)+'</div>';
-    html+='<div class="prevbal-inv-label">Remaining</div>';
-    html+='</div></div>';
+    html+='<div class="prevbal-inv-left"><div class="prevbal-inv-check" id="pbc-'+u.inv_no.replace('#','')+'">&nbsp;</div>';
+    html+='<div><span class="prevbal-inv-no">'+u.inv_no+'</span><div class="prevbal-inv-date">📅 '+u.inv_date+'</div></div></div>';
+    html+='<div style="text-align:right;"><div class="prevbal-inv-amount">Rs. '+fn(u.rem)+'</div><div class="prevbal-inv-label">Remaining</div></div></div>';
   });
-  
   document.getElementById('prevbal-popup-body').innerHTML=html;
   document.getElementById('prevbal-selected-total-val').textContent='Rs. 0';
   document.getElementById('prevbal-add-btn').disabled=true;
@@ -1872,64 +1847,45 @@ function openPrevBalPopup(custName){
 
 function togglePrevBalItem(invNo,rem){
   var key=invNo.replace('#','');
-  var itemEl=document.getElementById('pbi-'+key);
-  var checkEl=document.getElementById('pbc-'+key);
-  if(_prevPopupSelections[invNo]){
-    delete _prevPopupSelections[invNo];
-    if(itemEl) itemEl.classList.remove('selected');
-    if(checkEl) checkEl.innerHTML='&nbsp;';
-  } else {
-    _prevPopupSelections[invNo]=rem;
-    if(itemEl) itemEl.classList.add('selected');
-    if(checkEl) checkEl.innerHTML='✓';
-  }
+  var itemEl=document.getElementById('pbi-'+key);var checkEl=document.getElementById('pbc-'+key);
+  if(_prevPopupSelections[invNo]){delete _prevPopupSelections[invNo];if(itemEl)itemEl.classList.remove('selected');if(checkEl)checkEl.innerHTML='&nbsp;';}
+  else{_prevPopupSelections[invNo]=rem;if(itemEl)itemEl.classList.add('selected');if(checkEl)checkEl.innerHTML='✓';}
   var total=Object.values(_prevPopupSelections).reduce(function(s,v){return s+v;},0);
   document.getElementById('prevbal-selected-total-val').textContent='Rs. '+fn(total);
   document.getElementById('prevbal-add-btn').disabled=total<=0;
 }
 
 function confirmPrevBalSelection(){
-  var selected=Object.keys(_prevPopupSelections);
-  if(!selected.length) return;
+  var selected=Object.keys(_prevPopupSelections);if(!selected.length)return;
   var total=Object.values(_prevPopupSelections).reduce(function(s,v){return s+v;},0);
-  
   prevBalRef=selected.map(function(inv_no){return inv_no+':'+_prevPopupSelections[inv_no];}).join('+');
-  unpaidInvoicesList=selected.map(function(inv_no){return {inv_no:inv_no,rem:_prevPopupSelections[inv_no]};});
-  
+  unpaidInvoicesList=selected.map(function(inv_no){return{inv_no:inv_no,rem:_prevPopupSelections[inv_no]};});
   optState['prev']=true;
   document.getElementById('toggle-prev').checked=true;
   document.getElementById('sw-prev').classList.add('on');
   document.getElementById('sec-prev').classList.remove('closed');
   document.getElementById('prev-bal').value=total;
-  
-  // Hint update
   var hint=document.getElementById('prev-bal-hint');
   if(hint){
     hint.style.display='flex';
     var hhtml='<div style="font-weight:700;color:#1a7f5a;">📋 Selected Outstanding:</div>';
     unpaidInvoicesList.forEach(function(u){
-      hhtml+='<div style="display:flex;justify-content:space-between;font-size:11px;">';
-      hhtml+='<span><b style="background:#c9a84c;color:#0d1b2a;padding:1px 6px;border-radius:3px;margin-right:4px;">'+u.inv_no+'</b>ka baki</span>';
-      hhtml+='<b style="color:#c0392b;">Rs.'+fn(u.rem)+'</b></div>';
+      hhtml+='<div style="display:flex;justify-content:space-between;font-size:11px;"><span><b style="background:var(--gold);color:var(--navy);padding:1px 6px;border-radius:3px;margin-right:4px;">'+u.inv_no+'</b>ka baki</span><b style="color:#c0392b;">Rs.'+fn(u.rem)+'</b></div>';
     });
-    if(unpaidInvoicesList.length>1){
-      hhtml+='<div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid #a0dcc0;padding-top:4px;margin-top:2px;"><span><b>Total</b></span><b style="color:#c0392b;">Rs.'+fn(total)+'</b></div>';
-    }
+    if(unpaidInvoicesList.length>1){hhtml+='<div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid #a0dcc0;padding-top:4px;margin-top:2px;"><span><b>Total</b></span><b style="color:#c0392b;">Rs.'+fn(total)+'</b></div>';}
     hint.innerHTML=hhtml;
   }
-  
-  closePrevBalPopup();
-  calcSummary();
+  closePrevBalPopup();calcSummary();
   toast('✅ Rs.'+fn(total)+' — '+selected.length+' invoice(s) add ho gaye');
 }
 
 function closePrevBalPopup(e){
-  if(e&&e.target!==document.getElementById('prevbal-popup-overlay')) return;
+  if(e&&e.target!==document.getElementById('prevbal-popup-overlay'))return;
   document.getElementById('prevbal-popup-overlay').classList.remove('open');
 }
 
 // ============================================================
-//  CUSTOMER AUTO-SUGGEST + UNPAID BALANCE AUTO-FILL
+//  CUSTOMER AUTO-SUGGEST
 // ============================================================
 function onCustNameInput(val){
   var sug=document.getElementById('cust-suggestions');
@@ -1942,129 +1898,82 @@ function onCustNameInput(val){
   var html='';
   res[0].values.forEach(function(row){
     var name=row[0],city=row[1]||'';
-    var unpaidRes;
-    try{unpaidRes=db.exec("SELECT i.inv_no,i.grand_total,COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id=i.id),0) as paid FROM invoices i WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"') ORDER BY i.id DESC");}
-    catch(e){unpaidRes=null;}
-    var totalRem=0;
-    var unpaidInvs=[];
-    if(unpaidRes&&unpaidRes[0]){
-      unpaidRes[0].values.forEach(function(v){
-        var rem=v[1]-v[2];
-        if(rem>0){totalRem+=rem;unpaidInvs.push({inv_no:v[0],rem:rem});}
-      });
-    }
     html+='<div class="cust-sug-item" data-cname="'+name.replace(/"/g,'&quot;')+'" onclick="selectCustomerEl(this)">';
-    html+='<div class="cust-sug-name">&#128100; '+name+(city?' <span style="font-weight:400;color:#888;">&#8212; '+city+'</span>':'')+'</div>';
-    html+='</div>';
+    html+='<div class="cust-sug-name">👤 '+name+(city?' <span style="font-weight:400;color:#888;">— '+city+'</span>':'')+'</div></div>';
   });
   if(sug){sug.innerHTML=html;sug.style.display='block';}
 }
 
-function selectCustomerEl(el){
-  var name=(el.getAttribute('data-cname')||'').replace(/&quot;/g,'"');
-  selectCustomer(name);
-}
-
+function selectCustomerEl(el){selectCustomer((el.getAttribute('data-cname')||'').replace(/&quot;/g,'"'));}
 function selectCustomer(name){
-  var el=document.getElementById('cust-name');
-  if(el) el.value=name;
-  var sug=document.getElementById('cust-suggestions');
-  if(sug) sug.style.display='none';
-  if(!db) return;
-  // Auto-fill city/mobile from last invoice
+  var el=document.getElementById('cust-name');if(el)el.value=name;
+  var sug=document.getElementById('cust-suggestions');if(sug)sug.style.display='none';
+  if(!db)return;
   var res2;
-  try{res2=db.exec("SELECT cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name)=LOWER('"+name.replace(/'/g,"''")+"') ORDER BY id DESC LIMIT 1");}
-  catch(e){}
+  try{res2=db.exec("SELECT cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name)=LOWER('"+name.replace(/'/g,"''")+"') ORDER BY id DESC LIMIT 1");}catch(e){}
   if(res2&&res2[0]&&res2[0].values.length){
     var row=res2[0].values[0];
-    var cityEl=document.getElementById('cust-city');
-    var mobEl=document.getElementById('cust-mobile');
-    if(cityEl&&row[0]&&!cityEl.value) cityEl.value=row[0];
-    if(mobEl&&row[1]&&!mobEl.value) mobEl.value=row[1];
+    var cityEl=document.getElementById('cust-city');var mobEl=document.getElementById('cust-mobile');
+    if(cityEl&&row[0]&&!cityEl.value)cityEl.value=row[0];
+    if(mobEl&&row[1]&&!mobEl.value)mobEl.value=row[1];
   }
-  // Check outstanding — inform user
   var res;
-  try{res=db.exec("SELECT i.grand_total,COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id=i.id),0) as paid FROM invoices i WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}
-  catch(e){return;}
-  if(!res||!res[0]) return;
+  try{res=db.exec("SELECT i.grand_total,COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id=i.id),0) as paid FROM invoices i WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){return;}
+  if(!res||!res[0])return;
   var totalRem=0;
   res[0].values.forEach(function(v){var rem=v[0]-v[1];if(rem>0)totalRem+=rem;});
-  if(totalRem>0){
-    toast('⚠️ Rs.'+fn(totalRem)+' outstanding — "Previous Balance" toggle karein');
-  } else {
-    toast('✅ '+name+' — Koi outstanding nahi');
-  }
+  if(totalRem>0){toast('⚠️ Rs.'+fn(totalRem)+' outstanding — "Previous Balance" toggle karein');}
+  else{toast('✅ '+name+' — Koi outstanding nahi');}
 }
 
 document.addEventListener('click',function(e){
   var sug=document.getElementById('cust-suggestions');
-  if(sug&&e.target.id!=='cust-name') sug.style.display='none';
+  if(sug&&e.target.id!=='cust-name')sug.style.display='none';
 });
 
 // ============================================================
 //  CUSTOMER REPORT
 // ============================================================
 function renderReportList(){
-  if(!db) return;
+  if(!db)return;
   var el=document.getElementById('report-search');
   var q=(el?el.value:'').toLowerCase().trim().replace(/'/g,"''");
-  var cont=document.getElementById('report-cust-list');
-  if(!cont) return;
-  var det=document.getElementById('report-detail');
-  if(det) det.innerHTML='';
+  var cont=document.getElementById('report-cust-list');if(!cont)return;
+  var det=document.getElementById('report-detail');if(det)det.innerHTML='';
   var where=q?"WHERE LOWER(i.cust_name) LIKE '%"+q+"%'":'';
   var res;
   try{res=db.exec("SELECT i.cust_name,MAX(i.cust_city) city,MAX(i.cust_mobile) mobile,COUNT(i.id) cnt,SUM(i.grand_total) billed,MAX(i.inv_date) last_date FROM invoices i "+where+" GROUP BY LOWER(i.cust_name) ORDER BY last_date DESC");}
-  catch(e){cont.innerHTML='<div class="empty-state"><div class="es-icon">&#9888;</div><p>Error</p></div>';return;}
-  if(!res||!res[0]||!res[0].values.length){
-    cont.innerHTML='<div class="empty-state"><div class="es-icon">&#128100;</div><p>'+(q?'Koi customer nahi mila':'Koi invoice nahi')+'</p></div>';return;
-  }
+  catch(e){cont.innerHTML='<div class="empty-state"><div class="es-icon">⚠</div><p>Error</p></div>';return;}
+  if(!res||!res[0]||!res[0].values.length){cont.innerHTML='<div class="empty-state"><div class="es-icon">👤</div><p>'+(q?'Koi customer nahi mila':'Koi invoice nahi')+'</p></div>';return;}
   var html='';
   res[0].values.forEach(function(r){
     var name=r[0],city=r[1]||'',mobile=r[2]||'',cnt=r[3],billed=r[4],lastDate=r[5]||'';
-    var pr;
-    try{pr=db.exec("SELECT COALESCE(SUM(p.amount),0) FROM payments p INNER JOIN invoices i ON i.id=p.invoice_id WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){pr=null;}
-    var paid=pr&&pr[0]?pr[0].values[0][0]||0:0;
-    var rem=billed-paid;
+    var pr;try{pr=db.exec("SELECT COALESCE(SUM(p.amount),0) FROM payments p INNER JOIN invoices i ON i.id=p.invoice_id WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){pr=null;}
+    var paid=pr&&pr[0]?pr[0].values[0][0]||0:0;var rem=billed-paid;
     var st=rem<=0?'paid':paid>0?'partial':'unpaid';
-    var rc=st==='paid'?'var(--green)':st==='partial'?'var(--orange)':'var(--red)';
     html+='<div class="rpt-cust-item" data-cname="'+name.replace(/"/g,'&quot;')+'" onclick="openCustomerReportEl(this)">';
     html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">';
-    html+='<div><div class="rpt-cust-name">&#128100; '+name+'</div>';
-    html+='<div class="rpt-cust-meta">'+(city?'&#128205; '+city+'  ':''+(mobile?'&#128222; '+mobile:''))+'</div>';
+    html+='<div><div class="rpt-cust-name">👤 '+name+'</div><div class="rpt-cust-meta">'+(city?'📍 '+city+'  ':''+(mobile?'📞 '+mobile:''))+'</div>';
     html+='<div class="rpt-cust-meta">Last: '+lastDate+'</div></div>';
     html+='<span class="pay-status-badge '+st+'">'+(st==='paid'?'Paid':st==='partial'?'Partial':'Unpaid')+'</span></div>';
     html+='<div class="rpt-cust-stats">';
     html+='<div class="rpt-stat"><div class="rpt-stat-val">'+cnt+'</div><div class="rpt-stat-lbl">Invoices</div></div>';
     html+='<div class="rpt-stat"><div class="rpt-stat-val" style="font-size:11px;">Rs.'+fn(billed)+'</div><div class="rpt-stat-lbl">Total</div></div>';
     html+='<div class="rpt-stat"><div class="rpt-stat-val" style="font-size:11px;color:var(--green);">Rs.'+fn(paid)+'</div><div class="rpt-stat-lbl">Paid</div></div>';
-    html+='<div class="rpt-stat"><div class="rpt-stat-val" style="font-size:11px;color:'+rc+';">'+(rem>0?'Rs.'+fn(rem):'Clear')+'</div><div class="rpt-stat-lbl">Baki</div></div>';
+    html+='<div class="rpt-stat"><div class="rpt-stat-val" style="font-size:11px;color:'+(rem>0?'var(--red)':'var(--green)')+';">'+(rem>0?'Rs.'+fn(rem):'Clear')+'</div><div class="rpt-stat-lbl">Baki</div></div>';
     html+='</div></div>';
   });
   cont.innerHTML=html;
 }
 
-function openCustomerReportEl(el){
-  var name=(el.getAttribute('data-cname')||'').replace(/&quot;/g,'"');
-  openCustomerReport(name);
-}
-
+function openCustomerReportEl(el){openCustomerReport((el.getAttribute('data-cname')||'').replace(/&quot;/g,'"'));}
 function openCustomerReport(custName){
-  if(!db) return;
+  if(!db)return;
   var res;
-  try{res=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id DESC");}
-  catch(e){return;}
-  if(!res||!res[0]||!res[0].values.length) return;
-  var invs=res[0].values.map(function(v){
-    var o={};res[0].columns.forEach(function(col,i){o[col]=v[i];});
-    o.items=JSON.parse(o.items_json||'[]');
-    o.payments=getPayments(o.id);
-    o.totalPaid=getTotalPaid(o.id);
-    o.remaining=o.grand_total-o.totalPaid;
-    return o;
-  });
-  var city=invs[0].cust_city||'';
-  var mobile=invs[0].cust_mobile||'';
+  try{res=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id DESC");}catch(e){return;}
+  if(!res||!res[0]||!res[0].values.length)return;
+  var invs=res[0].values.map(function(v){var o={};res[0].columns.forEach(function(col,i){o[col]=v[i];});o.items=JSON.parse(o.items_json||'[]');o.payments=getPayments(o.id);o.totalPaid=getTotalPaid(o.id);o.remaining=o.grand_total-o.totalPaid;return o;});
+  var city=invs[0].cust_city||'';var mobile=invs[0].cust_mobile||'';
   var tBilled=invs.reduce(function(s,i){return s+i.grand_total;},0);
   var tPaid=invs.reduce(function(s,i){return s+i.totalPaid;},0);
   var tRem=tBilled-tPaid;
@@ -2075,33 +1984,23 @@ function openCustomerReport(custName){
     var st=getStatus(inv.id,inv.grand_total);
     var desc=inv.items.map(function(it){return it.desc+' ('+it.qty+'x'+fn(it.rate)+')';}).join(' | ');
     var pays='';
-    if(inv.payments.length){
-      inv.payments.forEach(function(p){
-        pays+='<div class="rpt-pay-line"><span>'+(PAY_ICONS[p.method]||'')+' '+p.method+(p.note?' - '+p.note:'')+' | '+(p.date||'')+'</span><span class="rpt-pay-amt">-Rs.'+fn(p.amount)+'</span></div>';
-      });
-    } else {pays='<div style="font-size:11px;color:#aaa;">Koi payment nahi</div>';}
+    if(inv.payments.length){inv.payments.forEach(function(p){pays+='<div class="rpt-pay-line"><span>'+(PAY_ICONS[p.method]||'')+' '+p.method+(p.note?' - '+p.note:'')+' | '+(p.date||'')+'</span><span class="rpt-pay-amt">-Rs.'+fn(p.amount)+'</span></div>';});}
+    else{pays='<div style="font-size:11px;color:#aaa;">Koi payment nahi</div>';}
     cards+='<div class="rpt-inv-card status-'+st+'">';
     cards+='<div class="rpt-inv-top"><span class="rpt-inv-no">'+inv.inv_no+'</span><span class="rpt-inv-date">'+inv.inv_date+'</span></div>';
-    cards+='<div class="rpt-inv-desc">'+( desc||'---')+'</div>';
+    cards+='<div class="rpt-inv-desc">'+(desc||'---')+'</div>';
     cards+='<div style="display:flex;justify-content:space-between;align-items:center;">';
-    cards+='<div><div style="font-size:15px;font-weight:800;color:var(--navy);">Rs.'+fn(inv.grand_total)+'</div>';
-    cards+='<div style="font-size:10px;color:var(--text2);">Paid: Rs.'+fn(inv.totalPaid)+'</div></div>';
-    cards+='<div style="text-align:right;">';
-    cards+='<span class="pay-status-badge '+st+'">'+(st==='paid'?'Paid':st==='partial'?'Partial':'Unpaid')+'</span>';
+    cards+='<div><div style="font-size:15px;font-weight:800;color:var(--navy);">Rs.'+fn(inv.grand_total)+'</div><div style="font-size:10px;color:var(--text2);">Paid: Rs.'+fn(inv.totalPaid)+'</div></div>';
+    cards+='<div style="text-align:right;"><span class="pay-status-badge '+st+'">'+(st==='paid'?'Paid':st==='partial'?'Partial':'Unpaid')+'</span>';
     cards+=(inv.remaining>0?'<div style="font-size:12px;font-weight:800;color:var(--orange);margin-top:4px;">Baki: Rs.'+fn(inv.remaining)+'</div>':'<div style="font-size:12px;font-weight:700;color:var(--green);margin-top:4px;">Clear</div>');
     cards+='</div></div>';
     if(inv.payments.length){cards+='<div style="margin-top:8px;border-top:1px solid var(--gray2);padding-top:6px;"><div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:4px;">PAYMENTS</div>'+pays+'</div>';}
-    cards+='<div style="display:flex;gap:6px;margin-top:10px;">';
-    cards+='<button class="btn btn-outline btn-sm" onclick="openPreview('+inv.id+')" style="flex:1;justify-content:center;">View</button>';
-    cards+='<button class="btn btn-orange btn-sm" onclick="openPaymentView('+inv.id+')" style="flex:1;justify-content:center;">Pay</button>';
-    cards+='<button class="btn btn-blue btn-sm" onclick="quickPDF('+inv.id+')" style="flex:1;justify-content:center;">PDF</button>';
-    cards+='</div></div>';
+    cards+='<div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="openPreview('+inv.id+')" style="flex:1;justify-content:center;">View</button><button class="btn btn-orange btn-sm" onclick="openPaymentView('+inv.id+')" style="flex:1;justify-content:center;">Pay</button><button class="btn btn-blue btn-sm" onclick="quickPDF('+inv.id+')" style="flex:1;justify-content:center;">PDF</button></div></div>';
   });
   var backBtn='<button class="btn btn-gray btn-sm" id="rpt-back-btn" style="margin-bottom:10px;">Back</button>';
-  det.innerHTML=
-    '<div style="background:var(--navy);border-radius:12px;padding:16px;margin-bottom:12px;">'+backBtn+
+  det.innerHTML='<div style="background:var(--navy);border-radius:12px;padding:16px;margin-bottom:12px;">'+backBtn+
     '<div style="font-size:22px;font-weight:800;color:var(--gold);">'+custName+'</div>'+
-    '<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;">'+(city?''+city+'  ':'')+(mobile?mobile:'')+'</div>'+
+    '<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;">'+(city?city+'   ':'')+( mobile||'')+'</div>'+
     '<div style="display:flex;gap:6px;margin-top:10px;">'+
     '<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:14px;font-weight:800;color:#fff;">'+invs.length+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">Invoices</div></div>'+
     '<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:var(--gold);">Rs.'+fn(tBilled)+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">Total</div></div>'+
@@ -2109,297 +2008,151 @@ function openCustomerReport(custName){
     '<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:'+(tRem>0?'#ffcc44':'#7dffbc')+'">'+(tRem>0?'Rs.'+fn(tRem):'Clear')+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">Baki</div></div>'+
     '</div></div>'+
     '<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin-bottom:8px;">Invoices ('+invs.length+')</div>'+cards;
-  document.getElementById('rpt-back-btn').addEventListener('click',function(){
-    det.innerHTML='';renderReportList();
-  });
+  document.getElementById('rpt-back-btn').addEventListener('click',function(){det.innerHTML='';renderReportList();});
   window.scrollTo(0,0);
 }
 
-
 // ============================================================
-//  IMAGE GENERATOR - Colorful WhatsApp-ready invoice image
+//  IMAGE GENERATOR
 // ============================================================
 function doSaveImage(){
   if(!previewData){toast('⚠️ Pehle invoice open karo');return;}
   toast('📸 Image ban rahi hai...',4000);
   var invHtml=buildInvoiceImageHTML(previewData);
   var wrap=document.getElementById('img-render-wrap');
-  if(!wrap){
-    wrap=document.createElement('div');
-    wrap.id='img-render-wrap';
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:420px;background:#fff;z-index:-1;';
-    document.body.appendChild(wrap);
-  }
+  if(!wrap){wrap=document.createElement('div');wrap.id='img-render-wrap';wrap.style.cssText='position:fixed;left:-9999px;top:0;width:420px;background:#fff;z-index:-1;';document.body.appendChild(wrap);}
   wrap.innerHTML=invHtml;
-  wrap.style.left='-9999px';
   setTimeout(function(){
-    if(typeof html2canvas==='undefined'){
-      toast('❌ Image library load nahi hui. Internet check karo.');
-      return;
-    }
-    html2canvas(wrap,{
-      scale:3,
-      useCORS:true,
-      allowTaint:true,
-      backgroundColor:'#ffffff',
-      width:420,
-      scrollX:0,
-      scrollY:0,
-      logging:false
-    }).then(function(canvas){
-      wrap.style.left='-9999px';
+    if(typeof html2canvas==='undefined'){toast('❌ Image library load nahi hui.');return;}
+    html2canvas(wrap,{scale:3,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',width:420,scrollX:0,scrollY:0,logging:false}).then(function(canvas){
       var inv=previewData;
-      var fname='FGI_'+( inv.inv_no||'Invoice')+'_'+(inv.cust_name||'').replace(/\s+/g,'_')+'.png';
-      // Always direct download — gallery mein save hoga
+      var fname='FGI_'+(inv.inv_no||'Invoice')+'_'+(inv.cust_name||'').replace(/\s+/g,'_')+'.png';
       canvas.toBlob(function(blob){
-        var url=URL.createObjectURL(blob);
-        var a=document.createElement('a');
-        a.href=url;
-        a.download=fname;
-        document.body.appendChild(a);
-        a.click();
+        var url=URL.createObjectURL(blob);var a=document.createElement('a');
+        a.href=url;a.download=fname;document.body.appendChild(a);a.click();
         setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
         toast('✅ Image gallery mein save ho gayi!');
       },'image/png',1.0);
-    }).catch(function(e){
-      toast('❌ Image error: '+e.message);
-    });
+    }).catch(function(e){toast('❌ Image error: '+e.message);});
   },400);
 }
 
-function downloadImage(dataUrl,fname){
-  var a=document.createElement('a');
-  a.href=dataUrl;
-  a.download=fname;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){document.body.removeChild(a);},2000);
-  toast('✅ Image gallery mein save ho gayi!');
-}
-
-function quickImage(id){
-  previewData=loadInvoice(id);
-  if(previewData) doSaveImage();
-}
+function quickImage(id){previewData=loadInvoice(id);if(previewData)doSaveImage();}
 
 function buildInvoiceImageHTML(inv){
   var iT=inv.items_total||0;
   var lA=inv.less_val>0?(inv.less_type==='percent'?iT*inv.less_val/100:inv.less_val):0;
   var aA=inv.add_val>0?(inv.add_type==='percent'?iT*inv.add_val/100:inv.add_val):0;
   var bal=iT-lA+aA;
-  // Grand total: prev_bal_ref wale invoices ka LIVE remaining use karo (stored nahi)
   var livePrevImg=0;
   if(inv.prev_bal>0&&inv.prev_bal_ref&&db){
     inv.prev_bal_ref.split('+').forEach(function(ref){
       var label=ref.split(':')[0].trim();if(!label)return;
-      try{
-        var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");
-        if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrevImg+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}
-      }catch(e){}
+      try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrevImg+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}}catch(e){}
     });
   } else { livePrevImg=inv.prev_bal||0; }
   var grand=bal+livePrevImg;
-  var paid=inv.totalPaid||0;
-  var rem=Math.max(0,grand-paid);
+  var paid=inv.totalPaid||0;var rem=Math.max(0,grand-paid);
   var pays=inv.payments||[];
-  var hasCode=inv.items.some(function(it){return it.code;});
-  var hasDD=inv.items.some(function(it){return it.delDate;});
-  
-  // Define styles FIRST before using in tRows
-  var thC='padding:9px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:center;';
-  var thL='padding:9px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:left;padding-left:10px;';
-  var thR='padding:9px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:right;padding-right:8px;';
-  var tdS='padding:8px 5px;font-size:11px;border-bottom:1px solid #edf0f5;color:#222;';
-
+  var hasCode=inv.items.some(function(it){return it.code;});var hasDD=inv.items.some(function(it){return it.delDate;});
+  var thC='padding:9px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:center;';
+  var thL='padding:9px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:left;padding-left:10px;';
+  var thR='padding:9px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:right;padding-right:8px;';
+  var tdS='padding:8px 5px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;';
   var tRows='';
   inv.items.forEach(function(it,i){
-    var rowBg=i%2===0?'#fff':'#f4f6fa';
+    var rowBg=i%2===0?'#fff':'#f0f8fc';
     tRows+='<tr style="background:'+rowBg+'">';
     tRows+='<td style="'+tdS+'text-align:center;color:#666;">'+(i+1)+'</td>';
-    if(hasCode) tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.code||'')+'</td>';
+    if(hasCode)tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.code||'')+'</td>';
     tRows+='<td style="'+tdS+'text-align:left;padding-left:10px;font-weight:600;">'+it.desc+'</td>';
-    if(hasDD) tRows+='<td style="'+tdS+'text-align:center;color:#555;white-space:nowrap;">'+(it.delDate||'')+'</td>';
+    if(hasDD)tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+( it.delDate||'')+'</td>';
     tRows+='<td style="'+tdS+'text-align:center;font-weight:600;">'+it.qty+'</td>';
     tRows+='<td style="'+tdS+'text-align:right;padding-right:8px;">'+fn(it.rate)+'</td>';
-    tRows+='<td style="'+tdS+'text-align:right;font-weight:800;padding-right:8px;color:#0d1b2a;">'+fn(it.total)+'</td>';
+    tRows+='<td style="'+tdS+'text-align:right;font-weight:800;padding-right:8px;color:#0a4a6e;">'+fn(it.total)+'</td>';
     tRows+='</tr>';
   });
-
   var tHead='<th style="'+thC+'">#</th>';
-  if(hasCode) tHead+='<th style="'+thC+'">Code</th>';
+  if(hasCode)tHead+='<th style="'+thC+'">Code</th>';
   tHead+='<th style="'+thL+'">Description</th>';
-  if(hasDD) tHead+='<th style="'+thC+'">Del.Date</th>';
+  if(hasDD)tHead+='<th style="'+thC+'">Del.Date</th>';
   tHead+='<th style="'+thC+'">Qty</th><th style="'+thR+'">Rate</th><th style="'+thR+'">Total</th>';
-  
-  // Prev bal rows - live from DB
   var prevRows='';
   if(inv.prev_bal>0&&inv.prev_bal_ref){
-    var refs=inv.prev_bal_ref.split('+');
-    var liveTotal=0;
-    var prevLines=[];
-    refs.forEach(function(ref){
-      var label=ref.split(':')[0].trim();
-      var liveRem=0;
-      if(db){
-        try{
-          var r=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");
-          if(r&&r[0]&&r[0].values.length){
-            var iid=r[0].values[0][0];
-            var igt=r[0].values[0][1]||0;
-            var ipaid=getTotalPaid(iid);
-            liveRem=Math.max(0,igt-ipaid);
-          }
-        }catch(e){}
-      }
-      liveTotal+=liveRem;
-      prevLines.push({label:label,amt:liveRem});
-    });
-    prevLines.forEach(function(pl){
-      prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;">';
-      prevRows+='<span style="color:#1a6630;">Prev. Bal <span style="background:#c9a84c;color:#0d1b2a;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;">'+pl.label+'</span></span>';
-      prevRows+='<span style="color:#1a6630;font-weight:700;">'+(pl.amt>0?'+ Rs. '+fn(pl.amt):'&#10003; Clear')+'</span></div>';
-    });
-    if(refs.length>1){
-      prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;font-weight:800;border-top:2px solid #c9a84c44;">';
-      prevRows+='<span style="color:#1a6630;">Total Outstanding</span>';
-      prevRows+='<span style="color:#1a6630;">+ Rs. '+fn(liveTotal)+'</span></div>';
-    }
-  } else if(inv.prev_bal>0){
-    prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;">';
-    prevRows+='<span style="color:#1a6630;">Previous Balance</span><span style="color:#1a6630;font-weight:700;">+ Rs. '+fn(inv.prev_bal)+'</span></div>';
-  }
-  
+    var refs=inv.prev_bal_ref.split('+');var liveTotal=0;var prevLines=[];
+    refs.forEach(function(ref){var label=ref.split(':')[0].trim();var liveRem=0;if(db){try{var r=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(r&&r[0]&&r[0].values.length){var iid=r[0].values[0][0];var igt=r[0].values[0][1]||0;var ipaid=getTotalPaid(iid);liveRem=Math.max(0,igt-ipaid);}}catch(e){}}liveTotal+=liveRem;prevLines.push({label:label,amt:liveRem});});
+    prevLines.forEach(function(pl){prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span style="color:#1a6630;">Prev. Bal <span style="background:#FFD700;color:#0a4a6e;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;">'+pl.label+'</span></span><span style="color:#1a6630;font-weight:700;">'+(pl.amt>0?'+ Rs. '+fn(pl.amt):'✅ Clear')+'</span></div>';});
+    if(refs.length>1){prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;font-weight:800;border-top:2px solid #FFD70044;"><span style="color:#1a6630;">Total Outstanding</span><span style="color:#1a6630;">+ Rs. '+fn(liveTotal)+'</span></div>';}
+  } else if(inv.prev_bal>0){prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span style="color:#1a6630;">Previous Balance</span><span style="color:#1a6630;font-weight:700;">+ Rs. '+fn(inv.prev_bal)+'</span></div>';}
   var payRows='';
-  pays.forEach(function(p){
-    var icons={'cash':'💵','online':'🌐','jazzcash':'📲','easypaisa':'💳','bank':'🏦'};
-    payRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:10px;border-bottom:1px dotted #e0e5ed;">';
-    payRows+='<span>'+(icons[p.method]||'💰')+' '+p.method+(p.note?' — '+p.note:'')+' | '+(p.date||'')+'</span>';
-    payRows+='<span style="color:#1a7f5a;font-weight:700;">−Rs. '+fn(p.amount)+'</span></div>';
-  });
-  
-  var lessRow=lA>0?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;color:#b22222;"><span>Less'+(inv.less_type==='percent'?' ('+inv.less_val+'%)':'')+'</span><span>− Rs. '+fn(lA)+'</span></div>':'';
-  var addRow=aA>0?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;color:#1a6630;"><span>Add'+(inv.add_type==='percent'?' ('+inv.add_val+'%)':'')+'</span><span>+ Rs. '+fn(aA)+'</span></div>':'';
-  var balRow=bal!==iT?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #e0e5ed;"><span>Balance</span><span style="font-weight:700;">Rs. '+fn(bal)+'</span></div>':'';
-  
-  // ── Professional Bank-Slip Style Invoice Image ──
-  var H='background:#f0f4f8;'; // light gray bg
-  return '<div style="font-family:Arial,sans-serif;'+H+'width:420px;color:#000;border:1px solid #dde3ec;">'+
-    // Top accent bar
-    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:6px;"></div>'+
-    // Header
-    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;">'+
-    '<div>'+
-    '<div style="color:#c9a84c;font-size:19px;font-weight:900;letter-spacing:.5px;line-height:1.1;">Faisal Goraya Industry</div>'+
-    '<div style="color:#aaa;font-size:9.5px;margin-top:3px;letter-spacing:.3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div>'+
+  pays.forEach(function(p){var icons={'cash':'💵','online':'🌐','jazzcash':'📲','easypaisa':'💳','bank':'🏦'};payRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:10px;border-bottom:1px dotted #cce0f0;"><span>'+(icons[p.method]||'💰')+' '+p.method+(p.note?' — '+p.note:'')+' | '+(p.date||'')+'</span><span style="color:#1a7f5a;font-weight:700;">−Rs. '+fn(p.amount)+'</span></div>';});
+  var lessRow=lA>0?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;color:#b22222;"><span>Less'+(inv.less_type==='percent'?' ('+inv.less_val+'%)':'')+'</span><span>− Rs. '+fn(lA)+'</span></div>':'';
+  var addRow=aA>0?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;color:#1a6630;"><span>Add'+(inv.add_type==='percent'?' ('+inv.add_val+'%)':'')+'</span><span>+ Rs. '+fn(aA)+'</span></div>':'';
+  var balRow=bal!==iT?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span>Balance</span><span style="font-weight:700;">Rs. '+fn(bal)+'</span></div>':'';
+  return '<div style="font-family:Arial,sans-serif;background:#f0f7fc;width:420px;color:#000;border:1px solid #cce0f0;">'+
+    '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:6px;"></div>'+
+    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;">'+
+    '<div><div style="color:#FFD700;font-size:19px;font-weight:900;letter-spacing:.5px;line-height:1.1;">Faisal Goraya Industry</div>'+
+    '<div style="color:#a0d0e8;font-size:9.5px;margin-top:3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div></div>'+
+    '<div style="text-align:right;"><div style="background:#FFD700;color:#0a4a6e;font-size:14px;font-weight:900;padding:5px 14px;border-radius:6px;letter-spacing:1px;">'+inv.inv_no+'</div>'+
+    '<div style="color:#b0d8f0;font-size:10px;margin-top:5px;font-weight:600;">📅 '+inv.inv_date+'</div></div></div>'+
+    '<div style="background:#0d5c8a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;">'+
+    '<div><div style="color:#fff;font-size:15px;font-weight:800;">'+inv.cust_name+'</div>'+
+    (inv.cust_mobile?'<div style="color:#FFD700;font-size:10px;margin-top:2px;">📞 '+inv.cust_mobile+'</div>':'')+
+    '</div>'+(inv.cust_city?'<div style="background:#1470a0;color:#ffe066;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+inv.cust_city+'</div>':'')+
     '</div>'+
-    '<div style="text-align:right;">'+
-    '<div style="background:#c9a84c;color:#0d1b2a;font-size:14px;font-weight:900;padding:5px 14px;border-radius:6px;letter-spacing:1px;">'+inv.inv_no+'</div>'+
-    '<div style="color:#bbb;font-size:10px;margin-top:5px;font-weight:600;">📅 '+inv.inv_date+'</div>'+
-    '</div></div>'+
-    // Customer band
-    '<div style="background:#0d1b2a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;">'+
-    '<div>'+
-    '<div style="color:#fff;font-size:15px;font-weight:800;letter-spacing:.3px;">'+inv.cust_name+'</div>'+
-    (inv.cust_mobile?'<div style="color:#c9a84c;font-size:10px;margin-top:2px;">📞 '+inv.cust_mobile+'</div>':'')+
-    '</div>'+
-    (inv.cust_city?'<div style="background:#1b3a5c;color:#e8c96a;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+inv.cust_city+'</div>':'')+
-    '</div>'+
-    // Table with fixed column widths
     '<div style="background:#fff;padding:0;">'+
     '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'+
-    '<colgroup>'+
-    '<col style="width:7%">'+
-    (hasCode?'<col style="width:10%">':'')+
-    (hasDD?'<col style="width:'+Math.max(28,48-10)+'%"><col style="width:18%">':'<col style="width:'+Math.max(35,55)+'%">')+
-    '<col style="width:10%">'+
-    '<col style="width:14%">'+
-    '<col style="width:14%">'+
-    '</colgroup>'+
-    '<thead><tr>'+tHead+'</tr></thead>'+
-    '<tbody>'+tRows+'</tbody></table>'+
-    '</div>'+
-    // Summary box
-    '<div style="background:#fff;margin:0;border-top:1px solid #e0e7ef;border-bottom:1px solid #e0e7ef;">'+
-    '<div style="display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;border-bottom:1px dotted #dde3ec;"><span style="color:#555;">Items Total</span><span style="font-weight:800;color:#0d1b2a;">Rs. '+fn(iT)+'</span></div>'+
-    lessRow+addRow+balRow+prevRows+
-    '</div>'+
-    // Grand Total — bold prominent
-    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;">'+
-    '<div style="color:#c9a84c;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Grand Total</div>'+
-    '<div style="color:#fff;font-size:22px;font-weight:900;letter-spacing:.5px;">Rs. '+fn(grand)+'</div></div>'+
-    // Payment History
-    (pays.length?
-    '<div style="background:#fff;border-top:3px solid #c9a84c;">'+
-    '<div style="padding:6px 16px 3px;font-size:9.5px;font-weight:800;color:#0d1b2a;text-transform:uppercase;letter-spacing:1px;">Payment History</div>'+
-    payRows+'</div>':'')+
-    // Remaining Balance
-    (pays.length?
-    '<div style="background:'+(rem<=0?'#1a4a35':'#7a1a1a')+';display:flex;justify-content:space-between;align-items:center;padding:10px 16px;">'+
+    '<colgroup><col style="width:7%">'+(hasCode?'<col style="width:10%">':'')+(hasDD?'<col style="width:'+(Math.max(28,48-10))+'%"><col style="width:18%">':'<col style="width:'+Math.max(35,55)+'%">')+'<col style="width:10%"><col style="width:14%"><col style="width:14%"></colgroup>'+
+    '<thead><tr>'+tHead+'</tr></thead><tbody>'+tRows+'</tbody></table></div>'+
+    '<div style="background:#fff;margin:0;border-top:1px solid #d0e8f4;border-bottom:1px solid #d0e8f4;">'+
+    '<div style="display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span style="color:#555;">Items Total</span><span style="font-weight:800;color:#0a4a6e;">Rs. '+fn(iT)+'</span></div>'+
+    lessRow+addRow+balRow+prevRows+'</div>'+
+    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;">'+
+    '<div style="color:#FFD700;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Grand Total</div>'+
+    '<div style="color:#fff;font-size:22px;font-weight:900;">Rs. '+fn(grand)+'</div></div>'+
+    (pays.length?'<div style="background:#fff;border-top:3px solid #FFD700;"><div style="padding:6px 16px 3px;font-size:9.5px;font-weight:800;color:#0a4a6e;text-transform:uppercase;letter-spacing:1px;">Payment History</div>'+payRows+'</div>':'')+
+    (pays.length?'<div style="background:'+(rem<=0?'#1a4a35':'#7a1a1a')+';display:flex;justify-content:space-between;align-items:center;padding:10px 16px;">'+
     '<div style="color:rgba(255,255,255,.8);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Remaining Balance</div>'+
     '<div style="color:'+(rem<=0?'#7dffbc':'#ffb3b3')+';font-size:17px;font-weight:900;">'+(rem<=0?'✅ FULLY PAID':'Rs. '+fn(rem))+'</div></div>':'')+
-    // Divider
-    '<div style="height:1px;background:linear-gradient(90deg,#c9a84c,#e8c96a,#c9a84c);margin:0;"></div>'+
-    // Bank Details — clean card style
+    '<div style="height:1px;background:linear-gradient(90deg,#FFD700,#ffe066,#FFD700);"></div>'+
     '<div style="background:#fff;padding:10px 16px 12px;">'+
-    '<div style="font-size:9px;font-weight:900;color:#0d1b2a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0d1b2a;">Payment Details</div>'+
+    '<div style="font-size:9px;font-weight:900;color:#0a4a6e;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0a4a6e;">Payment Details</div>'+
     '<div style="display:flex;gap:7px;">'+
-    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;">'+
-    '<div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div>'+
-    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div>'+
-    '</div>'+
-    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;">'+
-    '<div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div>'+
-    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03008648624</div>'+
-    '</div>'+
-    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;">'+
-    '<div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div>'+
-    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03338058007</div>'+
-    '</div>'+
+    '<div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;"><div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div></div>'+
+    '<div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;"><div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03008648624</div></div>'+
+    '<div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;"><div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03338058007</div></div>'+
     '</div></div>'+
-    // Footer
-    '<div style="background:#0d1b2a;text-align:center;padding:7px;border-top:2px solid #c9a84c;">'+
-    '<div style="color:#c9a84c;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; '+inv.inv_no+' &nbsp;•&nbsp; '+inv.inv_date+'</div>'+
-    '</div>'+
-    // Bottom accent
-    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:4px;"></div>'+
-    '</div>';
+    '<div style="background:#0a4a6e;text-align:center;padding:7px;border-top:2px solid #FFD700;">'+
+    '<div style="color:#FFD700;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; '+inv.inv_no+' &nbsp;•&nbsp; '+inv.inv_date+'</div></div>'+
+    '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:4px;"></div></div>';
 }
 
 // ============================================================
 //  LEDGER / KHATA BOOK
 // ============================================================
-
 function renderLedgerList(){
-  if(!db) return;
-  var el=document.getElementById('ldg-search');
-  var q=(el?el.value:'').toLowerCase().trim().replace(/'/g,"''");
-  var cont=document.getElementById('ldg-cust-list');
-  if(!cont) return;
+  if(!db)return;
+  var el=document.getElementById('ldg-search');var q=(el?el.value:'').toLowerCase().trim().replace(/'/g,"''");
+  var cont=document.getElementById('ldg-cust-list');if(!cont)return;
   var where=q?"WHERE LOWER(i.cust_name) LIKE '%"+q+"%'":'';
   var res;
   try{res=db.exec("SELECT i.cust_name,MAX(i.cust_city) city,MAX(i.cust_mobile) mobile,COUNT(i.id) cnt,SUM(i.grand_total) billed,MAX(i.inv_date) last_date FROM invoices i "+where+" GROUP BY LOWER(i.cust_name) ORDER BY last_date DESC");}
   catch(e){cont.innerHTML='<div class="ldg-empty">Error loading data</div>';return;}
-  if(!res||!res[0]||!res[0].values.length){
-    cont.innerHTML='<div class="ldg-empty">🔍 '+(q?'Koi customer nahi mila':'Koi invoice nahi — Pehle invoice banao')+'</div>';return;
-  }
+  if(!res||!res[0]||!res[0].values.length){cont.innerHTML='<div class="ldg-empty">🔍 '+(q?'Koi customer nahi mila':'Koi invoice nahi — Pehle invoice banao')+'</div>';return;}
   var html='';
   res[0].values.forEach(function(r){
     var name=r[0],city=r[1]||'',mobile=r[2]||'',cnt=r[3],billed=r[4];
-    var pr;
-    try{pr=db.exec("SELECT COALESCE(SUM(p.amount),0) FROM payments p INNER JOIN invoices i ON i.id=p.invoice_id WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){pr=null;}
-    var paid=pr&&pr[0]?pr[0].values[0][0]||0:0;
-    var rem=billed-paid;
+    var pr;try{pr=db.exec("SELECT COALESCE(SUM(p.amount),0) FROM payments p INNER JOIN invoices i ON i.id=p.invoice_id WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){pr=null;}
+    var paid=pr&&pr[0]?pr[0].values[0][0]||0:0;var rem=billed-paid;
     var st=rem<=0?'paid':paid>0?'partial':'unpaid';
-    var badgeCls=st==='paid'?'pay-status-badge paid':st==='partial'?'pay-status-badge partial':'pay-status-badge unpaid';
     var badgeTxt=st==='paid'?'✅ Clear':st==='partial'?'⚠️ Partial':'🔴 Unpaid';
     html+='<div class="ldg-search-item" onclick="openLedger(\''+name.replace(/'/g,"\\'").replace(/"/g,'&quot;')+'\')">';
     html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;">';
-    html+='<div class="name">📒 '+name+'</div>';
-    html+='<span class="'+badgeCls+'">'+badgeTxt+'</span></div>';
+    html+='<div class="name">📒 '+name+'</div><span class="pay-status-badge '+st+'">'+badgeTxt+'</span></div>';
     html+='<div class="meta">'+(city?'📍 '+city+'  ':'')+( mobile?'📞 '+mobile:'')+'</div>';
-    html+='<div class="badges">';
-    html+='<span style="background:var(--navy);color:var(--gold);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">'+cnt+' Invoices</span>';
-    html+='<span style="background:#d4f0e5;color:var(--green);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Billed: Rs.'+fn(billed)+'</span>';
+    html+='<div class="badges"><span style="background:var(--navy);color:var(--gold);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">'+cnt+' Invoices</span>';
+    html+='<span style="background:#d0eaf8;color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Billed: Rs.'+fn(billed)+'</span>';
     html+='<span style="background:'+(rem>0?'#fde8e8':'#d4f0e5')+';color:'+(rem>0?'var(--red)':'var(--green)')+';font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Baki: '+(rem>0?'Rs.'+fn(rem):'Clear')+'</span>';
     html+='</div></div>';
   });
@@ -2407,154 +2160,51 @@ function renderLedgerList(){
 }
 
 function openLedger(custName){
-  if(!db) return;
-  // Get all invoices
+  if(!db)return;
   var invRes;
-  // FIX 2 (v14): fetch items_total, prev_bal, prev_bal_ref as well
-  try{invRes=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile,notes,items_total,prev_bal,prev_bal_ref FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id ASC");}
-  catch(e){return;}
-  if(!invRes||!invRes[0]||!invRes[0].values.length) return;
-
-  var city=invRes[0].values[0][5]||'';
-  var mobile=invRes[0].values[0][6]||'';
-
-  // Build ledger entries — chronological
-  var ledgerEntries=[];
-  var runningBalance=0;
-
+  try{invRes=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile,notes,items_total,prev_bal,prev_bal_ref FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id ASC");}catch(e){return;}
+  if(!invRes||!invRes[0]||!invRes[0].values.length)return;
+  var city=invRes[0].values[0][5]||'';var mobile=invRes[0].values[0][6]||'';
+  var ledgerEntries=[];var runningBalance=0;
   invRes[0].values.forEach(function(v){
-    var invId=v[0], invNo=v[1], invDate=v[2], itemsJson=v[3], grand=v[4]||0, notes=v[7]||'';
-    var itemsTotal=v[8]||0, prevBal=v[9]||0, prevBalRefVal=v[10]||'';
-    var items=[];
-    try{items=JSON.parse(itemsJson||'[]');}catch(e){}
+    var invId=v[0],invNo=v[1],invDate=v[2],itemsJson=v[3],grand=v[4]||0,notes=v[7]||'';
+    var itemsTotal=v[8]||0,prevBal=v[9]||0,prevBalRefVal=v[10]||'';
+    var items=[];try{items=JSON.parse(itemsJson||'[]');}catch(e){}
     var itemCount=items.length;
-    var itemCountTxt=itemCount===1?'1 item':itemCount+' items';
-    // FIX 2 (v14): compact particulars = "FGI#15 • 4 items" instead of full items list
-    var compactParticulars='<b style="color:#c9a84c">'+invNo+'</b> <span style="font-size:11px;opacity:0.7">• '+itemCountTxt+'</span>';
-
-    // FIX 2 (v14): credit = items_total (NOT grand_total) to avoid double entry
-    // If items_total is 0 (older data without this field), fallback to grand_total - prev_bal
-    var creditAmount = itemsTotal>0 ? itemsTotal : Math.max(0, grand - prevBal);
-
-    // Invoice entry
+    var compactParticulars='<b style="color:#FFD700">'+invNo+'</b> <span style="font-size:11px;opacity:0.7">• '+itemCount+(itemCount===1?' item':' items')+'</span>';
+    var creditAmount=itemsTotal>0?itemsTotal:Math.max(0,grand-prevBal);
     runningBalance+=creditAmount;
-    ledgerEntries.push({
-      date:invDate,
-      type:'invoice',
-      invNo:invNo,
-      itemCount:itemCount,
-      particulars:compactParticulars,
-      particularsPlain:invNo+' • '+itemCountTxt,
-      notes:notes,
-      debit:0,
-      credit:creditAmount,
-      balance:runningBalance
-    });
-
-    // FIX 2 (v14): Prev.Balance row ONLY IF prev_bal>0 AND prev_bal_ref is EMPTY
-    // (If ref is set, those older invoices are already in the ledger as their own rows)
-    if(prevBal>0 && !prevBalRefVal){
+    ledgerEntries.push({date:invDate,type:'invoice',invNo:invNo,itemCount:itemCount,particulars:compactParticulars,particularsPlain:invNo+' • '+itemCount+' items',notes:notes,debit:0,credit:creditAmount,balance:runningBalance});
+    if(prevBal>0&&!prevBalRefVal){
       runningBalance+=prevBal;
-      ledgerEntries.push({
-        date:invDate,
-        type:'invoice',
-        invNo:invNo,
-        particulars:'<b style="color:#ffcc44">Pre.Balance</b> <span style="font-size:11px;opacity:0.7">• carried over</span>',
-        particularsPlain:'Pre.Balance • carried over',
-        notes:'',
-        debit:0,
-        credit:prevBal,
-        balance:runningBalance
-      });
+      ledgerEntries.push({date:invDate,type:'invoice',invNo:invNo,particulars:'<b style="color:#ffe066">Pre.Balance</b> <span style="font-size:11px;opacity:0.7">• carried over</span>',particularsPlain:'Pre.Balance • carried over',notes:'',debit:0,credit:prevBal,balance:runningBalance});
     }
-
-    // Get payments for this invoice (sorted by date)
     var pays=getPayments(invId);
     pays.forEach(function(p){
       runningBalance-=p.amount;
       var payDesc=(PAY_ICONS[p.method]||'💰')+' '+p.method+(p.note?' — '+p.note:'');
-      ledgerEntries.push({
-        date:p.date||invDate,
-        type:'payment',
-        invNo:invNo,
-        particulars:payDesc,
-        particularsPlain:payDesc,
-        debit:p.amount,
-        credit:0,
-        balance:runningBalance
-      });
+      ledgerEntries.push({date:p.date||invDate,type:'payment',invNo:invNo,particulars:payDesc,particularsPlain:payDesc,debit:p.amount,credit:0,balance:runningBalance});
     });
   });
-
-  // Sort all entries by date then by original order
-  ledgerEntries.sort(function(a,b){
-    if(a.date<b.date) return -1;
-    if(a.date>b.date) return 1;
-    // same date: invoice before payment
-    if(a.type==='invoice'&&b.type==='payment') return -1;
-    if(a.type==='payment'&&b.type==='invoice') return 1;
-    return 0;
-  });
-
-  // Recalculate balance in sorted order
+  ledgerEntries.sort(function(a,b){if(a.date<b.date)return -1;if(a.date>b.date)return 1;if(a.type==='invoice'&&b.type==='payment')return -1;if(a.type==='payment'&&b.type==='invoice')return 1;return 0;});
   var bal=0;
-  ledgerEntries.forEach(function(e){
-    bal+=e.credit;
-    bal-=e.debit;
-    e.balance=bal;
-  });
-
+  ledgerEntries.forEach(function(e){bal+=e.credit;bal-=e.debit;e.balance=bal;});
   var totalCredit=ledgerEntries.reduce(function(s,e){return s+e.credit;},0);
   var totalDebit=ledgerEntries.reduce(function(s,e){return s+e.debit;},0);
   var finalBalance=totalCredit-totalDebit;
-
-  // FIX (v15): Store ledger data for image rendering (invoice-style)
-  // particularsPlain use karo (HTML tags ke bina) — image builder apna HTML banata hai
-  currentLedgerData={
-    custName:custName,
-    city:city,
-    mobile:mobile,
-    entries:ledgerEntries.map(function(e){
-      return {
-        date:e.date,
-        particulars:e.type==='payment'?e.particularsPlain:'',
-        type:e.type,
-        invNo:e.type==='invoice'?(e.invNo||''):'',
-        itemCount:e.type==='invoice'?(e.itemCount||0):0,
-        debit:e.debit,
-        credit:e.credit,
-        balance:e.balance
-      };
-    }),
-    totalDebit:totalDebit,
-    totalCredit:totalCredit,
-    finalBalance:finalBalance
-  };
-
-  // Build table rows
+  currentLedgerData={custName:custName,city:city,mobile:mobile,entries:ledgerEntries.map(function(e){return{date:e.date,particulars:e.type==='payment'?e.particularsPlain:'',type:e.type,invNo:e.type==='invoice'?(e.invNo||''):'',itemCount:e.type==='invoice'?(e.itemCount||0):0,debit:e.debit,credit:e.credit,balance:e.balance};}),totalDebit:totalDebit,totalCredit:totalCredit,finalBalance:finalBalance};
   var rows='';
   ledgerEntries.forEach(function(e,idx){
     var rowCls=e.type==='invoice'?'ldg-invoice':'ldg-payment';
     var balCls=e.balance>0?'ldg-balance-pos':'ldg-balance-zero';
-    var typeTag=e.type==='invoice'?
-      '<span class="ldg-inv-tag">INV</span>':
-      '<span class="ldg-pay-tag">PAY</span>';
-    rows+='<tr class="'+rowCls+'">';
-    rows+='<td>'+(idx+1)+'</td>';
-    rows+='<td>'+e.date+'</td>';
-    // FIX 2 (v14): use compact particulars (already has invoice# + item count formatting)
-    rows+='<td class="left">'+e.particulars+typeTag+'</td>';
+    var typeTag=e.type==='invoice'?'<span class="ldg-inv-tag">INV</span>':'<span class="ldg-pay-tag">PAY</span>';
+    rows+='<tr class="'+rowCls+'"><td>'+(idx+1)+'</td><td>'+e.date+'</td><td class="left">'+e.particulars+typeTag+'</td>';
     rows+='<td class="ldg-debit">'+(e.debit>0?'Rs.'+fn(e.debit):'—')+'</td>';
     rows+='<td class="ldg-credit">'+(e.credit>0?'Rs.'+fn(e.credit):'—')+'</td>';
-    rows+='<td class="'+balCls+'">'+(e.balance>0?'Rs.'+fn(e.balance):'✅ Clear')+'</td>';
-    rows+='</tr>';
+    rows+='<td class="'+balCls+'">'+(e.balance>0?'Rs.'+fn(e.balance):'✅ Clear')+'</td></tr>';
   });
-
-  // Summary
-  var statusTxt=finalBalance>0?'<span style="color:#ffcc44;font-weight:800;">Rs.'+fn(finalBalance)+' BAQI</span>':'<span style="color:#7dffbc;font-weight:800;">✅ CLEAR — Koi baqi nahi</span>';
-
-  var html=
-    '<div class="ldg-header">'+
+  var statusTxt=finalBalance>0?'<span style="color:#ffcc44;font-weight:800;">Rs.'+fn(finalBalance)+' BAQI</span>':'<span style="color:#7dffbc;font-weight:800;">✅ CLEAR</span>';
+  var html='<div class="ldg-header">'+
     '<button class="btn btn-gray btn-sm" onclick="document.getElementById(\'ldg-detail-state\').style.display=\'none\';document.getElementById(\'ldg-search-state\').style.display=\'block\';renderLedgerList();" style="margin-bottom:10px;">◀ Wapas</button>'+
     '<div class="ldg-cust-name">📒 '+custName+'</div>'+
     '<div class="ldg-cust-meta">'+(city?'📍 '+city+'   ':'')+( mobile?'📞 '+mobile:'')+'</div>'+
@@ -2563,253 +2213,126 @@ function openLedger(custName){
     '<div class="ldg-sum-box"><div class="ldg-sum-val" style="color:#7dffbc;">Rs.'+fn(totalDebit)+'</div><div class="ldg-sum-lbl">Total Paid</div></div>'+
     '<div class="ldg-sum-box"><div class="ldg-sum-val" style="color:'+(finalBalance>0?'#ffcc44':'#7dffbc')+';">'+(finalBalance>0?'Rs.'+fn(finalBalance):'Clear')+'</div><div class="ldg-sum-lbl">Balance</div></div>'+
     '</div></div>'+
-
-    '<div class="ldg-table-wrap">'+
-    '<div class="ldg-table-title">'+
-    '<span>📋 Khata — Ledger Statement</span>'+
-    '<button class="btn btn-gold btn-sm" onclick="downloadLedgerImage()">📷 Save Image</button>'+
-    '</div>'+
-    '<div class="ldg-tbl-scroll">'+
-    '<table class="ldg-tbl">'+
-    '<thead><tr>'+
-    '<th>#</th>'+
-    '<th>Date</th>'+
-    '<th class="left">Particulars</th>'+
+    '<div class="ldg-table-wrap"><div class="ldg-table-title"><span>📋 Khata — Ledger Statement</span><button class="btn btn-gold btn-sm" onclick="downloadLedgerImage()">📷 Save Image</button></div>'+
+    '<div class="ldg-tbl-scroll"><table class="ldg-tbl">'+
+    '<thead><tr><th>#</th><th>Date</th><th class="left">Particulars</th>'+
     '<th>💰 Debit<br><span style="font-size:8px;font-weight:400;">(Payment In)</span></th>'+
     '<th>📋 Credit<br><span style="font-size:8px;font-weight:400;">(Invoice Out)</span></th>'+
-    '<th>⚖️ Balance</th>'+
-    '</tr></thead>'+
-    '<tbody>'+rows+'</tbody>'+
-    '<tfoot><tr class="ldg-total">'+
-    '<td colspan="3" style="text-align:left;padding-left:12px;font-size:13px;">TOTAL / REMAINING</td>'+
-    '<td class="debit">Rs.'+fn(totalDebit)+'</td>'+
-    '<td class="credit">Rs.'+fn(totalCredit)+'</td>'+
-    '<td class="balance">'+(finalBalance>0?'Rs.'+fn(finalBalance):'✅ Clear')+'</td>'+
-    '</tr></tfoot>'+
-    '</table></div>'+
-
+    '<th>⚖️ Balance</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr class="ldg-total"><td colspan="3" style="text-align:left;padding-left:12px;font-size:13px;">TOTAL / REMAINING</td>'+
+    '<td class="debit">Rs.'+fn(totalDebit)+'</td><td class="credit">Rs.'+fn(totalCredit)+'</td>'+
+    '<td class="balance">'+(finalBalance>0?'Rs.'+fn(finalBalance):'✅ Clear')+'</td></tr></tfoot></table></div>'+
     '<div style="background:var(--navy2);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">'+
-    '<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);">Final Status:</span>'+
-    statusTxt+
-    '</div></div>';
-
+    '<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);">Final Status:</span>'+statusTxt+'</div></div>';
   document.getElementById('ldg-detail-container').innerHTML=html;
   document.getElementById('ldg-search-state').style.display='none';
   document.getElementById('ldg-detail-state').style.display='block';
-
   window.scrollTo(0,0);
 }
 
-function printLedger(custName){
-  // FIX 3 (v14): Ledger "Save" ab image download karta hai (PDF nahi) —
-  // invoice page ki tarah consistent workflow ke liye.
-  downloadLedgerImage(custName);
-}
-
+function printLedger(custName){downloadLedgerImage(custName);}
 
 function downloadLedgerImage(custName){
-  // FIX (v15): Ledger image ab invoice jaisi professional bank-slip style mein render hoti hai.
-  // Off-screen wrap mein build karke html2canvas se capture, phir blob download (invoice method).
-  var el=document.getElementById('ldg-detail-container');
-  if(!el){toast('❌ Ledger nahi mili');return;}
-  if(!custName){
-    var nmEl=el.querySelector('.ldg-cust-name');
-    if(nmEl){custName=(nmEl.textContent||'').replace(/^[^A-Za-z0-9ا-ی]+/,'').trim();}
-  }
-  custName=custName||'Customer';
-  if(!currentLedgerData){toast('❌ Ledger data nahi mila');return;}
+  var el=document.getElementById('ldg-detail-container');if(!el){toast('❌ Ledger nahi mili');return;}
+  if(!custName){var nmEl=el.querySelector('.ldg-cust-name');if(nmEl){custName=(nmEl.textContent||'').replace(/^[^A-Za-z0-9ا-ی]+/,'').trim();}}
+  custName=custName||'Customer';if(!currentLedgerData){toast('❌ Ledger data nahi mila');return;}
   toast('📷 Image ban rahi hai...',4000);
-
   var ledgerHtml=buildLedgerImageHTML(currentLedgerData);
   var wrap=document.getElementById('ldg-img-render-wrap');
-  if(!wrap){
-    wrap=document.createElement('div');
-    wrap.id='ldg-img-render-wrap';
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:460px;background:#fff;z-index:-1;';
-    document.body.appendChild(wrap);
-  }
+  if(!wrap){wrap=document.createElement('div');wrap.id='ldg-img-render-wrap';wrap.style.cssText='position:fixed;left:-9999px;top:0;width:460px;background:#fff;z-index:-1;';document.body.appendChild(wrap);}
   wrap.innerHTML=ledgerHtml;
-
   setTimeout(function(){
-    if(typeof html2canvas==='undefined'){
-      toast('❌ Image library load nahi hui. Internet check karo.');
-      return;
-    }
-    html2canvas(wrap,{
-      scale:3,
-      useCORS:true,
-      allowTaint:true,
-      backgroundColor:'#ffffff',
-      width:460,
-      scrollX:0,
-      scrollY:0,
-      logging:false
-    }).then(function(canvas){
+    if(typeof html2canvas==='undefined'){toast('❌ Image library load nahi hui.');return;}
+    html2canvas(wrap,{scale:3,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',width:460,scrollX:0,scrollY:0,logging:false}).then(function(canvas){
       var ts=new Date().toISOString().slice(0,10);
       var safeName=String(custName).replace(/\s+/g,'_').replace(/[^A-Za-z0-9_\-ا-ی]/g,'');
       var fname='FGI_Khata_'+safeName+'_'+ts+'.png';
       canvas.toBlob(function(blob){
-        var url=URL.createObjectURL(blob);
-        var a=document.createElement('a');
-        a.href=url;
-        a.download=fname;
-        document.body.appendChild(a);
-        a.click();
+        var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=fname;
+        document.body.appendChild(a);a.click();
         setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},2000);
         toast('✅ Khata image download ho gayi!');
       },'image/png',1.0);
-    }).catch(function(e){
-      toast('❌ Image error: '+e.message);
-    });
+    }).catch(function(e){toast('❌ Image error: '+e.message);});
   },400);
 }
 
 function buildLedgerImageHTML(L){
-  // L = {custName, city, mobile, entries:[{date,particulars,type,debit,credit,balance,invNo,itemCount}], totalDebit, totalCredit, finalBalance}
-  var thC='padding:10px 5px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:center;';
-  var thL='padding:10px 6px;font-size:10px;font-weight:800;color:#e8c96a;text-transform:uppercase;letter-spacing:.5px;background:#0d1b2a;text-align:left;padding-left:10px;';
-  var tdS='padding:9px 5px;font-size:11px;border-bottom:1px solid #edf0f5;color:#222;text-align:center;vertical-align:middle;font-weight:600;';
-  var tdL='padding:9px 6px;font-size:11px;border-bottom:1px solid #edf0f5;color:#222;text-align:left;padding-left:10px;font-weight:600;vertical-align:middle;';
-
+  var thC='padding:10px 5px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:center;';
+  var thL='padding:10px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:left;padding-left:10px;';
+  var tdS='padding:9px 5px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;text-align:center;vertical-align:middle;font-weight:600;';
+  var tdL='padding:9px 6px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;text-align:left;padding-left:10px;font-weight:600;vertical-align:middle;';
   var rows='';
   L.entries.forEach(function(e,i){
-    var rowBg=i%2===0?'#fff':'#f4f6fa';
+    var rowBg=i%2===0?'#fff':'#f0f8fc';
     var leftBorder=e.type==='invoice'?'border-left:3px solid #c0392b;':'border-left:3px solid #1a7f5a;';
     var tag=e.type==='invoice'
-      ? '<span style="display:inline-block;background:#0d1b2a;color:#c9a84c;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;letter-spacing:.3px;">INV</span>'
-      : '<span style="display:inline-block;background:#d4f0e5;color:#1a7f5a;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;letter-spacing:.3px;">PAY</span>';
+      ?'<span style="display:inline-block;background:#0a4a6e;color:#FFD700;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;">INV</span>'
+      :'<span style="display:inline-block;background:#d4f0e5;color:#1a7f5a;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;">PAY</span>';
     var partTxt=e.particulars||'';
-    // Highlight invoice number in gold
-    if(e.invNo){
-      partTxt='<span style="background:#c9a84c;color:#0d1b2a;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:800;margin-right:4px;">'+e.invNo+'</span>'+(e.itemCount?'<span style="color:#555;font-size:10px;">'+e.itemCount+' item'+(e.itemCount>1?'s':'')+'</span>':'');
-    }
-    rows+='<tr style="background:'+rowBg+';'+leftBorder+'">';
-    rows+='<td style="'+tdS+'color:#666;">'+(i+1)+'</td>';
-    rows+='<td style="'+tdS+'color:#555;font-size:10.5px;">'+e.date+'</td>';
-    rows+='<td style="'+tdL+'">'+partTxt+tag+'</td>';
+    if(e.invNo){partTxt='<span style="background:#FFD700;color:#0a4a6e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:800;margin-right:4px;">'+e.invNo+'</span>'+(e.itemCount?'<span style="color:#555;font-size:10px;">'+e.itemCount+' item'+(e.itemCount>1?'s':'')+'</span>':'');}
+    rows+='<tr style="background:'+rowBg+';'+leftBorder+'"><td style="'+tdS+'color:#666;">'+(i+1)+'</td><td style="'+tdS+'color:#555;font-size:10.5px;">'+e.date+'</td><td style="'+tdL+'">'+partTxt+tag+'</td>';
     rows+='<td style="'+tdS+'color:'+(e.debit>0?'#1a7f5a':'#aaa')+';font-weight:'+(e.debit>0?'800':'400')+';">'+(e.debit>0?'Rs. '+fn(e.debit):'—')+'</td>';
     rows+='<td style="'+tdS+'color:'+(e.credit>0?'#c0392b':'#aaa')+';font-weight:'+(e.credit>0?'800':'400')+';">'+(e.credit>0?'Rs. '+fn(e.credit):'—')+'</td>';
-    rows+='<td style="'+tdS+'color:'+(e.balance>0?'#0d1b2a':'#1a7f5a')+';font-weight:800;">'+(e.balance>0?'Rs. '+fn(e.balance):'✅ Clear')+'</td>';
-    rows+='</tr>';
+    rows+='<td style="'+tdS+'color:'+(e.balance>0?'#0a4a6e':'#1a7f5a')+';font-weight:800;">'+(e.balance>0?'Rs. '+fn(e.balance):'✅ Clear')+'</td></tr>';
   });
-
   var finalStatus=L.finalBalance>0
-    ? '<div style="color:#ffcc44;font-size:18px;font-weight:900;letter-spacing:.5px;">Rs. '+fn(L.finalBalance)+' BAQI</div>'
-    : '<div style="color:#7dffbc;font-size:16px;font-weight:900;letter-spacing:.5px;">✅ CLEAR — Koi baqi nahi</div>';
-
-  return '<div style="font-family:Arial,sans-serif;background:#f0f4f8;width:460px;color:#000;border:1px solid #dde3ec;">'+
-    // Top accent
-    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:6px;"></div>'+
-    // Header
-    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;">'+
-    '<div>'+
-    '<div style="color:#c9a84c;font-size:19px;font-weight:900;letter-spacing:.5px;line-height:1.1;">Faisal Goraya Industry</div>'+
-    '<div style="color:#aaa;font-size:9.5px;margin-top:3px;letter-spacing:.3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div>'+
+    ?'<div style="color:#ffcc44;font-size:18px;font-weight:900;">Rs. '+fn(L.finalBalance)+' BAQI</div>'
+    :'<div style="color:#7dffbc;font-size:16px;font-weight:900;">✅ CLEAR — Koi baqi nahi</div>';
+  return '<div style="font-family:Arial,sans-serif;background:#f0f7fc;width:460px;color:#000;border:1px solid #cce0f0;">'+
+    '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:6px;"></div>'+
+    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;">'+
+    '<div><div style="color:#FFD700;font-size:19px;font-weight:900;letter-spacing:.5px;">Faisal Goraya Industry</div><div style="color:#a0d0e8;font-size:9.5px;margin-top:3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div></div>'+
+    '<div style="text-align:right;"><div style="background:#FFD700;color:#0a4a6e;font-size:12px;font-weight:900;padding:5px 12px;border-radius:6px;letter-spacing:1px;">KHATA</div><div style="color:#b0d8f0;font-size:10px;margin-top:5px;font-weight:600;">📅 '+new Date().toISOString().slice(0,10)+'</div></div></div>'+
+    '<div style="background:#0d5c8a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #1470a0;">'+
+    '<div><div style="color:#fff;font-size:15px;font-weight:800;">📒 '+L.custName+'</div>'+(L.mobile?'<div style="color:#FFD700;font-size:10px;margin-top:2px;">📞 '+L.mobile+'</div>':'')+
+    '</div>'+(L.city?'<div style="background:#1470a0;color:#ffe066;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+L.city+'</div>':'')+
     '</div>'+
-    '<div style="text-align:right;">'+
-    '<div style="background:#c9a84c;color:#0d1b2a;font-size:12px;font-weight:900;padding:5px 12px;border-radius:6px;letter-spacing:1px;">KHATA</div>'+
-    '<div style="color:#bbb;font-size:10px;margin-top:5px;font-weight:600;">📅 '+new Date().toISOString().slice(0,10)+'</div>'+
-    '</div></div>'+
-    // Customer band
-    '<div style="background:#0d1b2a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #1b3a5c;">'+
-    '<div>'+
-    '<div style="color:#fff;font-size:15px;font-weight:800;letter-spacing:.3px;">📒 '+L.custName+'</div>'+
-    (L.mobile?'<div style="color:#c9a84c;font-size:10px;margin-top:2px;">📞 '+L.mobile+'</div>':'')+
+    '<div style="background:#fff;display:flex;border-bottom:1px solid #d0e8f4;">'+
+    '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid #e0eef8;"><div style="font-size:15px;font-weight:900;color:#c0392b;">Rs. '+fn(L.totalCredit)+'</div><div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;margin-top:2px;">Total Billed</div></div>'+
+    '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid #e0eef8;"><div style="font-size:15px;font-weight:900;color:#1a7f5a;">Rs. '+fn(L.totalDebit)+'</div><div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;margin-top:2px;">Total Paid</div></div>'+
+    '<div style="flex:1;padding:10px;text-align:center;"><div style="font-size:15px;font-weight:900;color:'+(L.finalBalance>0?'#0a4a6e':'#1a7f5a')+';">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</div><div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;margin-top:2px;">Balance</div></div>'+
     '</div>'+
-    (L.city?'<div style="background:#1b3a5c;color:#e8c96a;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+L.city+'</div>':'')+
-    '</div>'+
-    // Summary row
-    '<div style="background:#fff;display:flex;border-bottom:1px solid #e0e7ef;">'+
-    '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid #eef1f6;">'+
-    '<div style="font-size:15px;font-weight:900;color:#c0392b;">Rs. '+fn(L.totalCredit)+'</div>'+
-    '<div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Total Billed</div>'+
-    '</div>'+
-    '<div style="flex:1;padding:10px;text-align:center;border-right:1px solid #eef1f6;">'+
-    '<div style="font-size:15px;font-weight:900;color:#1a7f5a;">Rs. '+fn(L.totalDebit)+'</div>'+
-    '<div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Total Paid</div>'+
-    '</div>'+
-    '<div style="flex:1;padding:10px;text-align:center;">'+
-    '<div style="font-size:15px;font-weight:900;color:'+(L.finalBalance>0?'#0d1b2a':'#1a7f5a')+';">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</div>'+
-    '<div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Balance</div>'+
-    '</div>'+
-    '</div>'+
-    // Table
-    '<div style="background:#fff;">'+
-    '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'+
-    '<colgroup>'+
-    '<col style="width:7%">'+
-    '<col style="width:15%">'+
-    '<col style="width:30%">'+
-    '<col style="width:15%">'+
-    '<col style="width:15%">'+
-    '<col style="width:18%">'+
-    '</colgroup>'+
-    '<thead><tr>'+
-    '<th style="'+thC+'">#</th>'+
-    '<th style="'+thC+'">Date</th>'+
-    '<th style="'+thL+'">Particulars</th>'+
+    '<div style="background:#fff;"><table style="width:100%;border-collapse:collapse;table-layout:fixed;">'+
+    '<colgroup><col style="width:7%"><col style="width:15%"><col style="width:30%"><col style="width:15%"><col style="width:15%"><col style="width:18%"></colgroup>'+
+    '<thead><tr><th style="'+thC+'">#</th><th style="'+thC+'">Date</th><th style="'+thL+'">Particulars</th>'+
     '<th style="'+thC+'">Paid<br><span style="font-size:8px;font-weight:500;opacity:.8;">(In)</span></th>'+
     '<th style="'+thC+'">Billed<br><span style="font-size:8px;font-weight:500;opacity:.8;">(Out)</span></th>'+
-    '<th style="'+thC+'">Balance</th>'+
-    '</tr></thead>'+
-    '<tbody>'+rows+'</tbody>'+
-    '<tfoot><tr style="background:#0d1b2a;">'+
-    '<td colspan="3" style="padding:10px;text-align:left;padding-left:12px;color:#fff;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;">Total / Remaining</td>'+
+    '<th style="'+thC+'">Balance</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr style="background:#0a4a6e;">'+
+    '<td colspan="3" style="padding:10px;text-align:left;padding-left:12px;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;">Total / Remaining</td>'+
     '<td style="padding:10px 5px;text-align:center;color:#7dffbc;font-size:12px;font-weight:900;">Rs. '+fn(L.totalDebit)+'</td>'+
     '<td style="padding:10px 5px;text-align:center;color:#ff8080;font-size:12px;font-weight:900;">Rs. '+fn(L.totalCredit)+'</td>'+
-    '<td style="padding:10px 5px;text-align:center;color:#c9a84c;font-size:12px;font-weight:900;">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</td>'+
-    '</tr></tfoot>'+
-    '</table>'+
-    '</div>'+
-    // Final Status band
-    '<div style="background:#0d1b2a;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-top:2px solid #c9a84c;">'+
-    '<div style="color:#c9a84c;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Final Status</div>'+
-    finalStatus+
-    '</div>'+
-    // Divider
-    '<div style="height:1px;background:linear-gradient(90deg,#c9a84c,#e8c96a,#c9a84c);"></div>'+
-    // Bank Details
+    '<td style="padding:10px 5px;text-align:center;color:#FFD700;font-size:12px;font-weight:900;">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</td>'+
+    '</tr></tfoot></table></div>'+
+    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-top:2px solid #FFD700;">'+
+    '<div style="color:#FFD700;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Final Status</div>'+finalStatus+'</div>'+
+    '<div style="height:1px;background:linear-gradient(90deg,#FFD700,#ffe066,#FFD700);"></div>'+
     '<div style="background:#fff;padding:10px 16px 12px;">'+
-    '<div style="font-size:9px;font-weight:900;color:#0d1b2a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0d1b2a;">Payment Details</div>'+
+    '<div style="font-size:9px;font-weight:900;color:#0a4a6e;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0a4a6e;">Payment Details</div>'+
     '<div style="display:flex;gap:7px;">'+
-    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;">'+
-    '<div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div>'+
-    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div>'+
-    '</div>'+
-    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;">'+
-    '<div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div>'+
-    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03008648624</div>'+
-    '</div>'+
-    '<div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;">'+
-    '<div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div>'+
-    '<div style="font-size:8.5px;color:#333;line-height:1.7;font-weight:500;">Qaisar Naeem<br>03338058007</div>'+
-    '</div>'+
+    '<div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;"><div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div></div>'+
+    '<div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;"><div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03008648624</div></div>'+
+    '<div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;"><div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03338058007</div></div>'+
     '</div></div>'+
-    // Footer
-    '<div style="background:#0d1b2a;text-align:center;padding:7px;border-top:2px solid #c9a84c;">'+
-    '<div style="color:#c9a84c;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; Khata: '+L.custName+' &nbsp;•&nbsp; '+new Date().toISOString().slice(0,10)+'</div>'+
-    '</div>'+
-    // Bottom accent
-    '<div style="background:linear-gradient(90deg,#0d1b2a 60%,#1b3a5c 100%);height:4px;"></div>'+
-    '</div>';
+    '<div style="background:#0a4a6e;text-align:center;padding:7px;border-top:2px solid #FFD700;">'+
+    '<div style="color:#FFD700;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; Khata: '+L.custName+' &nbsp;•&nbsp; '+new Date().toISOString().slice(0,10)+'</div></div>'+
+    '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:4px;"></div></div>';
 }
-
-
 </script>
 
 <!-- PDF OVERLAY -->
 <div id="pdf-overlay">
   <div id="pdf-overlay-bar">
     <button onclick="closePdfOverlay()" style="background:#607080;color:#fff;border:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">← Wapas</button>
-    <button onclick="doPrintOverlay()" style="background:#c9a84c;color:#0d1b2a;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;">🖨️ Print / Save as PDF</button>
-    <span style="color:#aaa;font-size:10px;">Print dialog mein — Destination → Save as PDF</span>
+    <button onclick="doPrintOverlay()" style="background:#FFD700;color:#0a4a6e;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;">🖨️ Print / Save as PDF</button>
+    <span style="color:#a0d0e8;font-size:10px;">Print dialog mein — Destination → Save as PDF</span>
   </div>
   <div id="pdf-overlay-content" style="padding:6px;background:#fff;"></div>
 </div>
 
 <!-- =================== LEDGER / KHATA BOOK =================== -->
 <div class="view" id="view-ledger">
-  <!-- Search State -->
   <div id="ldg-search-state">
     <div class="card" style="padding:14px;">
       <div class="card-title">📒 Khata Book — Customer Ledger</div>
@@ -2820,7 +2343,6 @@ function buildLedgerImageHTML(L){
       <div id="ldg-cust-list" style="margin-top:10px;"></div>
     </div>
   </div>
-  <!-- Ledger Detail State -->
   <div id="ldg-detail-state" style="display:none;">
     <div id="ldg-detail-container"></div>
     <div id="ldg-print-area" class="ldg-print-area"></div>
