@@ -533,6 +533,9 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
   <button class="btn btn-navy" onclick="lockApp()">🔒</button>
 </div>
 
+<!-- DRIVE STATUS BAR -->
+<div id="drive-status-bar" style="display:none;padding:6px 14px;font-size:11px;font-weight:700;text-align:center;position:sticky;top:54px;z-index:99;"></div>
+
 <!-- =================== NEW / EDIT INVOICE =================== -->
 <div class="view" id="view-new-invoice">
   <div class="edit-banner" id="edit-banner" style="display:none;">
@@ -711,11 +714,11 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
       <div class="backup-title">🔐 PIN Settings</div>
       <button class="btn btn-gold btn-sm" onclick="startChangePin();document.getElementById('lock-screen').style.display='flex';" style="width:100%;justify-content:center;">Change PIN</button>
     </div>
-    <!-- CHANGE 3: Google Account in Settings -->
+    <!-- Google Login -->
     <div class="backup-card">
-      <div class="backup-title">🔗 Google Account</div>
-      <div id="settings-google-status" style="color:#a0d0e8;font-size:12px;margin-bottom:10px;">Google account connect karo taake PIN recovery aur backup asaan ho.</div>
-      <div id="settings-google-connected" style="display:none;background:rgba(255,255,255,.08);border-radius:8px;padding:8px;margin-bottom:8px;display:none;align-items:center;gap:8px;">
+      <div class="backup-title">🔗 Google Account (Login)</div>
+      <div id="settings-google-status" style="color:#a0d0e8;font-size:12px;margin-bottom:10px;">Google account connect karo taake PIN recovery asaan ho.</div>
+      <div id="settings-google-connected" style="display:none;background:rgba(255,255,255,.08);border-radius:8px;padding:8px;margin-bottom:8px;align-items:center;gap:8px;">
         <img id="settings-user-pic" src="" style="width:32px;height:32px;border-radius:50%;" alt="">
         <div>
           <div id="settings-user-name" style="color:#fff;font-size:13px;font-weight:700;"></div>
@@ -726,6 +729,29 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
         <img src="https://www.google.com/favicon.ico" style="width:18px;" alt="G"> Google se Connect karein
       </button>
       <button onclick="googleSignOut()" id="settings-google-signout" style="display:none;background:#c0392b;color:#fff;border:none;border-radius:8px;padding:10px;width:100%;margin-top:6px;font-size:13px;font-weight:700;cursor:pointer;">🚪 Sign Out</button>
+    </div>
+
+    <!-- Google Drive Auto-Sync -->
+    <div class="backup-card">
+      <div class="backup-title">☁️ Google Drive Auto-Sync</div>
+      <div id="drive-setup-form">
+        <div style="color:#a0d0e8;font-size:12px;margin-bottom:10px;">Invoice data Google Drive mein auto-save — kisi bhi device se access karein!</div>
+        <div class="fr">
+          <label style="color:var(--gold);">OAuth Client ID</label>
+          <input type="text" id="drive-client-id" placeholder="xxxx.apps.googleusercontent.com" style="font-size:11px;">
+        </div>
+        <div id="drive-setup-note" style="color:#ff8080;font-size:11px;margin-top:4px;min-height:16px;"></div>
+        <button class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px;" onclick="initDriveAuth()">🔗 Google Drive Se Connect Karein</button>
+      </div>
+      <div id="drive-connected-info" style="display:none;">
+        <div style="background:rgba(255,255,255,.08);border-radius:8px;padding:10px;margin-bottom:8px;">
+          <div style="color:#7dffbc;font-size:13px;font-weight:700;">✅ Connected — Auto sync active</div>
+          <div style="color:#a0d0e8;font-size:11px;margin-top:4px;" id="drive-last-sync">Last sync: —</div>
+          <div style="color:#a0d0e8;font-size:11px;">📁 Folder: FGI_Invoice_Data</div>
+        </div>
+        <button class="btn btn-green btn-sm" style="width:100%;justify-content:center;margin-bottom:6px;" onclick="manualDriveSync()">🔄 Abhi Sync Karein</button>
+        <button class="btn btn-red btn-sm" style="width:100%;justify-content:center;" onclick="disconnectDrive()">❌ Disconnect</button>
+      </div>
     </div>
     <div class="backup-card">
       <div class="backup-title">📱 Home Screen Install</div>
@@ -1028,6 +1054,7 @@ async function initDB(){
   await sDB();
   setInvNo();setToday();showView('invoice-list');
   updateDbStatus();
+  initDriveOnLoad();
 }
 
 async function sDB(){
@@ -1037,6 +1064,8 @@ async function sDB(){
   try { localStorage.setItem('fgi_db', b64); } catch(e){}
   try { localStorage.setItem('fgi_db_backup', b64); } catch(e){}
   try { sessionStorage.setItem('fgi_db', b64); } catch(e){}
+  // Auto sync to Google Drive
+  autoSync();
 }
 
 function updateDbStatus(){
@@ -2257,6 +2286,210 @@ function downloadLedgerImage(custName){
   },400);
 }
 
+// ============================================================
+//  GOOGLE DRIVE AUTO-SYNC
+// ============================================================
+const DRIVE_CLIENT_KEY = 'fgi_drive_client_id';
+const DRIVE_TOKEN_KEY = 'fgi_drive_token';
+const DRIVE_FILE_KEY = 'fgi_drive_file_id';
+const DRIVE_SYNC_KEY = 'fgi_drive_last_sync';
+const DRIVE_FOLDER_KEY = 'fgi_drive_folder_id';
+var driveToken = null;
+var driveConnected = false;
+var driveClientId = '';
+var driveFolderId = '';
+var driveFileId = '';
+var _autoSyncTimer = null;
+
+function initDriveOnLoad(){
+  driveClientId = localStorage.getItem(DRIVE_CLIENT_KEY) || '';
+  driveToken = sessionStorage.getItem(DRIVE_TOKEN_KEY) || '';
+  driveFolderId = localStorage.getItem(DRIVE_FOLDER_KEY) || '';
+  driveFileId = localStorage.getItem(DRIVE_FILE_KEY) || '';
+  // Pre-fill client ID input
+  var inp = document.getElementById('drive-client-id');
+  if(inp && driveClientId) inp.value = driveClientId;
+  // Handle OAuth redirect
+  handleOAuthRedirect();
+  // If token exists show connected
+  if(driveToken){
+    driveConnected = true;
+    showDriveConnected();
+    updateDriveStatusBar();
+  }
+}
+
+function initDriveAuth(){
+  var clientId = document.getElementById('drive-client-id').value.trim();
+  if(!clientId || !clientId.includes('.apps.googleusercontent.com')){
+    document.getElementById('drive-setup-note').textContent='⚠️ Valid Client ID darj karein!';
+    return;
+  }
+  localStorage.setItem(DRIVE_CLIENT_KEY, clientId);
+  driveClientId = clientId;
+  var scope = 'https://www.googleapis.com/auth/drive.file';
+  var redirect = window.location.origin + window.location.pathname;
+  var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?client_id='+encodeURIComponent(clientId)+'&redirect_uri='+encodeURIComponent(redirect)+'&response_type=token&scope='+encodeURIComponent(scope)+'&prompt=consent';
+  document.getElementById('drive-setup-note').textContent='🔄 Google login page khul raha hai...';
+  window.location.href = authUrl;
+}
+
+function handleOAuthRedirect(){
+  var hash = window.location.hash;
+  if(!hash || !hash.includes('access_token')) return;
+  var params = new URLSearchParams(hash.replace('#','?'));
+  var token = params.get('access_token');
+  if(token){
+    sessionStorage.setItem(DRIVE_TOKEN_KEY, token);
+    driveToken = token;
+    driveConnected = true;
+    window.history.replaceState({}, document.title, window.location.pathname);
+    toast('✅ Google Drive connect ho gaya!');
+    showDriveConnected();
+    updateDriveStatusBar();
+    ensureDriveFolder();
+  }
+}
+
+function showDriveConnected(){
+  var f = document.getElementById('drive-setup-form');
+  var c = document.getElementById('drive-connected-info');
+  if(f) f.style.display='none';
+  if(c) c.style.display='block';
+  var ls = localStorage.getItem(DRIVE_SYNC_KEY);
+  var el = document.getElementById('drive-last-sync');
+  if(el && ls) el.textContent='⏱️ Last sync: '+ls;
+}
+
+function updateDriveStatusBar(){
+  var bar = document.getElementById('drive-status-bar');
+  if(!bar) return;
+  if(driveConnected && driveToken){
+    var ls = localStorage.getItem(DRIVE_SYNC_KEY);
+    bar.style.display='block';
+    bar.style.background='#1a4a35';
+    bar.style.color='#7dffbc';
+    bar.textContent='☁️ Drive: '+(ls?'Last sync: '+ls:'Connected');
+  } else {
+    bar.style.display='none';
+  }
+}
+
+async function ensureDriveFolder(){
+  if(!driveToken) return;
+  // Check if folder exists
+  try{
+    var resp = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'FGI_Invoice_Data'+and+mimeType%3D'application%2Fvnd.google-apps.folder'+and+trashed%3Dfalse&fields=files(id,name)",{
+      headers:{'Authorization':'Bearer '+driveToken}
+    });
+    var data = await resp.json();
+    if(data.files && data.files.length > 0){
+      driveFolderId = data.files[0].id;
+      localStorage.setItem(DRIVE_FOLDER_KEY, driveFolderId);
+    } else {
+      // Create folder
+      var cr = await fetch('https://www.googleapis.com/drive/v3/files',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+driveToken,'Content-Type':'application/json'},
+        body:JSON.stringify({name:'FGI_Invoice_Data',mimeType:'application/vnd.google-apps.folder'})
+      });
+      var cd = await cr.json();
+      driveFolderId = cd.id;
+      localStorage.setItem(DRIVE_FOLDER_KEY, driveFolderId);
+    }
+  }catch(e){ console.warn('Drive folder error:',e); }
+}
+
+async function syncToDrive(){
+  if(!driveToken || !driveConnected) return;
+  if(!db) return;
+  try{
+    // Export DB as JSON
+    var invRes=db.exec("SELECT * FROM invoices");
+    var payRes=db.exec("SELECT * FROM payments");
+    var data={
+      version:4,synced:new Date().toISOString(),
+      invoices:invRes[0]?invRes[0].values.map(v=>{var o={};invRes[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[],
+      payments:payRes[0]?payRes[0].values.map(v=>{var o={};payRes[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[],
+    };
+    var jsonStr = JSON.stringify(data);
+    var blob = new Blob([jsonStr], {type:'application/json'});
+    var fname = 'FGI_Invoice_Backup.json';
+
+    // Check if file exists
+    var existingId = localStorage.getItem(DRIVE_FILE_KEY) || driveFileId;
+    var url, method;
+
+    if(existingId){
+      // Update existing
+      url = 'https://www.googleapis.com/upload/drive/v3/files/'+existingId+'?uploadType=media';
+      method = 'PATCH';
+    } else {
+      // Create new — with folder
+      if(driveFolderId){
+        var meta = await fetch('https://www.googleapis.com/drive/v3/files',{
+          method:'POST',
+          headers:{'Authorization':'Bearer '+driveToken,'Content-Type':'application/json'},
+          body:JSON.stringify({name:fname,parents:[driveFolderId]})
+        });
+        var md = await meta.json();
+        existingId = md.id;
+        localStorage.setItem(DRIVE_FILE_KEY, existingId);
+        driveFileId = existingId;
+        url = 'https://www.googleapis.com/upload/drive/v3/files/'+existingId+'?uploadType=media';
+        method = 'PATCH';
+      } else {
+        url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=media';
+        method = 'POST';
+      }
+    }
+
+    var resp = await fetch(url,{
+      method:method,
+      headers:{'Authorization':'Bearer '+driveToken,'Content-Type':'application/json'},
+      body:blob
+    });
+
+    if(resp.ok){
+      var now = new Date().toLocaleString('en-PK');
+      localStorage.setItem(DRIVE_SYNC_KEY, now);
+      var el = document.getElementById('drive-last-sync');
+      if(el) el.textContent='⏱️ Last sync: '+now;
+      updateDriveStatusBar();
+    } else if(resp.status===401){
+      // Token expired
+      driveToken=''; driveConnected=false;
+      sessionStorage.removeItem(DRIVE_TOKEN_KEY);
+      var bar=document.getElementById('drive-status-bar');
+      if(bar){bar.style.display='block';bar.style.background='#7a1a1a';bar.style.color='#ffb3b3';bar.textContent='⚠️ Drive token expire — Settings mein reconnect karein';}
+    }
+  }catch(e){ console.warn('Drive sync error:',e); }
+}
+
+function autoSync(){
+  clearTimeout(_autoSyncTimer);
+  _autoSyncTimer = setTimeout(function(){ syncToDrive(); }, 2500);
+}
+
+function manualDriveSync(){
+  toast('🔄 Sync ho raha hai...', 2000);
+  syncToDrive().then(function(){ toast('✅ Drive sync complete!'); });
+}
+
+function disconnectDrive(){
+  if(!confirm('Google Drive se disconnect karein?\n\nLocal data safe rahega.')) return;
+  driveToken=''; driveConnected=false; driveFolderId=''; driveFileId='';
+  sessionStorage.removeItem(DRIVE_TOKEN_KEY);
+  localStorage.removeItem(DRIVE_FOLDER_KEY);
+  localStorage.removeItem(DRIVE_FILE_KEY);
+  localStorage.removeItem(DRIVE_SYNC_KEY);
+  var f=document.getElementById('drive-setup-form');var c=document.getElementById('drive-connected-info');
+  if(f) f.style.display='block';if(c) c.style.display='none';
+  var bar=document.getElementById('drive-status-bar');if(bar) bar.style.display='none';
+  toast('Drive disconnect ho gaya');
+}
+
+// ============================================================
 function buildLedgerImageHTML(L){
   var thC='padding:10px 5px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:center;';
   var thL='padding:10px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:left;padding-left:10px;';
