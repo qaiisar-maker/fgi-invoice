@@ -20,19 +20,9 @@
   var ml=document.getElementById('fgi-manifest');
   if(ml){try{var b=new Blob([JSON.stringify(m)],{type:'application/json'});ml.href=URL.createObjectURL(b);}catch(e){}}
   if('serviceWorker' in navigator){
-    var swCode=`
-const CACHE='fgi-invoice-v17';
-const CDNS=[
-  'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js',
-  'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap'
-];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(CDNS.map(url=>c.add(url).catch(()=>null)))).then(()=>self.skipWaiting()));});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
-self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(cached=>{if(cached)return cached;return fetch(e.request).then(resp=>{if(resp&&resp.status===200&&e.request.url.startsWith('https')){var rc=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,rc));}return resp;}).catch(()=>cached||new Response('Offline',{status:503}));}));});`;
-    try{var swBlob=new Blob([swCode],{type:'application/javascript'});var swUrl=URL.createObjectURL(swBlob);navigator.serviceWorker.register(swUrl,{scope:'./'}).catch(function(e){console.warn('SW:',e.message);});}catch(e){}
+    navigator.serviceWorker.register('./sw.js', {scope: './'})
+      .then(function(reg){ console.log('FGI Invoice SW registered', reg.scope); })
+      .catch(function(e){ console.warn('SW reg failed:', e.message); });
   }
 })();
 </script>
@@ -82,8 +72,10 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 #secret-q-setup .sq-btn{background:var(--gold);color:var(--navy);border:none;border-radius:8px;padding:10px;width:100%;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;cursor:pointer;}
 
 /* NAV */
-.nav{background:var(--navy);padding:0 14px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:100;height:54px;border-bottom:2px solid var(--gold);}
+.nav{background:var(--navy);padding:6px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:5px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--gold);}
 .nav-logo{font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-size:20px;font-weight:800;letter-spacing:1px;flex:1;}
+.nav-row1{display:flex;align-items:center;gap:5px;width:100%;}
+.nav-row2{display:flex;align-items:center;gap:5px;width:100%;justify-content:flex-end;}
 .btn{padding:7px 13px;border:none;border-radius:8px;cursor:pointer;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
 .btn:active{transform:scale(.95);}
 .btn-gold{background:var(--gold);color:var(--navy);}
@@ -101,6 +93,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .view{display:none;padding:14px;max-width:500px;margin:0 auto;}
 #view-print{padding:0;max-width:100%;}
 .view.active{display:block;}
+#view-payment{margin-top:0;}
 
 /* CARD */
 .card{background:var(--white);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 16px rgba(10,74,110,.07);border:1px solid var(--gray2);}
@@ -462,14 +455,18 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 
 <!-- NAV -->
 <div class="nav" id="main-nav" style="display:none;">
-  <button class="btn btn-gray btn-sm" id="nav-back-btn" onclick="navGoBack()" style="display:none;padding:6px 10px;">◀</button>
-  <span class="nav-logo">⚡ FGI</span>
-  <button class="btn btn-gold" onclick="showView('new-invoice')">＋ New</button>
-  <button class="btn btn-outline" onclick="showView('invoice-list')">☰ List</button>
-  <button class="btn btn-purple btn-sm" onclick="showView('report')">📊</button>
-  <button class="btn btn-green btn-sm" onclick="showView('ledger')" title="Khata Book">📒</button>
-  <button class="btn btn-navy" onclick="showView('settings')">⚙️</button>
-  <button class="btn btn-navy" onclick="lockApp()">🔒</button>
+  <div class="nav-row1">
+    <button class="btn btn-gray btn-sm" id="nav-back-btn" onclick="navGoBack()" style="display:none;padding:6px 8px;">◀</button>
+    <span class="nav-logo">⚡ FGI</span>
+    <button class="btn btn-gold btn-sm" onclick="showView('new-invoice')" style="font-size:13px;padding:6px 12px;">＋ New</button>
+    <button class="btn btn-outline btn-sm" onclick="showView('invoice-list')" style="font-size:13px;padding:6px 12px;">☰ List</button>
+    <button class="btn btn-navy btn-sm" onclick="lockApp()" style="padding:6px 10px;">🔒</button>
+  </div>
+  <div class="nav-row2">
+    <button class="btn btn-purple btn-sm" onclick="showView('report')" style="flex:1;justify-content:center;">📊 Report</button>
+    <button class="btn btn-green btn-sm" onclick="showView('ledger')" style="flex:1;justify-content:center;">📒 Khata</button>
+    <button class="btn btn-navy btn-sm" onclick="showView('settings')" style="flex:1;justify-content:center;">⚙️ Settings</button>
+  </div>
 </div>
 
 <!-- =================== NEW / EDIT INVOICE =================== -->
