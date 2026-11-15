@@ -1,35 +1,23 @@
 {
   "name": "FGI Invoice System",
   "short_name": "FGI Invoice",
-  "description": "FGI Invoice Management System — Ali Pur Chattha",
+  "description": "Faisal Goraya Industry — Invoice, Payment & Khata (Ali Pur Chattha)",
+  "id": "./index.html",
   "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#1a3a6b",
-  "theme_color": "#1a3a6b",
-  "orientation": "portrait",
   "scope": "./",
-  "lang": "ur",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a4a6e",
+  "theme_color": "#0a4a6e",
+  "lang": "en",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "categories": ["business", "finance"],
   "shortcuts": [
-    {
-      "name": "New Invoice",
-      "short_name": "Invoice",
-      "url": "./index.html",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    }
+    { "name": "New Invoice", "short_name": "Invoice", "url": "./index.html", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

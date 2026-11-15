@@ -8,31 +8,25 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FGI">
-<link rel="manifest" id="fgi-manifest">
-<link rel="apple-touch-icon" id="fgi-apple-icon">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <script>
-(function(){
-  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#0a4a6e"/><rect x="0" y="400" width="512" height="20" fill="#FFD700"/><text x="256" y="320" font-family="Arial Black,sans-serif" font-weight="900" font-size="220" fill="#FFD700" text-anchor="middle">FGI</text><text x="256" y="390" font-family="Arial,sans-serif" font-size="60" fill="#ffe066" text-anchor="middle" opacity="0.9">INVOICE</text></svg>';
-  var url='data:image/svg+xml;base64,'+btoa(svg);
-  var al=document.getElementById('fgi-apple-icon');
-  if(al){al.href=url;al.setAttribute('sizes','512x512');}
-  var m={name:'FGI Invoice System',short_name:'FGI Invoice',description:'Faisal Goraya Industry - Invoice Management',start_url:'.',display:'standalone',orientation:'portrait',background_color:'#0a4a6e',theme_color:'#0a4a6e',icons:[{src:url,sizes:'192x192',type:'image/svg+xml'},{src:url,sizes:'512x512',type:'image/svg+xml'}]};
-  var ml=document.getElementById('fgi-manifest');
-  if(ml){try{var b=new Blob([JSON.stringify(m)],{type:'application/json'});ml.href=URL.createObjectURL(b);}catch(e){}}
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js', {scope: './'})
-      .then(function(reg){ console.log('FGI Invoice SW registered', reg.scope); })
-      .catch(function(e){ console.warn('SW reg failed:', e.message); });
-  }
-})();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js',{scope:'./'})
+      .then(function(reg){console.log('FGI Invoice SW registered',reg.scope);})
+      .catch(function(e){console.warn('SW reg failed:',e.message);});
+  });
+}
 </script>
-<title>FGI Invoice System v17</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<title>FGI Invoice System v18</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<script src="lib/sql-wasm.js"></script>
+<script src="lib/html2canvas.min.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/jspdf.plugin.autotable.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
 :root{
   --navy:#0a4a6e;--navy2:#0d5c8a;--navy3:#1470a0;
   --gold:#FFD700;--gold2:#ffe033;--gold-light:#fff4a8;
@@ -364,6 +358,119 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 .fp-modal-sub{font-size:12px;color:var(--text2);margin-bottom:16px;}
 .fp-modal-btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
 .fp-modal-cancel{width:100%;padding:10px;border:1.5px solid var(--gray3);border-radius:10px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:none;color:var(--text2);margin-top:4px;}
+
+/* ===== v18 additions ===== */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.stats-strip .stat-box{padding:10px 4px;min-width:0;}
+@media(max-width:380px){.stats-strip{grid-template-columns:repeat(2,1fr);}}
+.pay-status-badge.overpaid{background:#0b7a6b;color:#fff;}
+.inv-card.status-overpaid,.rpt-inv-card.status-overpaid{border-left-color:#0b7a6b;}
+.pay-type-icon.cheque{background:#fff3d6;}.pay-type-icon.credit{background:#d4f5ef;}
+.mini-tag{display:inline-block;background:var(--gray2);color:var(--navy);font-size:9px;font-weight:800;padding:1px 6px;border-radius:4px;vertical-align:middle;margin-left:4px;}
+.credit-hint{background:#d4f5ef;border:1px solid #7fd6c4;color:#0b5e52;border-radius:8px;padding:7px 10px;font-size:12px;margin-top:6px;}
+.rp-dash-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(180deg,#ffe36b,#FFC400);color:#0a3f63;border:2px solid #fff3b0;border-radius:12px;padding:12px;margin:0 0 10px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:0 3px 0 #b8860b;}
+.rp-dash-btn span{font-size:13px;font-weight:700;opacity:.75;}
+.rp-dash-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #b8860b;}
+.sug-box{background:#fff;border:1.5px solid var(--gold);border-radius:8px;max-height:240px;overflow-y:auto;display:none;position:absolute;z-index:500;width:100%;box-shadow:0 6px 20px rgba(0,0,0,.18);top:100%;left:0;}
+.rp-cust-box{background:var(--gray1);border:1.5px solid var(--gray2);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.rp-mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.rp-mini-stats div{background:#fff;border-radius:7px;padding:5px 3px;text-align:center;}
+.rp-mini-stats b{display:block;font-size:11.5px;color:var(--navy);}
+.rp-mini-stats span{font-size:8.5px;color:var(--text2);text-transform:uppercase;font-weight:700;}
+.rp-inv-row{border:1.5px solid var(--gray2);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:#fff;}
+.rp-inv-row.sel{border-color:var(--green);background:#f1fbf6;}
+.rp-inv-main{display:flex;gap:10px;align-items:flex-start;cursor:pointer;}
+.rp-inv-main input{width:20px;height:20px;margin-top:2px;flex:none;}
+.rp-amt-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--text2);font-weight:700;}
+.rp-amt-row input{flex:1;padding:8px 10px;border:1.5px solid var(--green);border-radius:8px;font-size:15px;font-weight:800;}
+.rp-pv-row{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px dashed var(--gray2);font-size:13px;color:var(--text);}
+.rp-pv-row.head{font-weight:800;font-size:14px;color:var(--navy);}
+.rp-pv-row.adv{color:#0b7a6b;font-weight:800;background:#e6f8f4;border-radius:6px;padding:7px 8px;margin-top:4px;}
+.rp-pv-sub{font-size:11.5px;color:var(--text2);padding:0 2px 6px;}
+.rp-pv-note{background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:8px 10px;font-size:12px;color:#6d5300;margin:6px 0;}
+.rp-pv-err{background:#fde8e8;border:1px solid #f5b5b5;border-radius:8px;padding:8px 10px;font-size:12px;color:#a02020;margin-top:8px;font-weight:700;}
+.rp-success{background:#d4f0e5;border:1.5px solid #1a7f5a;border-radius:10px;padding:10px 12px;color:#11573d;font-size:13px;margin-top:10px;line-height:1.6;}
+#rp-save-btn:disabled,#pay-save-btn:disabled,#save-btn:disabled{opacity:.5;cursor:not-allowed;}
+.ldg-info td{background:#eafaf6;}
+#imgp-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9995;display:none;align-items:center;justify-content:center;padding:20px;}
+#imgp-modal.open{display:flex;}
+.imgp-box{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:380px;max-height:85vh;overflow:auto;}
+.imgp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--gray2);}
+.fgp-view{margin:0 auto 10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.18);}
+.fgp-scale{transform-origin:top left;width:720px;}
+/* ===== HD invoice page (720px design width, exported at 2x = 1440px) ===== */
+.fgp{width:720px;background:#eaf2fa;font-family:'Barlow',Arial,sans-serif;color:#0a2c45;box-sizing:border-box;overflow:hidden;}
+.fgp *{box-sizing:border-box;}
+.fgp .ic{display:inline-flex;align-items:center;font-size:.95em;}
+.fgp .ic.big{font-size:1.25em;}
+.fgp-hd{background:linear-gradient(160deg,#08385a 0%,#0a4a6e 55%,#0e5f8f 100%);padding:22px 26px 20px;}
+.fgp-hd-top{display:flex;align-items:center;gap:16px;}
+.fgp-logo{width:96px;height:96px;flex:none;}
+.fgp-sep{width:3px;height:76px;background:rgba(255,255,255,.5);border-radius:2px;flex:none;}
+.fgp-co{font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;font-size:52px;line-height:1;color:#FFD23F;}
+.fgp-co-sub{font-size:24px;color:#fff;font-weight:600;margin-top:8px;display:flex;align-items:center;gap:8px;}
+.fgp-wave{height:5px;margin:14px -26px 0 110px;background:linear-gradient(90deg,rgba(255,210,63,0),#FFD23F 25%,#fff0a8 60%,#FFD23F 85%,rgba(255,210,63,.2));border-radius:3px;}
+.fgp-hd-row2{display:flex;justify-content:space-between;align-items:center;margin-top:16px;}
+.fgp-invno{background:linear-gradient(180deg,#ffe878,#FFC400);color:#0a2c45;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;font-size:46px;line-height:1.1;padding:4px 30px;border-radius:14px;border:3px solid #fff3b0;}
+.fgp-date{display:flex;align-items:center;gap:12px;color:#fff;font-size:32px;font-weight:700;}
+.fgp-u{padding:14px 16px 0;}
+.fgp-u.tight{padding-top:0;}
+.fgp-cust{background:linear-gradient(180deg,#ffffff,#e8f1fa);border-radius:18px;border:2px solid #c3d9ee;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:14px;}
+.fgp-cname{font-size:31px;font-weight:800;color:#0a3f63;line-height:1.15;display:flex;gap:10px;align-items:center;}
+.fgp-cmob{font-size:25px;font-weight:600;color:#0a2c45;margin-top:6px;display:flex;gap:10px;align-items:center;}
+.fgp-city{display:flex;align-items:center;gap:8px;border-left:3px solid #0a3f63;padding-left:14px;flex:none;max-width:44%;}
+.fgp-city .pill{background:#cfe4f7;border:2px solid #9cc3e6;color:#0a3f63;font-weight:800;font-size:24px;padding:6px 14px;border-radius:10px;}
+.fgp-tblwrap{border-radius:14px;overflow:hidden;border:2px solid #c3d9ee;background:#fff;}
+table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+.fgp-tbl th{background:#0a3f63;color:#fff;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;font-size:22px;padding:12px 4px;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.18);}
+.fgp-tbl th.tot{color:#FFD23F;}
+.fgp-tbl td{font-size:22px;padding:10px 6px;border-top:1px solid #d6e6f4;border-right:1px solid #e3edf7;color:#0a2c45;font-weight:600;vertical-align:middle;word-wrap:break-word;overflow-wrap:anywhere;line-height:1.2;}
+.fgp-tbl tr.odd td{background:#eef6fd;}
+.fgp-tbl td.tot{background:#fff4c4;font-weight:800;font-size:24px;}
+.fgp-tbl tr.odd td.tot{background:#ffeea8;}
+.fgp-tbl td.n{color:#55708a;}.fgp-tbl td.dd{font-size:19px;color:#3c5870;}
+.fgp-tbl .c{text-align:center;}.fgp-tbl .l{text-align:left;}.fgp-tbl .r{text-align:right;}
+.fgp-sum{background:#fff;border:2px solid #c3d9ee;border-radius:14px;overflow:hidden;}
+.fgp-itot{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,#f3f9ff,#dcebf8);padding:12px 18px;font-size:27px;font-weight:800;color:#0a2c45;}
+.fgp-itot b{font-size:31px;}
+.fgp-sl{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;border-top:1px dashed #c9dbec;font-size:23px;font-weight:600;}
+.fgp-sl b{font-weight:800;}
+.fgp-sl.minus{color:#b22222;}.fgp-sl.plus{color:#1a6630;}
+.fgp-sl.prev{color:#1a6630;}.fgp-sl.prev.strong{font-weight:800;background:#f0faf3;}
+.fgp-sl .tag{font-style:normal;background:#FFD23F;color:#0a3f63;padding:1px 8px;border-radius:5px;font-size:19px;font-weight:800;margin-left:6px;}
+.fgp-grand{background:linear-gradient(180deg,#0a2c45,#0a3f63);border:3px solid #FFC400;border-radius:18px;padding:12px 12px 12px 22px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.fgp-grand .lbl{font-family:'Barlow Condensed',Arial,sans-serif;font-size:38px;font-weight:800;color:#FFD23F;letter-spacing:.5px;}
+.fgp-grand .val{background:linear-gradient(180deg,#ffe878,#FFC400);color:#0a2c45;font-family:'Barlow Condensed',Arial,sans-serif;font-size:44px;font-weight:800;padding:4px 22px;border-radius:12px;}
+.fgp-ph{background:#fff;border-left:2px solid #c3d9ee;border-right:2px solid #c3d9ee;padding:0 18px;}
+.fgp-ph.first{border-top:2px solid #c3d9ee;border-radius:14px 14px 0 0;margin-top:14px;}
+.fgp-ph.last{border-bottom:2px solid #c3d9ee;border-radius:0 0 14px 14px;padding-bottom:6px;}
+.fgp-ph.first.last{border-radius:14px;}
+.fgp-ph-title{font-family:'Barlow Condensed',Arial,sans-serif;font-size:25px;font-weight:800;color:#0a3f63;letter-spacing:1px;padding:12px 0 4px;}
+.fgp-ph-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px dashed #c9dbec;font-size:22px;}
+.fgp-ph-row .m{font-weight:600;}.fgp-ph-row b{color:#1a7f5a;font-weight:800;white-space:nowrap;}
+.fgp-fin{border-radius:16px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px;color:#fff;}
+.fgp-fin .lbl{font-family:'Barlow Condensed',Arial,sans-serif;font-size:30px;font-weight:800;letter-spacing:1px;}
+.fgp-fin .sub{font-size:18px;opacity:.9;margin-top:2px;}
+.fgp-fin .val{font-family:'Barlow Condensed',Arial,sans-serif;font-size:40px;font-weight:800;white-space:nowrap;}
+.fgp-fin.due{background:linear-gradient(180deg,#8f1f1f,#6e1414);}.fgp-fin.due .val{color:#ffc4c4;}
+.fgp-fin.paid{background:linear-gradient(180deg,#1f6b4b,#14513a);}.fgp-fin.paid .val{color:#9dffcf;}
+.fgp-fin.over{background:linear-gradient(180deg,#0e7f70,#0a5e53);border:3px solid #FFC400;}.fgp-fin.over .val{color:#FFE27A;}
+.fgp-notes{background:#fffbe6;border:2px solid #f3dc8a;border-radius:12px;padding:10px 16px;font-size:21px;color:#5b4a12;}
+.fgp-bank{background:#fff;border:2px solid #c3d9ee;border-radius:16px;overflow:hidden;}
+.fgp-bank-title{background:linear-gradient(90deg,#0a3f63,#0e5f8f);color:#fff;font-family:'Barlow Condensed',Arial,sans-serif;font-size:28px;font-weight:800;letter-spacing:1px;padding:10px 18px;display:flex;align-items:center;gap:12px;border-bottom:3px solid #FFC400;}
+.fgp-bk{display:flex;align-items:center;margin:10px 12px;border-radius:12px;padding:10px 14px;gap:12px;}
+.fgp-bk .nm{width:230px;flex:none;display:flex;align-items:center;gap:10px;border-right:3px solid rgba(10,44,69,.6);padding-right:10px;min-height:56px;}
+.fgp-bk .bn{font-family:'Barlow Condensed',Arial,sans-serif;font-weight:800;font-size:30px;color:#0a3f63;}
+.fgp-bk .bn.jz{color:#c8102e;font-style:italic;font-size:36px;}
+.fgp-bk .bn.ep{color:#1e9b48;font-size:36px;}
+.fgp-bk .dt{font-size:22px;line-height:1.3;color:#0a2c45;}
+.fgp-bk .dt b{font-size:24px;}
+.fgp-bk.meezan{background:linear-gradient(90deg,#d8e9f8,#eef6fd);}
+.fgp-bk.jazz{background:linear-gradient(90deg,#fbdada,#fdeeee);}
+.fgp-bk.easy{background:linear-gradient(90deg,#d6f2dc,#ecf9ef);}
+.fgp-pfoot{padding:14px 16px 12px;display:flex;justify-content:flex-end;}
+.fgp-pnum{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #9cc3e6;border-radius:12px;padding:6px 16px;font-size:22px;font-weight:800;color:#0a3f63;}
+.fgp-foot{background:linear-gradient(160deg,#08385a,#0a4a6e);border-top:4px solid #FFC400;color:#FFD23F;text-align:center;font-family:'Barlow Condensed',Arial,sans-serif;font-size:24px;font-weight:800;letter-spacing:.5px;padding:14px 10px;}
 </style>
 </head>
 <body>
@@ -488,8 +595,9 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
     </div>
     <div class="fr" style="position:relative;">
       <label>Customer Name ★</label>
-      <input type="text" id="cust-name" placeholder="e.g. Mr. Muddasar" oninput="onCustNameInput(this.value)" autocomplete="off">
+      <input type="text" id="cust-name" placeholder="e.g. Mr. Muddasar" oninput="onCustNameInput(this.value);calcSummary()" autocomplete="off">
       <div id="cust-suggestions"></div>
+      <div id="cust-credit-hint" class="credit-hint" style="display:none;"></div>
     </div>
     <div class="fr2">
       <div class="fr"><label>Mobile (Optional)</label><input type="tel" id="cust-mobile" placeholder="03xx-xxxxxxx"></div>
@@ -560,6 +668,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
       <div class="sum-row" id="sr-adv" style="display:none;"><span class="sum-label">Advance Paid</span><span class="sum-val minus" id="sv-adv">− Rs. 0</span></div>
       <div id="sr-prev-container"></div>
       <div class="sum-row grand"><span class="sum-label">GRAND TOTAL</span><span class="sum-val" id="s-grand">Rs. 0</span></div>
+      <div class="sum-row" id="sr-credit" style="display:none;"><span class="sum-label"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="use-credit" checked onchange="calcSummary()"> 🔁 Less Advance (Customer Credit)</label></span><span class="sum-val minus" id="sv-credit">− Rs. 0</span></div>
+      <div class="sum-row" id="sr-payable" style="display:none;"><span class="sum-label" style="font-weight:800;">Net Payable</span><span class="sum-val" id="sv-payable" style="font-weight:800;">Rs. 0</span></div>
     </div>
     <button class="btn btn-green" id="save-btn" style="width:100%;justify-content:center;padding:13px;margin-top:14px;font-size:15px;border-radius:10px;" onclick="saveInvoice()">💾 Save Invoice</button>
   </div>
@@ -568,6 +678,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
 <!-- =================== INVOICE LIST =================== -->
 <div class="view" id="view-invoice-list">
   <div id="stats-strip" class="stats-strip"></div>
+  <button class="rp-dash-btn" onclick="openReceivePayment()">💰 RECEIVED PAYMENT <span>/ Add Payment</span></button>
   <div style="background:var(--navy2);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
     <span style="color:#a0d0e8;font-size:11px;">🔒 Data safe rakhne ke liye backup zaroor karo</span>
     <button class="btn btn-green btn-sm" onclick="exportData()">📤 Backup</button>
@@ -594,26 +705,94 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
       <div class="pay-form-title">💳 Add New Payment</div>
       <div class="fr2">
         <div class="fr"><label>Method</label>
-          <select id="pay-method">
+          <select id="pay-method" onchange="payMethodChange()">
             <option value="cash">💵 Cash</option>
             <option value="online">🌐 Online</option>
+            <option value="cheque">🧾 Cheque</option>
             <option value="jazzcash">📲 JazzCash</option>
             <option value="easypaisa">💳 EasyPaisa</option>
             <option value="bank">🏦 Bank</option>
           </select>
         </div>
-        <div class="fr"><label>Amount (Rs.)</label><input type="number" id="pay-amount" placeholder="0" min="0"></div>
+        <div class="fr"><label>Amount (Rs.)</label><input type="number" id="pay-amount" placeholder="0" min="0" inputmode="decimal"></div>
+      </div>
+      <div class="fr" id="pay-ref-row" style="display:none;"><label>Transaction / Reference No (Optional)</label><input type="text" id="pay-ref" placeholder="e.g. TID 123456"></div>
+      <div class="fr2" id="pay-cheque-row" style="display:none;">
+        <div class="fr"><label>Cheque No (Optional)</label><input type="text" id="pay-cheque"></div>
+        <div class="fr"><label>Bank (Optional)</label><input type="text" id="pay-bank"></div>
       </div>
       <div class="fr2">
         <div class="fr"><label>Date</label><input type="date" id="pay-date"></div>
         <div class="fr"><label>Note (Optional)</label><input type="text" id="pay-note" placeholder="e.g. partial..."></div>
       </div>
-      <button class="btn btn-green" style="width:100%;justify-content:center;padding:11px;font-size:14px;" onclick="addPayment()">✅ Record Payment</button>
+      <button class="btn btn-green" id="pay-save-btn" style="width:100%;justify-content:center;padding:11px;font-size:14px;" onclick="addPayment()">✅ Record Payment</button>
     </div>
     <div class="pay-history">
       <div class="pay-hist-title">📜 Payment History</div>
       <div id="pay-history-list"></div>
     </div>
+  </div>
+</div>
+
+<!-- =================== RECEIVED PAYMENT (v18) =================== -->
+<div class="view" id="view-receive">
+  <div class="card">
+    <div class="card-title">💰 Received Payment</div>
+    <div class="fr" style="position:relative;">
+      <label>Customer Name ★</label>
+      <input type="text" id="rp-cust" placeholder="Customer naam likh kar search karein..." autocomplete="off" oninput="rpCustInput(this.value)" onfocus="rpCustInput(this.value)">
+      <div id="rp-cust-sug" class="sug-box"></div>
+    </div>
+    <div id="rp-cust-info"></div>
+    <div class="fr2">
+      <div class="fr"><label>Payment Date ★</label><input type="date" id="rp-date"></div>
+      <div class="fr"><label>Amount (Rs.) ★</label><input type="number" id="rp-amount" placeholder="0" min="0" inputmode="decimal" oninput="rpRecalc()"></div>
+    </div>
+    <div class="fr"><label>Payment Method ★</label>
+      <select id="rp-method" onchange="rpMethodChange()">
+        <option value="cash">💵 Cash</option>
+        <option value="online">🌐 Online</option>
+        <option value="cheque">🧾 Cheque</option>
+        <option value="jazzcash">📲 JazzCash</option>
+        <option value="easypaisa">💳 EasyPaisa</option>
+        <option value="bank">🏦 Bank</option>
+      </select>
+    </div>
+    <div class="fr" id="rp-ref-row" style="display:none;"><label>Transaction / Reference No (Optional)</label><input type="text" id="rp-ref" placeholder="e.g. TID 123456"></div>
+    <div class="fr2" id="rp-cheque-row" style="display:none;">
+      <div class="fr"><label>Cheque No (Optional)</label><input type="text" id="rp-cheque"></div>
+      <div class="fr"><label>Bank (Optional)</label><input type="text" id="rp-bank" placeholder="e.g. HBL"></div>
+    </div>
+    <div class="fr"><label>Note (Optional)</label><input type="text" id="rp-note" placeholder="Optional..."></div>
+  </div>
+  <div class="card" id="rp-inv-card" style="display:none;">
+    <div class="card-title">🧾 Invoice Number (Optional)</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Jis invoice par raqam lagani hai select karein. Kuch select na karein to poori raqam <b>Customer Advance</b> mein jaye gi.</div>
+    <div id="rp-inv-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔍 Allocation Preview</div>
+    <div id="rp-preview"></div>
+    <div id="rp-success" class="rp-success" style="display:none;"></div>
+    <button class="btn btn-green" id="rp-save-btn" style="width:100%;justify-content:center;padding:13px;margin-top:12px;font-size:15px;border-radius:10px;" onclick="rpSave()" disabled>✅ SAVE PAYMENT</button>
+  </div>
+  <div class="card" id="rp-hist-card" style="display:none;">
+    <div class="card-title">📜 Is Customer Ki Payments</div>
+    <div id="rp-hist"></div>
+  </div>
+</div>
+
+<!-- MULTI-PAGE IMAGE MODAL (v18) -->
+<div id="imgp-modal" onclick="if(event.target===this)closeImgPagesModal()">
+  <div class="imgp-box">
+    <div class="fp-modal-title">📸 Invoice Images (HD)</div>
+    <div class="fp-modal-sub">Har page ki alag image — download ya WhatsApp share karein</div>
+    <div id="imgp-body"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn btn-blue" style="flex:1;justify-content:center;" onclick="imgAllAction('download')">⬇️ Download All</button>
+      <button class="btn btn-green" style="flex:1;justify-content:center;" onclick="imgAllAction('share')">📤 Share All</button>
+    </div>
+    <button class="fp-modal-cancel" onclick="closeImgPagesModal()">✕ Close</button>
   </div>
 </div>
 
@@ -624,7 +803,7 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
     <button class="btn btn-green btn-sm" onclick="doSaveImage()" style="flex:1;justify-content:center;">📸 Image</button>
     <button class="btn btn-gray btn-sm" onclick="showView('invoice-list')" style="flex:1;justify-content:center;">← Back</button>
   </div>
-  <div style="background:#fff;padding:0;width:100%;">
+  <div style="background:#dfe9f3;padding:8px 0;width:100%;">
     <div id="preview-container"></div>
   </div>
 </div>
@@ -643,6 +822,10 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
         <button class="btn btn-blue btn-sm" onclick="document.getElementById('import-file').click()" style="flex:1;justify-content:center;">📥 Import / Restore</button>
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(this)">
+      <div class="backup-row" style="margin-top:8px;">
+        <button class="btn btn-gray btn-sm" onclick="downloadPreUpdateBackup()" style="flex:1;justify-content:center;font-size:11px;">⏪ v18 se pehle ka backup</button>
+        <button class="btn btn-gray btn-sm" onclick="restoreBeforeImport()" style="flex:1;justify-content:center;font-size:11px;">⏪ Import se pehle ka data</button>
+      </div>
     </div>
 
     <!-- PIN SETTINGS -->
@@ -676,7 +859,8 @@ body{font-family:'Barlow',sans-serif;background:var(--gray1);color:var(--text);m
       <div style="color:#a0d0e8;font-size:11px;margin-top:8px;line-height:1.6;">
         ✅ <b>IndexedDB</b> — Permanent storage<br>
         ✅ <b>localStorage</b> — Backup layer<br>
-        ✅ <b>No Google, No Cloud</b> — 100% offline
+        ✅ <b>No Google, No Cloud, No CDN</b> — 100% offline (libraries + fonts app ke andar)<br>
+        ℹ️ FGI Invoice System <b>v18</b>
       </div>
     </div>
 
@@ -727,7 +911,7 @@ let prevBalRef=null;
 let unpaidInvoicesList=[];
 let editMode=false, editInvId=null;
 const optState={less:false,add:false,advance:false,prev:false,notes:false};
-const PAY_ICONS={cash:'💵',online:'🌐',jazzcash:'📲',easypaisa:'💳',bank:'🏦'};
+const PAY_ICONS={cash:'💵',online:'🌐',cheque:'🧾',jazzcash:'📲',easypaisa:'💳',bank:'🏦',credit:'🔁'};
 
 // ============================================================
 //  IndexedDB — CORE STORAGE
@@ -880,29 +1064,6 @@ function hideForgotPin(){
   document.getElementById('fp-answer').value='';
   document.getElementById('fp-error').textContent='';
 }
-async function verifyForgotPin(){
-  const d=await loadSecretQData();
-  const ans=document.getElementById('fp-answer').value.trim().toLowerCase();
-  const errEl=document.getElementById('fp-error');
-  if(!ans){errEl.textContent='⚠️ Jawab likhein!';return;}
-  if(!d){errEl.textContent='❌ Secret question nahi mila!';return;}
-  if(ans===d.a||d.a.includes(ans)||ans.includes(d.a)){
-    errEl.style.color='#7dffbc';
-    errEl.textContent='✅ Sahi jawab! Naya PIN set karein:';
-    setTimeout(()=>{
-      hideForgotPin();
-      setTimeout(()=>{
-        document.getElementById('pin-mode-label').textContent='SET NEW PIN';
-        document.getElementById('pin-error').style.color='#2ecc71';
-        document.getElementById('pin-error').textContent='🔓 Verified! Naya PIN set karein';
-        pinMode='set-new';pinBuf='';newPinTmp='';updDots();
-      },200);
-    },600);
-  } else {
-    errEl.style.color='#ff8080';
-    errEl.textContent='❌ Jawab galat hai. Dobara koshish karein.';
-  }
-}
 
 // ============================================================
 //  PIN LOGIC
@@ -967,63 +1128,15 @@ function lockApp(){
 // ============================================================
 //  DB
 // ============================================================
-async function initDB(){
-  if(db){setInvNo();setToday();showView('invoice-list');updateSQStatus();return;}
-  const SQL=await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`});
-  const saved=await idbLoad('db')||localStorage.getItem('fgi_db')||localStorage.getItem('fgi_db_backup')||sessionStorage.getItem('fgi_db');
-  if(saved){
-    try{const buf=Uint8Array.from(atob(saved),c=>c.charCodeAt(0));db=new SQL.Database(buf);}
-    catch(e){db=new SQL.Database();}
-  } else {db=new SQL.Database();}
-
-  db.run(`CREATE TABLE IF NOT EXISTS invoices(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    inv_no TEXT,inv_date TEXT,cust_name TEXT,cust_mobile TEXT,cust_city TEXT,
-    items_json TEXT,less_val REAL DEFAULT 0,less_type TEXT DEFAULT 'amount',
-    add_val REAL DEFAULT 0,add_type TEXT DEFAULT 'amount',
-    advance_json TEXT DEFAULT '[]',prev_bal REAL DEFAULT 0,prev_bal_ref TEXT DEFAULT '',
-    notes TEXT DEFAULT '',items_total REAL DEFAULT 0,grand_total REAL DEFAULT 0,created_at TEXT
-  )`);
-  try{db.run("ALTER TABLE invoices ADD COLUMN prev_bal_ref TEXT DEFAULT ''");}catch(e){}
-  db.run(`CREATE TABLE IF NOT EXISTS payments(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    invoice_id INTEGER NOT NULL,method TEXT,amount REAL,pay_date TEXT,note TEXT,created_at TEXT,
-    FOREIGN KEY(invoice_id) REFERENCES invoices(id)
-  )`);
-
-  await sDB();
-  setInvNo();setToday();showView('invoice-list');
-  updateDbStatus();
-  updateSQStatus();
-}
-
-async function sDB(){
-  const d=db.export();
-  const b64=btoa(String.fromCharCode(...d));
-  await idbSave('db',b64);
-  try{localStorage.setItem('fgi_db',b64);}catch(e){}
-  try{localStorage.setItem('fgi_db_backup',b64);}catch(e){}
-  try{sessionStorage.setItem('fgi_db',b64);}catch(e){}
-}
-
-function updateDbStatus(){
-  const r=db.exec("SELECT COUNT(*) FROM invoices");
-  const cnt=r[0]?.values[0][0]||0;
-  const el=document.getElementById('db-status');
-  if(el) el.textContent=`✅ IndexedDB active — ${cnt} invoices permanently stored`;
-}
 
 function getNextNo(){const r=db.exec("SELECT MAX(id) FROM invoices");return `FGI#${(r[0]?.values[0][0]||0)+1}`;}
 function setInvNo(){if(db)document.getElementById('inv-no').value=editMode?document.getElementById('inv-no').value:getNextNo();}
-function setToday(){if(!editMode)document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];}
 
 function getPayments(invId){
   const r=db.exec('SELECT id,method,amount,pay_date,note FROM payments WHERE invoice_id=? ORDER BY id ASC',[invId]);
   if(!r[0])return [];
   return r[0].values.map(v=>({id:v[0],method:v[1],amount:v[2],date:v[3],note:v[4]}));
 }
-function getTotalPaid(invId){const r=db.exec('SELECT SUM(amount) FROM payments WHERE invoice_id=?',[invId]);return r[0]?.values[0][0]||0;}
-function getStatus(invId,grand){const paid=getTotalPaid(invId);if(paid<=0)return 'unpaid';if(paid>=grand)return 'paid';return 'partial';}
 
 // ============================================================
 //  FOLDER PICKER
@@ -1100,6 +1213,7 @@ function showView(name){
   if(name==='payment'){document.getElementById('view-payment').style.display='block';window.scrollTo(0,0);return;}
   document.getElementById('view-'+name).classList.add('active');
   if(name==='invoice-list')renderList();
+  if(name==='receive')rpInit();
   if(name==='report')renderReportList();
   if(name==='ledger'){renderLedgerList();const ls=document.getElementById('ldg-search');if(ls)ls.value='';document.getElementById('ldg-search-state').style.display='block';document.getElementById('ldg-detail-state').style.display='none';}
   if(name==='new-invoice'&&!editMode)resetForm();
@@ -1237,8 +1351,7 @@ function openEditInvoice(id){
       try{
         inv.prev_bal_ref.split('+').forEach(ref=>{
           var parts=ref.split(':');var label=(parts[0]||'').trim();if(!label)return;
-          var rr=db.exec("SELECT id,grand_total FROM invoices WHERE inv_no='"+label+"' LIMIT 1");
-          if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];var gt=rr[0].values[0][1]||0;var paid=getTotalPaid(iid);unpaidInvoicesList.push({inv_no:label,rem:Math.max(0,gt-paid)});}
+          var amt=parseFloat(parts[1]);unpaidInvoicesList.push({inv_no:label,rem:isNaN(amt)?0:amt});
         });
       }catch(e){}
     }
@@ -1290,6 +1403,7 @@ function calcSummary(){
   document.getElementById('s-items').textContent='Rs. '+fn(iT);
   document.getElementById('s-balance').textContent='Rs. '+fn(bal);
   document.getElementById('s-grand').textContent='Rs. '+fn(grand);
+  updateCreditUI(grand,adv);
   const sr=(rid,show,val,pre)=>{document.getElementById(rid).style.display=show&&val>0?'flex':'none';const el=document.getElementById(rid.replace('sr-','sv-'));if(el)el.textContent=pre+'Rs. '+fn(val);};
   sr('sr-less',optState.less,lA,'− ');sr('sr-add',optState.add,aA,'+ ');sr('sr-adv',optState.advance,adv,'− ');
   const srCont=document.getElementById('sr-prev-container');
@@ -1311,7 +1425,9 @@ function calcSummary(){
 // ============================================================
 //  SAVE / UPDATE
 // ============================================================
+let _invSaving=false;
 async function saveInvoice(){
+  if(_invSaving)return;
   const cn=document.getElementById('cust-name').value.trim();
   if(!cn){toast('⚠️ Customer name required!');return;}
   if(!curItems.length){toast('⚠️ Kam se kam ek item add karo!');return;}
@@ -1329,11 +1445,13 @@ async function saveInvoice(){
   const advJson=optState.advance?JSON.stringify(advEntries):'[]';
   const notes=document.getElementById('inv-notes').value.trim();
   const invDate=document.getElementById('inv-date').value;
+  const mob=document.getElementById('cust-mobile').value.trim(),city=document.getElementById('cust-city').value.trim();
+  _invSaving=true;const sb=document.getElementById('save-btn');if(sb)sb.disabled=true;
+  try{
   if(editMode&&editInvId){
     const pRef2=optState.prev&&prevBalRef?prevBalRef:'';
-    db.run(`UPDATE invoices SET inv_date=?,cust_name=?,cust_mobile=?,cust_city=?,items_json=?,less_val=?,less_type=?,add_val=?,add_type=?,advance_json=?,prev_bal=?,prev_bal_ref=?,notes=?,items_total=?,grand_total=? WHERE id=?`,
-      [invDate,cn,document.getElementById('cust-mobile').value.trim(),document.getElementById('cust-city').value.trim(),itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef2,notes,iT,grand,editInvId]);
-    await sDB();
+    await dbTx(()=>db.run(`UPDATE invoices SET inv_date=?,cust_name=?,cust_mobile=?,cust_city=?,items_json=?,less_val=?,less_type=?,add_val=?,add_type=?,advance_json=?,prev_bal=?,prev_bal_ref=?,notes=?,items_total=?,grand_total=? WHERE id=?`,
+      [invDate,cn,mob,city,itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef2,notes,iT,grand,editInvId]));
     toast('✅ Invoice update ho gaya: '+document.getElementById('inv-no').value);
     editMode=false;editInvId=null;
     document.getElementById('edit-banner').style.display='none';
@@ -1344,372 +1462,59 @@ async function saveInvoice(){
   } else {
     const invNo=getNextNo();
     const pRef=optState.prev&&prevBalRef?prevBalRef:'';
-    const stmt=db.prepare(`INSERT INTO invoices(inv_no,inv_date,cust_name,cust_mobile,cust_city,items_json,less_val,less_type,add_val,add_type,advance_json,prev_bal,prev_bal_ref,notes,items_total,grand_total,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
-    stmt.run([invNo,invDate,cn,document.getElementById('cust-mobile').value.trim(),document.getElementById('cust-city').value.trim(),itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef,notes,iT,grand,new Date().toISOString()]);
-    stmt.free();
-    if(optState.advance&&advEntries.length>0){
-      const invId=db.exec("SELECT last_insert_rowid()")[0].values[0][0];
-      const today=new Date().toISOString().split('T')[0];
-      advEntries.filter(e=>e.amount>0).forEach(e=>{
-        db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at) VALUES(?,?,?,?,?,?)',[invId,e.type,e.amount,today,'Advance (at creation)',new Date().toISOString()]);
-      });
-    }
-    await sDB();
-    toast('✅ Saved: '+invNo);
+    const advSum=optState.advance?advEntries.reduce((s,e)=>s+(e.amount>0?e.amount:0),0):0;
+    const ci=formCreditInfo(grand,advSum);
+    await dbTx(()=>{
+      db.run(`INSERT INTO invoices(inv_no,inv_date,cust_name,cust_mobile,cust_city,items_json,less_val,less_type,add_val,add_type,advance_json,prev_bal,prev_bal_ref,notes,items_total,grand_total,created_at,credit_used) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [invNo,invDate,cn,mob,city,itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef,notes,iT,grand,new Date().toISOString(),ci.use]);
+      if(optState.advance&&advEntries.length>0){
+        const invId=db.exec("SELECT last_insert_rowid()")[0].values[0][0];
+        const today=todayStr();
+        advEntries.filter(e=>e.amount>0).forEach(e=>{
+          db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at,cust_name,source,uid) VALUES(?,?,?,?,?,?,?,?,?)',[invId,e.type,e.amount,today,'Advance (at creation)',new Date().toISOString(),cn,'invoice',newUid()]);
+        });
+      }
+    });
+    toast(ci.use>0?'✅ Saved: '+invNo+' — Advance Rs.'+fn(ci.use)+' minus hua':'✅ Saved: '+invNo,3000);
     showView('invoice-list');
   }
+  }catch(e){toast('❌ Invoice save nahi hui (kuch change nahi hua): '+e.message,4500);}
+  finally{_invSaving=false;if(sb)sb.disabled=false;}
 }
 
 // ============================================================
 //  LIST
 // ============================================================
-function renderList(){
-  if(!db)return;
-  const res=db.exec("SELECT id,inv_no,inv_date,cust_name,cust_city,grand_total FROM invoices ORDER BY id DESC");
-  const sr=db.exec("SELECT COUNT(*),SUM(grand_total) FROM invoices");
-  const sv=sr[0]?.values[0]||[0,0];
-  const pr=db.exec("SELECT SUM(amount) FROM payments");
-  const totalPaid=pr[0]?.values[0][0]||0;
-  const outstanding=(sv[1]||0)-totalPaid;
-  document.getElementById('stats-strip').innerHTML=`
-    <div class="stat-box"><div class="stat-val">${sv[0]||0}</div><div class="stat-lbl">Invoices</div></div>
-    <div class="stat-box"><div class="stat-val" style="font-size:13px;">Rs.${fn(sv[1])}</div><div class="stat-lbl">Total Billed</div></div>
-    <div class="stat-box"><div class="stat-val" style="font-size:13px;color:var(--red);">Rs.${fn(outstanding)}</div><div class="stat-lbl">Outstanding</div></div>`;
-  const q=(document.getElementById('search-inv')?.value||'').toLowerCase();
-  const cont=document.getElementById('inv-list-container');
-  if(!res[0]){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🧾</div><p>No invoices yet.<br>Tap <b>+ New</b> to create one.</p></div>`;return;}
-  const rows=res[0].values.filter(r=>!q||(r[1]||'').toLowerCase().includes(q)||(r[3]||'').toLowerCase().includes(q)||(r[4]||'').toLowerCase().includes(q));
-  if(!rows.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No results found.</p></div>`;return;}
-  cont.innerHTML=rows.map(r=>{
-    const st=getStatus(r[0],r[5]);
-    const paid=getTotalPaid(r[0]);const rem=r[5]-paid;
-    return `<div class="inv-card status-${st}">
-      <div class="inv-row1"><span class="inv-no-badge">${r[1]}</span><span class="inv-date-badge">📅 ${r[2]}</span></div>
-      <div class="inv-customer">👤 ${r[3]}</div>
-      ${r[4]?`<div class="inv-city">📍 ${r[4]}</div>`:''}
-      <div class="inv-amount-row">
-        <div><div class="inv-grand">Rs. ${fn(r[5])}</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Paid: Rs.${fn(paid)}</div></div>
-        <div><span class="pay-status-badge ${st}">${st==='paid'?'✅ Paid':st==='partial'?'⏳ Partial':'❌ Unpaid'}</span>
-        <div class="inv-remaining ${rem<=0?'zero':'positive'}" style="margin-top:4px;text-align:right;">${rem>0?`Due: Rs.${fn(rem)}`:'Cleared ✓'}</div></div>
-      </div>
-      <div class="inv-actions">
-        <button class="btn btn-orange btn-sm" onclick="openPaymentView(${r[0]})">💳 Pay</button>
-        <button class="btn btn-purple btn-sm" onclick="openEditInvoice(${r[0]})">✏️ Edit</button>
-        <button class="btn btn-outline btn-sm" onclick="openPreview(${r[0]})">👁 View</button>
-        <button class="btn btn-blue btn-sm" onclick="quickPDF(${r[0]})">📄 PDF</button>
-        <button class="btn btn-green btn-sm" onclick="quickImage(${r[0]})">📸 Img</button>
-        <button class="btn btn-navy btn-sm" onclick="quickPrint(${r[0]})">🖨️</button>
-        <button class="btn btn-red btn-sm" onclick="delInv(${r[0]},event)">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function delInv(id,e){
-  e.stopPropagation();
-  if(!confirm('Delete this invoice and all payment records?'))return;
-  db.run('DELETE FROM payments WHERE invoice_id=?',[id]);
-  db.run('DELETE FROM invoices WHERE id=?',[id]);
-  sDB();renderList();toast('🗑 Deleted');
-}
 
 // ============================================================
 //  PAYMENT VIEW
 // ============================================================
-function openPaymentView(invId){
-  curPayInvId=invId;previewData=loadInvoice(invId);
-  document.getElementById('pay-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('pay-amount').value='';
-  document.getElementById('pay-note').value='';
-  renderPayHeader(invId);renderPayHistory(invId);showView('payment');
-}
-function renderPayHeader(invId){
-  const inv=loadInvoice(invId);if(!inv)return;
-  const paid=getTotalPaid(invId);const rem=inv.grand_total-paid;const st=getStatus(invId,inv.grand_total);
-  document.getElementById('pay-header').innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-      <div><div class="pay-inv-no">${inv.inv_no}</div><div class="pay-cust">${inv.cust_name}</div>
-      ${inv.cust_city?`<div style="color:rgba(255,255,255,.5);font-size:12px;">📍 ${inv.cust_city}</div>`:''}</div>
-      <span class="pay-status-badge ${st}">${st==='paid'?'✅ Paid':st==='partial'?'⏳ Partial':'❌ Unpaid'}</span>
-    </div>
-    <div class="pay-balance-row">
-      <div><div class="pay-bal-lbl">Invoice Total</div><div style="color:#fff;font-size:16px;font-weight:700;">Rs. ${fn(inv.grand_total)}</div></div>
-      <div style="text-align:center;"><div class="pay-bal-lbl">Total Paid</div><div style="color:#7dffbc;font-size:16px;font-weight:700;">Rs. ${fn(paid)}</div></div>
-      <div style="text-align:right;"><div class="pay-bal-lbl">Remaining</div><div class="pay-bal-val ${rem<=0?'zero':'positive'}">Rs. ${fn(Math.max(0,rem))}</div></div>
-    </div>`;
-}
-function renderPayHistory(invId){
-  const pays=getPayments(invId);
-  const cont=document.getElementById('pay-history-list');
-  if(!pays.length){cont.innerHTML=`<div class="pay-empty">No payments recorded yet.</div>`;return;}
-  cont.innerHTML=pays.map(p=>`
-    <div class="pay-item">
-      <div class="pay-type-icon ${p.method}">${PAY_ICONS[p.method]||'💰'}</div>
-      <div class="pay-info">
-        <div class="pay-info-top">${p.method.charAt(0).toUpperCase()+p.method.slice(1)}${p.note?' — '+p.note:''}</div>
-        <div class="pay-info-bot">📅 ${p.date||'—'}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-        <div class="pay-amount-text">Rs. ${fn(p.amount)}</div>
-        <button class="btn btn-red btn-sm" onclick="deletePayment(${p.id},${invId})">🗑</button>
-      </div>
-    </div>`).join('');
-}
-async function addPayment(){
-  const amt=parseFloat(document.getElementById('pay-amount').value)||0;
-  if(amt<=0){toast('⚠️ Valid amount enter karo!');return;}
-  const method=document.getElementById('pay-method').value;
-  const date=document.getElementById('pay-date').value;
-  const note=document.getElementById('pay-note').value.trim();
-  db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at) VALUES(?,?,?,?,?,?)',[curPayInvId,method,amt,date,note,new Date().toISOString()]);
-  await sDB();
-  document.getElementById('pay-amount').value='';document.getElementById('pay-note').value='';
-  renderPayHeader(curPayInvId);renderPayHistory(curPayInvId);renderList();
-  toast('✅ Payment: Rs. '+fn(amt));
-}
-async function deletePayment(payId,invId){
-  if(!confirm('Delete this payment?'))return;
-  db.run('DELETE FROM payments WHERE id=?',[payId]);
-  await sDB();renderPayHeader(invId);renderPayHistory(invId);renderList();toast('🗑 Payment removed');
-}
 
 // ============================================================
 //  LOAD INVOICE
 // ============================================================
-function loadInvoice(id){
-  const r=db.exec('SELECT * FROM invoices WHERE id=?',[id]);
-  if(!r[0])return null;
-  const inv={};r[0].columns.forEach((c,i)=>inv[c]=r[0].values[0][i]);
-  inv.items=JSON.parse(inv.items_json||'[]');
-  inv.advances=JSON.parse(inv.advance_json||'[]');
-  inv.payments=getPayments(id);
-  inv.totalPaid=getTotalPaid(id);
-  var iCalc=inv.items_total||inv.items.reduce((s,it)=>s+(it.total||0),0);
-  var lCalc=inv.less_val>0?(inv.less_type==='percent'?iCalc*inv.less_val/100:inv.less_val):0;
-  var aCalc=inv.add_val>0?(inv.add_type==='percent'?iCalc*inv.add_val/100:inv.add_val):0;
-  var livePrev=0;
-  if(inv.prev_bal>0&&inv.prev_bal_ref&&db){
-    inv.prev_bal_ref.split('+').forEach(ref=>{
-      var label=ref.split(':')[0].trim();if(!label)return;
-      try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];var igt=rr[0].values[0][1]||0;var ipaid=getTotalPaid(iid);livePrev+=Math.max(0,igt-ipaid);}}catch(e){}
-    });
-  } else {livePrev=inv.prev_bal||0;}
-  inv.grand_total=iCalc-lCalc+aCalc+livePrev;
-  inv.remaining=inv.grand_total-inv.totalPaid;
-  return inv;
-}
 
 // ============================================================
 //  PREVIEW
 // ============================================================
-function openPreview(id){previewData=loadInvoice(id);if(!previewData)return;document.getElementById('preview-container').innerHTML=buildPrintHTML(previewData);showView('print');}
-function quickPrint(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
-function quickPDF(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
 
 // ============================================================
 //  PRINT HTML
 // ============================================================
-function buildPrintHTML(inv){
-  const iT=inv.items_total||0;
-  let lA=inv.less_val>0?(inv.less_type==='percent'?iT*inv.less_val/100:inv.less_val):0;
-  let aA=inv.add_val>0?(inv.add_type==='percent'?iT*inv.add_val/100:inv.add_val):0;
-  const bal=iT-lA+aA;
-  let livePrevPrint=0;
-  if(inv.prev_bal>0&&inv.prev_bal_ref&&db){
-    inv.prev_bal_ref.split('+').forEach(ref=>{
-      var label=ref.split(':')[0].trim();if(!label)return;
-      try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrevPrint+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}}catch(e){}
-    });
-  } else {livePrevPrint=inv.prev_bal||0;}
-  const grand=bal+livePrevPrint;
-  const paid=inv.totalPaid||0;const rem=Math.max(0,grand-paid);
-  const hasCode=inv.items.some(it=>it.code);const hasDD=inv.items.some(it=>it.delDate);
-  const pays=inv.payments||[];
-  const tRows=inv.items.map((it,i)=>`<tr>
-    <td>${i+1}</td>${hasCode?`<td>${it.code||''}</td>`:''}
-    <td class="desc">${it.desc}</td>${hasDD?`<td>${it.delDate||''}</td>`:''}
-    <td>${it.qty}</td><td>${fn(it.rate)}</td><td><b>${fn(it.total)}</b></td></tr>`).join('');
-  const sumRows=[
-    `<div class="ip-sum-row"><span>Items Total</span><b>Rs. ${fn(iT)}</b></div>`,
-    lA>0?`<div class="ip-sum-row minus"><span>Less${inv.less_type==='percent'?' ('+inv.less_val+'%)':''}</span><span>− Rs. ${fn(lA)}</span></div>`:'',
-    aA>0?`<div class="ip-sum-row plus"><span>Add${inv.add_type==='percent'?' ('+inv.add_val+'%)':''}</span><span>+ Rs. ${fn(aA)}</span></div>`:'',
-    bal!==iT?`<div class="ip-sum-row"><span>Balance</span><b>Rs. ${fn(bal)}</b></div>`:'',
-    (function(){
-      if(!inv.prev_bal||inv.prev_bal<=0)return'';
-      if(!inv.prev_bal_ref)return'<div class="ip-sum-row plus"><span>Previous Balance</span><span>+ Rs. '+fn(inv.prev_bal)+'</span></div>';
-      var refs=inv.prev_bal_ref.split('+');var rows='';var liveTotal=0;
-      refs.forEach(ref=>{var label=ref.split(':')[0].trim();if(!label)return;var liveRem=0;if(db){try{var r=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(r&&r[0]&&r[0].values.length){var iid=r[0].values[0][0];var igt=r[0].values[0][1]||0;var ipaid=getTotalPaid(iid);liveRem=Math.max(0,igt-ipaid);}}catch(e){}}liveTotal+=liveRem;rows+='<div class="ip-sum-row plus"><span>Prev. Bal <span style="background:#FFD700;color:#0a4a6e;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:800;">'+label+'</span></span><span style="font-weight:700;color:#1a6630;">'+(liveRem>0?'+ Rs. '+fn(liveRem):'✅ Clear')+'</span></div>';});
-      if(refs.length>1){rows+='<div class="ip-sum-row plus" style="font-weight:800;border-top:1px solid #FFD70066;padding-top:4px;margin-top:2px;"><span>Total Outstanding</span><span style="color:#1a6630;font-weight:800;">+ Rs. '+fn(liveTotal)+'</span></div>';}
-      return rows;
-    })(),
-  ].filter(Boolean).join('');
-  const payRows=pays.length?pays.map(p=>`<div class="ip-pay-row"><span>${PAY_ICONS[p.method]||''} ${p.method} ${p.note?'— '+p.note:''} 📅 ${p.date||''}</span><span style="color:#1a7f5a;font-weight:700;">−Rs. ${fn(p.amount)}</span></div>`).join(''):'';
-  const remSection=pays.length?`<div class="ip-remaining"><span class="ip-rem-label">Remaining Balance</span><span class="ip-rem-value">${rem<=0?'✅ FULLY PAID':'Rs. '+fn(rem)}</span></div>`:'';
-  return `<div class="inv-print">
-    <div class="ip-topband">
-      <div><div class="ip-company-name">Faisal Goraya Industry</div><div class="ip-company-sub">Mob: 03338058007  |  Ali Pur Chattha</div></div>
-      <div><div class="ip-inv-no">${inv.inv_no}</div><div class="ip-inv-date">📅 ${inv.inv_date}</div></div>
-    </div>
-    <div class="ip-cust-band">
-      <div><div class="ip-cust-name">👤 ${inv.cust_name}</div>${inv.cust_mobile?`<div class="ip-cust-info">📞 ${inv.cust_mobile}</div>`:''}</div>
-      ${inv.cust_city?`<div class="ip-cust-info" style="color:#ddd;">📍 ${inv.cust_city}</div>`:''}
-    </div>
-    <table class="ip-table">
-      <thead><tr><th>#</th>${hasCode?'<th>Code</th>':''}<th>Description</th>${hasDD?'<th>Del.Date</th>':''}<th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
-      <tbody>${tRows}</tbody>
-    </table>
-    <div class="ip-summary">${sumRows}</div>
-    <div class="ip-grand"><span class="ip-grand-label">GRAND TOTAL</span><span class="ip-grand-value">Rs. ${fn(grand)}</span></div>
-    ${pays.length?`<div class="ip-payments"><div class="ip-pay-title">Payment History</div>${payRows}</div>`:''}
-    ${remSection}
-    ${inv.notes?`<div class="ip-notes">📝 <b>Note:</b> ${inv.notes}</div>`:''}
-    <div class="ip-bank">
-      <div class="ip-bank-title">Payment Details</div>
-      <div class="ip-bank-cols">
-        <div class="ip-bank-col"><div class="ip-bank-col-head">🏦 Meezan Bank</div><div class="ip-bank-col-body">Qaisar Naeem<br>Ali Pur Chattha<br>A/C: 98650103586783<br>IBAN: PK59MEZN0098650103586783</div></div>
-        <div class="ip-bank-col"><div class="ip-bank-col-head">📲 JazzCash</div><div class="ip-bank-col-body">Qaisar Naeem<br>03008648624</div></div>
-        <div class="ip-bank-col"><div class="ip-bank-col-head">💳 EasyPaisa</div><div class="ip-bank-col-body">Qaisar Naeem<br>03338058007</div></div>
-      </div>
-    </div>
-    <div class="ip-footer">FGI Invoice System v17 • ${inv.inv_no} • ${inv.inv_date}</div>
-  </div>`;
-}
+
 
 // ============================================================
 //  PDF ENGINE — with Folder Picker
 // ============================================================
 function closePdfOverlay(){}
 
-function _makePDF(inv){
-  var {jsPDF}=window.jspdf;
-  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  var W=210,margin=10,y=margin;
-  doc.setFillColor(10,74,110);doc.rect(0,0,W,28,'F');
-  doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(255,215,0);
-  doc.text('Faisal Goraya Industry',margin,11);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);
-  doc.text('Mob: 03338058007  |  Ali Pur Chattha',margin,17);
-  doc.setFillColor(255,215,0);doc.roundedRect(W-50,4,40,10,2,2,'F');
-  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);
-  doc.text(inv.inv_no,W-30,11,{align:'center'});
-  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);
-  doc.text('Date: '+inv.inv_date,W-30,18,{align:'center'});
-  y=30;
-  doc.setFillColor(13,92,138);doc.rect(0,y,W,14,'F');
-  doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
-  doc.text(inv.cust_name,margin,y+6);
-  if(inv.cust_mobile){doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);doc.text('Ph: '+inv.cust_mobile,margin,y+11);}
-  if(inv.cust_city){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(160,208,232);doc.text(inv.cust_city,W-margin,y+9,{align:'right'});}
-  y+=18;
-  var hasCode=inv.items.some(it=>it.code);var hasDD=inv.items.some(it=>it.delDate);
-  var cols=['#','Description'];var colWidths=[8,hasCode?(hasDD?50:60):(hasDD?60:70)];
-  if(hasCode){cols.splice(1,0,'Code');colWidths.splice(1,0,22);}
-  if(hasDD){cols.push('Del.Date');colWidths.push(20);}
-  cols.push('Qty','Rate','Total');colWidths.push(10,22,22);
-  var tableBody=inv.items.map((it,i)=>{
-    var row=[String(i+1)];if(hasCode)row.push(it.code||'');row.push(it.desc);
-    if(hasDD)row.push(it.delDate||'');row.push(String(it.qty),fn(it.rate),fn(it.total));return row;
-  });
-  doc.autoTable({startY:y,head:[cols],body:tableBody,margin:{left:margin,right:margin},styles:{fontSize:9,cellPadding:2.5,overflow:'linebreak'},headStyles:{fillColor:[10,74,110],textColor:[255,215,0],fontStyle:'bold',fontSize:8.5},alternateRowStyles:{fillColor:[240,248,255]},columnStyles:(()=>{var cs={};cs[0]={halign:'center',cellWidth:colWidths[0]};var ci=1;if(hasCode){cs[ci]={halign:'center',cellWidth:colWidths[ci]};ci++;}cs[ci]={halign:'left',cellWidth:colWidths[ci]};ci++;if(hasDD){cs[ci]={halign:'center',cellWidth:colWidths[ci]};ci++;}cs[ci]={halign:'center',cellWidth:colWidths[ci]};ci++;cs[ci]={halign:'right',cellWidth:colWidths[ci]};ci++;cs[ci]={halign:'right',fontStyle:'bold',cellWidth:colWidths[ci]};return cs;})(),theme:'grid'});
-  y=doc.lastAutoTable.finalY+4;
-  var iT=inv.items_total||0;var lA=inv.less_val>0?(inv.less_type==='percent'?iT*inv.less_val/100:inv.less_val):0;var aA=inv.add_val>0?(inv.add_type==='percent'?iT*inv.add_val/100:inv.add_val):0;var bal=iT-lA+aA;
-  var livePrev=0;
-  if(inv.prev_bal>0&&inv.prev_bal_ref&&db){inv.prev_bal_ref.split('+').forEach(ref=>{var label=ref.split(':')[0].trim();if(!label)return;try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrev+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}}catch(e){}});}else{livePrev=inv.prev_bal||0;}
-  var grand=bal+livePrev;var totalPaidAmt=inv.totalPaid||0;var rem=Math.max(0,grand-totalPaidAmt);
-  var sumData=[['Items Total','Rs. '+fn(iT)]];
-  if(lA>0)sumData.push(['Less'+(inv.less_type==='percent'?' ('+inv.less_val+'%)':''),'- Rs. '+fn(lA)]);
-  if(aA>0)sumData.push(['Addition'+(inv.add_type==='percent'?' ('+inv.add_val+'%)':''),'+ Rs. '+fn(aA)]);
-  if(bal!==iT)sumData.push(['Balance','Rs. '+fn(bal)]);
-  if(livePrev>0)sumData.push(['Previous Balance','+ Rs. '+fn(livePrev)]);
-  var summaryX=W/2+10;
-  doc.autoTable({startY:y,body:sumData,margin:{left:summaryX,right:margin},styles:{fontSize:9,cellPadding:2},bodyStyles:{fillColor:[240,248,252]},theme:'plain',columnStyles:{0:{fontStyle:'normal',textColor:[80,90,110]},1:{halign:'right',fontStyle:'bold',textColor:[10,74,110]}}});
-  y=doc.lastAutoTable.finalY+1;
-  doc.setFillColor(10,74,110);doc.rect(margin,y,W-margin*2,10,'F');
-  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(255,215,0);doc.text('GRAND TOTAL',margin+4,y+6.5);
-  doc.setFontSize(13);doc.setTextColor(255,255,255);doc.text('Rs. '+fn(grand),W-margin-2,y+6.5,{align:'right'});
-  y+=13;
-  var pays=inv.payments||[];
-  if(pays.length){
-    doc.setDrawColor(255,215,0);doc.setLineWidth(0.5);doc.line(margin,y,W-margin,y);y+=3;
-    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);doc.text('PAYMENT HISTORY',margin,y+3);y+=6;
-    doc.autoTable({startY:y,head:[['Date','Method / Note','Amount']],body:pays.map(p=>[p.date||'',p.method+(p.note?' - '+p.note:''),'- Rs. '+fn(p.amount)]),margin:{left:margin,right:margin},styles:{fontSize:8.5,cellPadding:2},headStyles:{fillColor:[26,74,53],textColor:[255,255,255],fontSize:8},theme:'striped',columnStyles:{2:{halign:'right',fontStyle:'bold',textColor:[26,127,90]}}});
-    y=doc.lastAutoTable.finalY+2;
-    doc.setFillColor(rem<=0?26:200,rem<=0?74:58,rem<=0?53:35);doc.rect(margin,y,W-margin*2,10,'F');
-    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(200,200,200);doc.text('REMAINING BALANCE',margin+3,y+6.5);
-    doc.setFontSize(12);doc.setTextColor(rem<=0?125:255,rem<=0?255:200,rem<=0?188:100);doc.text(rem<=0?'FULLY PAID':'Rs. '+fn(rem),W-margin-2,y+6.5,{align:'right'});
-    y+=13;
-  }
-  if(inv.notes){doc.setFontSize(8.5);doc.setFont('helvetica','italic');doc.setTextColor(100,90,60);doc.text('Note: '+inv.notes,margin,y+4);y+=8;}
-  if(y>250){doc.addPage();y=10;}
-  doc.setDrawColor(200,220,230);doc.setLineWidth(0.3);doc.line(margin,y,W-margin,y);y+=3;
-  doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);doc.text('PAYMENT DETAILS',margin,y+3);y+=6;
-  var bankW=(W-margin*2-8)/3;
-  [{name:'Meezan Bank',detail:'Qaisar Naeem\nA/C: 98650103586783\nIBAN: PK59MEZN...6783'},{name:'JazzCash',detail:'Qaisar Naeem\n03008648624'},{name:'EasyPaisa',detail:'Qaisar Naeem\n03338058007'}].forEach((b,i)=>{
-    var bx=margin+i*(bankW+4);
-    doc.setFillColor(240,248,252);doc.roundedRect(bx,y,bankW,16,1,1,'F');
-    doc.setDrawColor(255,215,0);doc.setLineWidth(0.5);doc.line(bx,y,bx+bankW,y);
-    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(10,74,110);doc.text(b.name,bx+2,y+4);
-    doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);b.detail.split('\n').forEach((l,li)=>doc.text(l,bx+2,y+8+li*3.5));
-  });
-  y+=20;
-  doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(120,150,170);
-  doc.text('FGI Invoice System v17  •  '+inv.inv_no+'  •  '+inv.inv_date,W/2,y+3,{align:'center'});
-  return doc;
-}
-
-function doDownloadPDF(){
-  if(!previewData){toast('⚠️ Pehle invoice open karo');return;}
-  toast('📄 PDF ban rahi hai...',3000);
-  try{
-    var doc=_makePDF(previewData);
-    var fname=(previewData.inv_no||'FGI')+'_'+(previewData.cust_name||'invoice').replace(/\s+/g,'_')+'.pdf';
-    // Use folder picker
-    var pdfBlob=doc.output('blob');
-    openFolderPicker('📄 PDF Kahan Save Karein?','Invoice PDF ki jagah choose karein',pdfBlob,fname);
-  }catch(e){toast('❌ PDF error: '+e.message);}
-}
 function doPrint(){doDownloadPDF();}
-function quickPrint(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
+
 function doPrintOverlay(){doDownloadPDF();}
 
 // ============================================================
 //  BACKUP & RESTORE — with Folder Picker
 // ============================================================
-function exportData(){
-  const invRes=db.exec("SELECT * FROM invoices");
-  const payRes=db.exec("SELECT * FROM payments");
-  const data={
-    version:4,exported:new Date().toISOString(),
-    invoices:invRes[0]?invRes[0].values.map(v=>{const o={};invRes[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[],
-    payments:payRes[0]?payRes[0].values.map(v=>{const o={};payRes[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[],
-  };
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const fname=`FGI_Backup_${new Date().toISOString().split('T')[0]}.json`;
-  openFolderPicker('💾 Backup Kahan Save Karein?','JSON backup file ki jagah choose karein',blob,fname);
-}
-
-async function importData(input){
-  const file=input.files[0];if(!file)return;
-  const text=await file.text();
-  try{
-    const data=JSON.parse(text);
-    if(!data.invoices){toast('❌ Invalid backup file!');return;}
-    if(!confirm(`Import ${data.invoices.length} invoices? Yeh SARI current data replace kar dega!`))return;
-    db.run('DELETE FROM payments');db.run('DELETE FROM invoices');
-    db.run("DELETE FROM sqlite_sequence WHERE name='invoices'");
-    db.run("DELETE FROM sqlite_sequence WHERE name='payments'");
-    data.invoices.forEach(inv=>{
-      db.run(`INSERT INTO invoices(id,inv_no,inv_date,cust_name,cust_mobile,cust_city,items_json,less_val,less_type,add_val,add_type,advance_json,prev_bal,notes,items_total,grand_total,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [inv.id,inv.inv_no,inv.inv_date,inv.cust_name,inv.cust_mobile,inv.cust_city,inv.items_json,inv.less_val,inv.less_type,inv.add_val,inv.add_type,inv.advance_json,inv.prev_bal,inv.notes,inv.items_total,inv.grand_total,inv.created_at]);
-    });
-    (data.payments||[]).forEach(p=>{
-      db.run('INSERT INTO payments(id,invoice_id,method,amount,pay_date,note,created_at) VALUES(?,?,?,?,?,?,?)',
-        [p.id,p.invoice_id,p.method,p.amount,p.pay_date,p.note,p.created_at]);
-    });
-    await sDB();renderList();toast(`✅ ${data.invoices.length} invoices import ho gaye!`);
-  }catch(e){toast('❌ Import failed: '+e.message);}
-  input.value='';
-}
 
 // ============================================================
 //  RESET
@@ -1730,6 +1535,7 @@ function resetForm(){
   document.getElementById('form-card-title').textContent='🧾 Invoice Details';
   document.getElementById('save-btn').textContent='💾 Save Invoice';
   document.getElementById('save-btn').style.background='';
+  const uc=document.getElementById('use-credit');if(uc)uc.checked=true;
   renderItemsTable();calcSummary();
   if(db){setInvNo();setToday();}
 }
@@ -1755,36 +1561,7 @@ function fn(n){return(parseFloat(n)||0).toLocaleString('en-PK',{minimumFractionD
 //  PREV BAL POPUP
 // ============================================================
 var _prevPopupSelections={};
-function openPrevBalPopup(custName){
-  if(!db){toast('⚠️ DB load nahi hua');return;}
-  var res;
-  try{res=db.exec("SELECT i.id,i.inv_no,i.inv_date,i.grand_total,COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id=i.id),0) as paid FROM invoices i WHERE LOWER(i.cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY i.id ASC");}
-  catch(e){toast('❌ Error: '+e.message);return;}
-  var unpaidList=[];
-  if(res&&res[0]){res[0].values.forEach(v=>{var rem=v[3]-v[4];if(rem>0)unpaidList.push({id:v[0],inv_no:v[1],inv_date:v[2],grand:v[3],rem:rem});});}
-  if(!unpaidList.length){toast('✅ '+custName+' ka koi outstanding balance nahi');return;}
-  _prevPopupSelections={};
-  var html='';
-  unpaidList.forEach(u=>{
-    html+='<div class="prevbal-inv-item" id="pbi-'+u.inv_no.replace('#','')+'" onclick="togglePrevBalItem(\''+u.inv_no+'\','+u.rem+')">';
-    html+='<div class="prevbal-inv-left"><div class="prevbal-inv-check" id="pbc-'+u.inv_no.replace('#','')+'">&nbsp;</div>';
-    html+='<div><span class="prevbal-inv-no">'+u.inv_no+'</span><div class="prevbal-inv-date">📅 '+u.inv_date+'</div></div></div>';
-    html+='<div style="text-align:right;"><div class="prevbal-inv-amount">Rs. '+fn(u.rem)+'</div><div class="prevbal-inv-label">Remaining</div></div></div>';
-  });
-  document.getElementById('prevbal-popup-body').innerHTML=html;
-  document.getElementById('prevbal-selected-total-val').textContent='Rs. 0';
-  document.getElementById('prevbal-add-btn').disabled=true;
-  document.getElementById('prevbal-popup-overlay').classList.add('open');
-}
-function togglePrevBalItem(invNo,rem){
-  var key=invNo.replace('#','');
-  var itemEl=document.getElementById('pbi-'+key);var checkEl=document.getElementById('pbc-'+key);
-  if(_prevPopupSelections[invNo]){delete _prevPopupSelections[invNo];if(itemEl)itemEl.classList.remove('selected');if(checkEl)checkEl.innerHTML='&nbsp;';}
-  else{_prevPopupSelections[invNo]=rem;if(itemEl)itemEl.classList.add('selected');if(checkEl)checkEl.innerHTML='✓';}
-  var total=Object.values(_prevPopupSelections).reduce((s,v)=>s+v,0);
-  document.getElementById('prevbal-selected-total-val').textContent='Rs. '+fn(total);
-  document.getElementById('prevbal-add-btn').disabled=total<=0;
-}
+
 function confirmPrevBalSelection(){
   var selected=Object.keys(_prevPopupSelections);if(!selected.length)return;
   var total=Object.values(_prevPopupSelections).reduce((s,v)=>s+v,0);
@@ -1831,318 +1608,1110 @@ function onCustNameInput(val){
   if(sug){sug.innerHTML=html;sug.style.display='block';}
 }
 function selectCustomerEl(el){selectCustomer((el.getAttribute('data-cname')||'').replace(/&quot;/g,'"'));}
-function selectCustomer(name){
-  var el=document.getElementById('cust-name');if(el)el.value=name;
-  var sug=document.getElementById('cust-suggestions');if(sug)sug.style.display='none';
-  if(!db)return;
-  var res2;
-  try{res2=db.exec("SELECT cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name)=LOWER('"+name.replace(/'/g,"''")+"') ORDER BY id DESC LIMIT 1");}catch(e){}
-  if(res2&&res2[0]&&res2[0].values.length){
-    var row=res2[0].values[0];
-    var cityEl=document.getElementById('cust-city');var mobEl=document.getElementById('cust-mobile');
-    if(cityEl&&row[0]&&!cityEl.value)cityEl.value=row[0];
-    if(mobEl&&row[1]&&!mobEl.value)mobEl.value=row[1];
-  }
-  var res;
-  try{res=db.exec("SELECT i.grand_total,COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id=i.id),0) as paid FROM invoices i WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){return;}
-  if(!res||!res[0])return;
-  var totalRem=0;
-  res[0].values.forEach(v=>{var rem=v[0]-v[1];if(rem>0)totalRem+=rem;});
-  if(totalRem>0){toast('⚠️ Rs.'+fn(totalRem)+' outstanding — "Previous Balance" toggle karein');}
-  else{toast('✅ '+name+' — Koi outstanding nahi');}
-}
+
 document.addEventListener('click',e=>{
   var sug=document.getElementById('cust-suggestions');
   if(sug&&e.target.id!=='cust-name')sug.style.display='none';
+  var rs=document.getElementById('rp-cust-sug');
+  if(rs&&e.target.id!=='rp-cust'&&!(e.target.closest&&e.target.closest('#rp-cust-sug')))rs.style.display='none';
 });
 
 // ============================================================
 //  CUSTOMER REPORT
 // ============================================================
+
+// ============================================================
+//  IMAGE GENERATOR — with Folder Picker
+// ============================================================
+
+
+
+// ============================================================
+//  LEDGER / KHATA BOOK
+// ============================================================
+
+
+// ============================================================
+//  FGI v18 — ACCOUNTING ENGINE, RECEIVED PAYMENT, HD INVOICE
+//  (Saved data is never rewritten: balances, allocations,
+//   overpayments and customer advance are CALCULATED from the
+//   stored invoices + payments every time.)
+// ============================================================
+const APP_VER='v18';
+const PAY_LABELS={cash:'Cash',online:'Online',cheque:'Cheque',jazzcash:'JazzCash',easypaisa:'EasyPaisa',bank:'Bank',credit:'Advance Adjusted'};
+const EPS=0.5;      // half a rupee tolerance for status decisions
+const EPSZ=0.001;
+let _ACC=null;
+let SQLlib=null;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function r2(x){return Math.round((+x||0)*100)/100;}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function custKey(n){return String(n||'').trim().replace(/\s+/g,' ').toLowerCase();}
+function qrows(sql,params){const r=db.exec(sql,params||[]);if(!r[0])return[];return r[0].values.map(v=>{const o={};r[0].columns.forEach((c,i)=>o[c]=v[i]);return o;});}
+function payLabel(m){return PAY_LABELS[m]||(m?String(m).charAt(0).toUpperCase()+String(m).slice(1):'Payment');}
+function newUid(){return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);}
+function markDirty(){_ACC=null;}
+function ACC(){if(!_ACC)_ACC=computeAccounts();return _ACC;}
+
+function parseRefs(ref){
+  if(!ref)return[];
+  return String(ref).split('+').map(x=>{const p=x.split(':');const label=(p[0]||'').trim();const a=p.length>1?parseFloat(p[1]):NaN;return label?{label,amt:isNaN(a)?null:a}:null;}).filter(Boolean);
+}
+// Same arithmetic as the original app (items - less + add [+ prev])
+function invCalc(r){
+  let items=[];try{items=JSON.parse(r.items_json||'[]');}catch(e){}
+  const iT=r2(r.items_total||items.reduce((s,it)=>s+(+it.total||0),0));
+  const lA=r2(r.less_val>0?(r.less_type==='percent'?iT*r.less_val/100:r.less_val):0);
+  const aA=r2(r.add_val>0?(r.add_type==='percent'?iT*r.add_val/100:r.add_val):0);
+  const bill=r2(iT-lA+aA);
+  const prev=r2(r.prev_bal||0);
+  const hasRef=!!(r.prev_bal_ref&&String(r.prev_bal_ref).trim());
+  const manualPrev=hasRef?0:prev;            // typed-in previous balance = real charge
+  return {items,iT,lA,aA,bill,prev,hasRef,manualPrev,own:r2(bill+manualPrev),grand:r2(bill+prev)};
+}
+
+// ------------------------------------------------------------
+//  ENGINE
+//  Rules (approved by Qaisar, 15-11-2026):
+//  1. PAY on an invoice that carries Prev.Bal of older invoices:
+//     money clears those older invoices first (oldest first),
+//     then this invoice's own items. Extra = customer advance.
+//  2. Received Payment with selected invoices: only the amounts
+//     shown in the allocation preview go to those invoices; the
+//     rest = customer advance. No invoice selected = all advance.
+//  3. Customer advance is used automatically on the customer's
+//     NEXT NEW invoice ("Less Advance"), never on old invoices.
+//  4. Every rupee is counted once: billed - received = unpaid - advance.
+// ------------------------------------------------------------
+function computeAccounts(){
+  const invs={},byNo={},list=[],custs={},payInfo={};
+  const getC=(key,name)=>{if(!custs[key])custs[key]={key,name:name||key||'(Unknown)',city:'',mobile:'',billed:0,received:0,credit:0,unpaid:0,invIds:[],payIds:[],lastDate:''};return custs[key];};
+  qrows('SELECT * FROM invoices ORDER BY id ASC').forEach(r=>{
+    const c=invCalc(r);const key=custKey(r.cust_name);
+    const t=Object.assign({},r,c,{key,refsParsed:parseRefs(r.prev_bal_ref),refIds:[],ownPaid:0,recv:0,overflow:0,hist:[],via:{},creditApplied:0});
+    invs[r.id]=t;list.push(t);if(!byNo[r.inv_no])byNo[r.inv_no]=t;
+    const cu=getC(key,(r.cust_name||'').trim());
+    cu.name=(r.cust_name||'').trim()||cu.name;if(r.cust_city)cu.city=r.cust_city;if(r.cust_mobile)cu.mobile=r.cust_mobile;
+    cu.billed=r2(cu.billed+t.own);cu.invIds.push(r.id);if((r.inv_date||'')>cu.lastDate)cu.lastDate=r.inv_date||'';
+  });
+  list.forEach(t=>{t.refsParsed.forEach(rf=>{const x=byNo[rf.label];rf.id=x?x.id:null;if(x&&x.id!==t.id&&x.key===t.key&&t.refIds.indexOf(x.id)<0)t.refIds.push(x.id);});t.refIds.sort((a,b)=>a-b);});
+
+  function wf(t,amt,srcNo,seen){
+    if(amt<=EPSZ||!t||seen[t.id])return amt;
+    seen[t.id]=1;
+    for(const rid of t.refIds){if(amt<=EPSZ)break;amt=wf(invs[rid],amt,srcNo,seen);}
+    const room=r2(t.own-t.ownPaid);
+    if(room>EPSZ&&amt>EPSZ){const x=Math.min(room,amt);t.ownPaid=r2(t.ownPaid+x);amt=r2(amt-x);if(t.inv_no!==srcNo)t.via[srcNo]=r2((t.via[srcNo]||0)+x);}
+    return amt;
+  }
+
+  qrows('SELECT * FROM payments ORDER BY id ASC').forEach(p=>{
+    const amt=r2(p.amount);const t=p.invoice_id?invs[p.invoice_id]:null;
+    const key=t?t.key:custKey(p.cust_name);
+    const cu=getC(key,(p.cust_name||'').trim()||(t?t.cust_name:''));
+    if(!t&&p.cust_name&&!cu.invIds.length)cu.name=(p.cust_name||'').trim();
+    cu.received=r2(cu.received+amt);cu.payIds.push(p.id);
+    if((p.pay_date||'')>cu.lastDate)cu.lastDate=p.pay_date||'';
+    let left=amt;const allocs=[];let al=null;
+    if(p.alloc_json){try{al=JSON.parse(p.alloc_json);}catch(e){al=null;}}
+    const h={payId:p.id,date:p.pay_date,method:p.method,ref:p.ref_no||'',bank:p.bank_name||'',note:p.note||'',full:amt,source:p.source||''};
+    if(Array.isArray(al)){
+      al.forEach(a=>{
+        const ti=invs[a.inv];const want=r2(a.amt);
+        if(!ti||ti.key!==key||want<=0||left<=EPSZ)return;
+        const room=r2(ti.own-ti.ownPaid);const x=r2(Math.min(room,want,left));if(x<=EPSZ)return;
+        ti.ownPaid=r2(ti.ownPaid+x);ti.recv=r2(ti.recv+x);left=r2(left-x);
+        allocs.push({inv:ti.id,inv_no:ti.inv_no,amt:x});
+        ti.hist.push(Object.assign({},h,{amount:x,kind:'alloc'}));
+      });
+    } else if(t){
+      t.recv=r2(t.recv+amt);t.hist.push(Object.assign({},h,{amount:amt,kind:'direct'}));
+      left=wf(t,amt,t.inv_no,{});
+      if(left>EPSZ)t.overflow=r2(t.overflow+left);
+      allocs.push({inv:t.id,inv_no:t.inv_no,amt:r2(amt-left)});
+    }
+    cu.credit=r2(cu.credit+left);
+    payInfo[p.id]=Object.assign({},p,{key,allocs,unalloc:r2(left)});
+  });
+
+  // Customer advance used on new invoices (stored as invoices.credit_used)
+  list.forEach(t=>{
+    const want=r2(t.credit_used||0);if(want<=0)return;
+    const cu=custs[t.key];const use=Math.min(want,cu?cu.credit:0);if(use<=EPSZ)return;
+    const left=wf(t,use,t.inv_no,{});const applied=r2(use-left);
+    if(applied>EPSZ){t.creditApplied=applied;t.recv=r2(t.recv+applied);cu.credit=r2(cu.credit-applied);
+      t.hist.push({payId:null,date:t.inv_date,method:'credit',ref:'',bank:'',note:'Customer advance adjusted',amount:applied,full:applied,kind:'credit'});}
+  });
+
+  function live(t,seen){if(!t||seen[t.id])return 0;seen[t.id]=1;let s=Math.max(0,r2(t.own-t.ownPaid));t.refIds.forEach(rid=>{s+=live(invs[rid],seen);});return r2(s);}
+  const tot={billed:0,received:0,unpaid:0,credit:0,count:list.length};
+  list.forEach(t=>{
+    t.ownRem=Math.max(0,r2(t.own-t.ownPaid));
+    t.liveRem=live(t,{});
+    t.adjOther=r2(t.grand-(t.recv-t.overflow)-t.liveRem);
+    t.status=t.overflow>EPS?'overpaid':t.liveRem<=EPS?'paid':(t.recv>EPS||t.adjOther>EPS)?'partial':'unpaid';
+    custs[t.key].unpaid=r2(custs[t.key].unpaid+t.ownRem);
+  });
+  Object.values(custs).forEach(c=>{tot.billed=r2(tot.billed+c.billed);tot.received=r2(tot.received+c.received);tot.unpaid=r2(tot.unpaid+c.unpaid);tot.credit=r2(tot.credit+c.credit);});
+  return {invs,list,byNo,custs,payInfo,tot};
+}
+function custInfo(name){const a=ACC();return a.custs[custKey(name)]||null;}
+function custCredit(name){const c=custInfo(name);return c?Math.max(0,c.credit):0;}
+function statusBadge(st){return st==='overpaid'?'💰 Overpaid':st==='paid'?'✅ Paid':st==='partial'?'⏳ Partial':'❌ Unpaid';}
+
+// Compatibility helpers used by older code paths
+function getTotalPaid(invId){const t=ACC().invs[invId];return t?t.recv:0;}
+function getStatus(invId){const t=ACC().invs[invId];return t?t.status:'unpaid';}
+
+// ============================================================
+//  DB SAVE (chunked base64 — old version crashed on big DBs)
+// ============================================================
+function u8ToB64(u8){let s='';const CH=0x8000;for(let i=0;i<u8.length;i+=CH)s+=String.fromCharCode.apply(null,u8.subarray(i,i+CH));return btoa(s);}
+async function sDB(){
+  markDirty();
+  const b64=u8ToB64(db.export());
+  const ok=await idbSave('db',b64);
+  try{localStorage.setItem('fgi_db',b64);}catch(e){}
+  try{localStorage.setItem('fgi_db_backup',b64);}catch(e){}
+  try{sessionStorage.setItem('fgi_db',b64);}catch(e){}
+  if(!ok)toast('⚠️ Storage warning: data memory mein hai, Backup zaroor karein!',4000);
+  return ok;
+}
+// Runs a write inside one SQLite transaction; on any error nothing is changed.
+async function dbTx(fn){
+  db.run('BEGIN');
+  try{fn();db.run('COMMIT');}
+  catch(e){try{db.run('ROLLBACK');}catch(e2){}markDirty();throw e;}
+  return await sDB();
+}
+
+// ============================================================
+//  DB INIT + MIGRATION (adds columns only; backup taken first)
+// ============================================================
+async function initDB(){
+  if(db){setInvNo();setToday();showView('invoice-list');updateSQStatus();return;}
+  SQLlib=await initSqlJs({locateFile:f=>'lib/'+f});
+  const saved=await idbLoad('db')||localStorage.getItem('fgi_db')||localStorage.getItem('fgi_db_backup')||sessionStorage.getItem('fgi_db');
+  if(saved){
+    try{const buf=Uint8Array.from(atob(saved),c=>c.charCodeAt(0));db=new SQLlib.Database(buf);}
+    catch(e){db=new SQLlib.Database();}
+  } else {db=new SQLlib.Database();}
+  db.run(`CREATE TABLE IF NOT EXISTS invoices(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inv_no TEXT,inv_date TEXT,cust_name TEXT,cust_mobile TEXT,cust_city TEXT,
+    items_json TEXT,less_val REAL DEFAULT 0,less_type TEXT DEFAULT 'amount',
+    add_val REAL DEFAULT 0,add_type TEXT DEFAULT 'amount',
+    advance_json TEXT DEFAULT '[]',prev_bal REAL DEFAULT 0,prev_bal_ref TEXT DEFAULT '',
+    notes TEXT DEFAULT '',items_total REAL DEFAULT 0,grand_total REAL DEFAULT 0,created_at TEXT
+  )`);
+  try{db.run("ALTER TABLE invoices ADD COLUMN prev_bal_ref TEXT DEFAULT ''");}catch(e){}
+  db.run(`CREATE TABLE IF NOT EXISTS payments(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_id INTEGER NOT NULL,method TEXT,amount REAL,pay_date TEXT,note TEXT,created_at TEXT,
+    FOREIGN KEY(invoice_id) REFERENCES invoices(id)
+  )`);
+  await migrateV18(saved);
+  await sDB();
+  setInvNo();setToday();showView('invoice-list');
+  updateDbStatus();updateSQStatus();
+}
+const V18_PAY_COLS=[['cust_name',"TEXT DEFAULT ''"],['ref_no',"TEXT DEFAULT ''"],['bank_name',"TEXT DEFAULT ''"],['alloc_json',"TEXT DEFAULT ''"],['source',"TEXT DEFAULT ''"],['uid',"TEXT DEFAULT ''"]];
+const V18_INV_COLS=[['credit_used','REAL DEFAULT 0']];
+function tableCols(t){return qrows('PRAGMA table_info('+t+')').map(r=>r.name);}
+async function migrateV18(savedB64){
+  const pc=tableCols('payments'),ic=tableCols('invoices');
+  const missP=V18_PAY_COLS.filter(c=>pc.indexOf(c[0])<0),missI=V18_INV_COLS.filter(c=>ic.indexOf(c[0])<0);
+  if(!missP.length&&!missI.length)return;
+  // 1) Backup of the untouched old database (only once)
+  if(savedB64){const have=await idbLoad('db_backup_pre_v18');if(!have){await idbSave('db_backup_pre_v18',savedB64);await idbSave('db_backup_pre_v18_date',new Date().toISOString());}}
+  // 2) Add new columns (existing rows keep all their values)
+  missP.forEach(c=>db.run('ALTER TABLE payments ADD COLUMN '+c[0]+' '+c[1]));
+  missI.forEach(c=>db.run('ALTER TABLE invoices ADD COLUMN '+c[0]+' '+c[1]));
+}
+async function downloadPreUpdateBackup(){
+  const b64=await idbLoad('db_backup_pre_v18');
+  if(!b64){toast('ℹ️ Purana (pre-v18) backup maujood nahi — shayad yeh naya install hai');return;}
+  try{
+    const old=new SQLlib.Database(Uint8Array.from(atob(b64),c=>c.charCodeAt(0)));
+    const blob=new Blob([JSON.stringify(dbToJSON(old),null,2)],{type:'application/json'});
+    openFolderPicker('⏪ Pre-update Backup','v18 update se pehle wala data (JSON)',blob,'FGI_Backup_before_v18.json');
+  }catch(e){toast('❌ Backup error: '+e.message);}
+}
+
+function setToday(){if(!editMode)document.getElementById('inv-date').value=todayStr();}
+function updateDbStatus(){
+  const a=ACC();const el=document.getElementById('db-status');
+  if(el)el.textContent=`✅ IndexedDB active — ${a.tot.count} invoices, ${qrows('SELECT COUNT(*) n FROM payments')[0].n} payments stored`;
+}
+
+// ============================================================
+//  BACKUP / RESTORE (old v4 backups import without loss)
+// ============================================================
+function dbToJSON(d){
+  const tbl=n=>{const r=d.exec('SELECT * FROM '+n);return r[0]?r[0].values.map(v=>{const o={};r[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[];};
+  return {version:5,app:'FGI Invoice '+APP_VER,exported:new Date().toISOString(),invoices:tbl('invoices'),payments:tbl('payments')};
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(dbToJSON(db),null,2)],{type:'application/json'});
+  openFolderPicker('💾 Backup Kahan Save Karein?','JSON backup file ki jagah choose karein',blob,`FGI_Backup_${todayStr()}.json`);
+}
+async function importData(input){
+  const file=input.files[0];if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());
+    if(!data||!Array.isArray(data.invoices)){toast('❌ Invalid backup file!');input.value='';return;}
+    const bad=data.invoices.filter(i=>i==null||i.id==null||!i.inv_no);
+    if(bad.length){toast('❌ Backup kharab hai: '+bad.length+' invoice(s) mein id/number nahi');input.value='';return;}
+    const pays=Array.isArray(data.payments)?data.payments:[];
+    if(!confirm(`Import ${data.invoices.length} invoices + ${pays.length} payments?\n\nYeh SARI current data replace kar dega!\n(Current data ka backup pehle khud save ho jaye ga.)`)){input.value='';return;}
+    await idbSave('db_backup_before_import',u8ToB64(db.export()));
+    await idbSave('db_backup_before_import_date',new Date().toISOString());
+    const iCols=tableCols('invoices'),pCols=tableCols('payments');
+    const ins=(t,cols,o)=>{const k=cols.filter(c=>o[c]!==undefined);db.run('INSERT INTO '+t+'('+k.join(',')+') VALUES('+k.map(()=>'?').join(',')+')',k.map(c=>o[c]));};
+    await dbTx(()=>{
+      db.run('DELETE FROM payments');db.run('DELETE FROM invoices');
+      db.run("DELETE FROM sqlite_sequence WHERE name IN ('invoices','payments')");
+      data.invoices.forEach(o=>ins('invoices',iCols,o));
+      pays.forEach(o=>ins('payments',pCols,Object.assign({invoice_id:0},o)));
+    });
+    renderList();toast(`✅ ${data.invoices.length} invoices import ho gaye!`);
+  }catch(e){toast('❌ Import failed: '+e.message,4000);}
+  input.value='';
+}
+async function restoreBeforeImport(){
+  const b64=await idbLoad('db_backup_before_import');
+  if(!b64){toast('ℹ️ Import se pehle ka koi backup nahi');return;}
+  try{
+    const old=new SQLlib.Database(Uint8Array.from(atob(b64),c=>c.charCodeAt(0)));
+    const blob=new Blob([JSON.stringify(dbToJSON(old),null,2)],{type:'application/json'});
+    openFolderPicker('⏪ Import se pehle ka data','Is file ko Import karke purana data wapas layen',blob,'FGI_Backup_before_import.json');
+  }catch(e){toast('❌ '+e.message);}
+}
+
+// ============================================================
+//  PIN RECOVERY — exact answer only (old code accepted 1 letter)
+// ============================================================
+function normAns(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim();}
+async function verifyForgotPin(){
+  const d=await loadSecretQData();
+  const ans=normAns(document.getElementById('fp-answer').value);
+  const errEl=document.getElementById('fp-error');
+  if(!ans){errEl.textContent='⚠️ Jawab likhein!';return;}
+  if(!d){errEl.textContent='❌ Secret question nahi mila!';return;}
+  if(ans===normAns(d.a)){
+    errEl.style.color='#7dffbc';errEl.textContent='✅ Sahi jawab! Naya PIN set karein:';
+    setTimeout(()=>{hideForgotPin();setTimeout(()=>{
+      document.getElementById('pin-mode-label').textContent='SET NEW PIN';
+      document.getElementById('pin-error').style.color='#2ecc71';
+      document.getElementById('pin-error').textContent='🔓 Verified! Naya PIN set karein';
+      pinMode='set-new';pinBuf='';newPinTmp='';updDots();},200);},600);
+  } else {errEl.style.color='#ff8080';errEl.textContent='❌ Jawab galat hai. Dobara koshish karein.';}
+}
+
+// ============================================================
+//  DASHBOARD / INVOICE LIST
+// ============================================================
+function renderList(){
+  if(!db)return;
+  const a=ACC();
+  document.getElementById('stats-strip').innerHTML=`
+    <div class="stat-box"><div class="stat-val">${a.tot.count}</div><div class="stat-lbl">Invoices</div></div>
+    <div class="stat-box"><div class="stat-val" style="font-size:13px;">Rs.${fn(a.tot.billed)}</div><div class="stat-lbl">Total Billed</div></div>
+    <div class="stat-box"><div class="stat-val" style="font-size:13px;color:var(--red);">Rs.${fn(a.tot.unpaid)}</div><div class="stat-lbl">Outstanding</div></div>
+    <div class="stat-box"><div class="stat-val" style="font-size:13px;color:var(--green);">Rs.${fn(a.tot.credit)}</div><div class="stat-lbl">Advance</div></div>`;
+  const q=(document.getElementById('search-inv')?.value||'').toLowerCase();
+  const cont=document.getElementById('inv-list-container');
+  if(!a.list.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🧾</div><p>No invoices yet.<br>Tap <b>+ New</b> to create one.</p></div>`;return;}
+  const list=a.list.slice().reverse().filter(t=>!q||(t.inv_no||'').toLowerCase().includes(q)||(t.cust_name||'').toLowerCase().includes(q)||(t.cust_city||'').toLowerCase().includes(q));
+  if(!list.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No results found.</p></div>`;return;}
+  cont.innerHTML=list.map(t=>{
+    const st=t.status;const viaNos=Object.keys(t.via);
+    let right;
+    if(st==='overpaid')right=`<div class="inv-remaining zero" style="margin-top:4px;text-align:right;">Advance: Rs.${fn(t.overflow)}</div>`;
+    else if(st==='paid')right=`<div class="inv-remaining zero" style="margin-top:4px;text-align:right;">Cleared ✓${viaNos.length&&t.recv<=EPS?'<br><span style="font-size:10px;">via '+esc(viaNos.join(', '))+'</span>':''}</div>`;
+    else right=`<div class="inv-remaining positive" style="margin-top:4px;text-align:right;">Due: Rs.${fn(t.liveRem)}</div>`;
+    return `<div class="inv-card status-${st}">
+      <div class="inv-row1"><span class="inv-no-badge">${esc(t.inv_no)}</span><span class="inv-date-badge">📅 ${esc(t.inv_date)}</span></div>
+      <div class="inv-customer">👤 ${esc(t.cust_name)}</div>
+      ${t.cust_city?`<div class="inv-city">📍 ${esc(t.cust_city)}</div>`:''}
+      <div class="inv-amount-row">
+        <div><div class="inv-grand">Rs. ${fn(t.grand)}</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Paid: Rs.${fn(t.recv)}${t.adjOther>EPS?' • Adj: Rs.'+fn(t.adjOther):''}</div></div>
+        <div><span class="pay-status-badge ${st}">${statusBadge(st)}</span>${right}</div>
+      </div>
+      <div class="inv-actions">
+        <button class="btn btn-orange btn-sm" onclick="openPaymentView(${t.id})">💳 Pay</button>
+        <button class="btn btn-purple btn-sm" onclick="openEditInvoice(${t.id})">✏️ Edit</button>
+        <button class="btn btn-outline btn-sm" onclick="openPreview(${t.id})">👁 View</button>
+        <button class="btn btn-blue btn-sm" onclick="quickPDF(${t.id})">📄 PDF</button>
+        <button class="btn btn-green btn-sm" onclick="quickImage(${t.id})">📸 Img</button>
+        <button class="btn btn-navy btn-sm" onclick="quickPrint(${t.id})">🖨️</button>
+        <button class="btn btn-red btn-sm" onclick="delInv(${t.id},event)">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function delInv(id,e){
+  e.stopPropagation();
+  const t=ACC().invs[id];if(!t)return;
+  const direct=t.hist.filter(h=>h.kind==='direct');
+  let msg='Invoice '+t.inv_no+' delete karein?';
+  if(direct.length)msg+='\n\nIs invoice par '+direct.length+' payment(s) (Rs.'+fn(direct.reduce((s,h)=>s+h.amount,0))+') bhi delete hongi.';
+  if(t.hist.some(h=>h.kind==='alloc'))msg+='\nReceived Payment se is par lagi raqam customer Advance ban jaye gi.';
+  if(!confirm(msg))return;
+  try{await dbTx(()=>{db.run('DELETE FROM payments WHERE invoice_id=?',[id]);db.run('DELETE FROM invoices WHERE id=?',[id]);});}
+  catch(err){toast('❌ Delete failed: '+err.message);return;}
+  renderList();toast('🗑 Deleted');
+}
+
+// ============================================================
+//  PAY BUTTON VIEW (existing workflow, same engine)
+// ============================================================
+let _paySaving=false,_payUid=null;
+function openPaymentView(invId){
+  curPayInvId=invId;previewData=loadInvoice(invId);
+  _payUid=newUid();
+  document.getElementById('pay-date').value=todayStr();
+  ['pay-amount','pay-note','pay-ref','pay-cheque','pay-bank'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  payMethodChange();
+  renderPayHeader(invId);renderPayHistory(invId);showView('payment');
+}
+function payMethodChange(){
+  const m=document.getElementById('pay-method').value;
+  document.getElementById('pay-ref-row').style.display=(m==='online'||m==='jazzcash'||m==='easypaisa'||m==='bank')?'block':'none';
+  document.getElementById('pay-cheque-row').style.display=m==='cheque'?'grid':'none';
+}
+function renderPayHeader(invId){
+  const t=ACC().invs[invId];if(!t)return;const st=t.status;
+  let last;
+  if(st==='overpaid')last=`<div style="text-align:right;"><div class="pay-bal-lbl">Customer Advance</div><div class="pay-bal-val zero">Rs. ${fn(t.overflow)}</div></div>`;
+  else last=`<div style="text-align:right;"><div class="pay-bal-lbl">Remaining</div><div class="pay-bal-val ${t.liveRem<=EPS?'zero':'positive'}">Rs. ${fn(t.liveRem)}</div></div>`;
+  const cu=ACC().custs[t.key];
+  document.getElementById('pay-header').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div><div class="pay-inv-no">${esc(t.inv_no)}</div><div class="pay-cust">${esc(t.cust_name)}</div>
+      ${t.cust_city?`<div style="color:rgba(255,255,255,.5);font-size:12px;">📍 ${esc(t.cust_city)}</div>`:''}</div>
+      <span class="pay-status-badge ${st}">${statusBadge(st)}</span>
+    </div>
+    <div class="pay-balance-row">
+      <div><div class="pay-bal-lbl">Invoice Total</div><div style="color:#fff;font-size:16px;font-weight:700;">Rs. ${fn(t.grand)}</div></div>
+      <div style="text-align:center;"><div class="pay-bal-lbl">Received</div><div style="color:#7dffbc;font-size:16px;font-weight:700;">Rs. ${fn(t.recv)}</div></div>
+      ${last}
+    </div>
+    ${t.adjOther>EPS?`<div style="color:#a0d0e8;font-size:11px;margin-top:8px;">↪ Rs.${fn(t.adjOther)} prev. invoices / doosri payments se adjust hua${Object.keys(t.via).length?' (via '+esc(Object.keys(t.via).join(', '))+')':''}</div>`:''}
+    ${cu&&cu.credit>EPS?`<div style="color:#7dffbc;font-size:11px;margin-top:6px;">💰 Customer ka kul Advance: Rs.${fn(cu.credit)}</div>`:''}`;
+}
+function histLine(h){
+  const bits=[];if(h.ref)bits.push((h.method==='cheque'?'Chq# ':'Ref: ')+h.ref);if(h.bank)bits.push(h.bank);if(h.note)bits.push(h.note);
+  if(h.kind==='alloc'&&h.full>h.amount+EPSZ)bits.push('Rs.'+fn(h.full)+' mein se');
+  return bits.join(' • ');
+}
+function renderPayHistory(invId){
+  const t=ACC().invs[invId];const cont=document.getElementById('pay-history-list');
+  if(!t||!t.hist.length){cont.innerHTML=`<div class="pay-empty">No payments recorded yet.</div>`;return;}
+  cont.innerHTML=t.hist.map(h=>`
+    <div class="pay-item">
+      <div class="pay-type-icon ${esc(h.method)}">${PAY_ICONS[h.method]||'💰'}</div>
+      <div class="pay-info">
+        <div class="pay-info-top">${esc(payLabel(h.method))}${h.kind==='alloc'?' <span class="mini-tag">Received</span>':''}${h.kind==='credit'?' <span class="mini-tag">Advance</span>':''}</div>
+        <div class="pay-info-bot">📅 ${esc(h.date||'—')}${histLine(h)?' • '+esc(histLine(h)):''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="pay-amount-text">Rs. ${fn(h.amount)}</div>
+        ${h.payId?`<button class="btn btn-red btn-sm" onclick="deletePayment(${h.payId},${invId})">🗑</button>`:''}
+      </div>
+    </div>`).join('');
+}
+async function addPayment(){
+  if(_paySaving)return;
+  const amt=r2(parseFloat(document.getElementById('pay-amount').value)||0);
+  if(!(amt>0)){toast('⚠️ Valid amount enter karo (0 se zyada)!');return;}
+  const t=ACC().invs[curPayInvId];if(!t){toast('❌ Invoice nahi mili');return;}
+  const method=document.getElementById('pay-method').value;
+  const date=document.getElementById('pay-date').value||todayStr();
+  const note=document.getElementById('pay-note').value.trim();
+  const ref=method==='cheque'?document.getElementById('pay-cheque').value.trim():document.getElementById('pay-ref').value.trim();
+  const bank=method==='cheque'?document.getElementById('pay-bank').value.trim():'';
+  if(amt>t.liveRem+EPS){
+    const extra=r2(amt-t.liveRem);
+    if(!confirm(`Invoice ka baqi Rs.${fn(t.liveRem)} hai.\nRs.${fn(amt)} mein se Rs.${fn(extra)} zyada hain — yeh "Customer Advance" ban jayen ge (agli nayi invoice mein minus honge).\n\nSave karein?`))return;
+  }
+  if(qrows('SELECT id FROM payments WHERE uid=?',[_payUid]).length){toast('⚠️ Yeh payment pehle hi save ho chuki hai');return;}
+  _paySaving=true;const btn=document.getElementById('pay-save-btn');if(btn)btn.disabled=true;
+  try{
+    await dbTx(()=>db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at,cust_name,ref_no,bank_name,alloc_json,source,uid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+      [curPayInvId,method,amt,date,note,new Date().toISOString(),t.cust_name,ref,bank,'','invoice',_payUid]));
+    _payUid=newUid();
+    ['pay-amount','pay-note','pay-ref','pay-cheque','pay-bank'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    previewData=loadInvoice(curPayInvId);
+    renderPayHeader(curPayInvId);renderPayHistory(curPayInvId);renderList();
+    const nt=ACC().invs[curPayInvId];
+    toast(nt.status==='overpaid'?'✅ Payment saved — Advance Rs.'+fn(nt.overflow):'✅ Payment saved: Rs. '+fn(amt),3000);
+  }catch(e){toast('❌ Payment save nahi hui: '+e.message,4000);}
+  finally{_paySaving=false;if(btn)btn.disabled=false;}
+}
+async function deletePayment(payId,invId){
+  const p=ACC().payInfo[payId];if(!p)return;
+  let msg='Rs.'+fn(p.amount)+' ki payment ('+(p.pay_date||'')+') delete karein?';
+  if(p.alloc_json&&p.allocs.length>1)msg+='\n\nYeh payment '+p.allocs.length+' invoices par lagi hai: '+p.allocs.map(x=>x.inv_no).join(', ')+' — sab se hat jaye gi.';
+  if(!confirm(msg))return;
+  try{await dbTx(()=>db.run('DELETE FROM payments WHERE id=?',[payId]));}catch(e){toast('❌ '+e.message);return;}
+  if(invId){previewData=loadInvoice(invId);renderPayHeader(invId);renderPayHistory(invId);}
+  renderList();if(document.getElementById('view-receive').classList.contains('active'))rpRefreshCustomer();
+  toast('🗑 Payment removed');
+}
+
+// ============================================================
+//  LOAD INVOICE (engine based)
+// ============================================================
+function loadInvoice(id){
+  const t=ACC().invs[id];if(!t)return null;
+  const inv=Object.assign({},t);
+  inv.items=t.items.slice();
+  try{inv.advances=JSON.parse(t.advance_json||'[]');}catch(e){inv.advances=[];}
+  inv.payments=getPayments(id);
+  inv.totalPaid=t.recv;inv.grand_total=t.grand;inv.remaining=t.liveRem;
+  return inv;
+}
+
+// ============================================================
+//  NEW INVOICE: customer advance auto "Less Advance"
+// ============================================================
+function formCreditInfo(grand,advNow){
+  if(editMode)return {credit:0,use:0};
+  const cn=document.getElementById('cust-name').value.trim();if(!cn||!db)return {credit:0,use:0};
+  const credit=custCredit(cn);
+  const on=document.getElementById('use-credit')?document.getElementById('use-credit').checked:true;
+  const use=on?r2(Math.min(credit,Math.max(0,grand-advNow))):0;
+  return {credit,use};
+}
+function updateCreditUI(grand,adv){
+  const ci=formCreditInfo(grand,adv);
+  const row=document.getElementById('sr-credit'),pay=document.getElementById('sr-payable'),hint=document.getElementById('cust-credit-hint');
+  if(row)row.style.display=ci.credit>EPS?'flex':'none';
+  const sv=document.getElementById('sv-credit');if(sv)sv.textContent='− Rs. '+fn(ci.use);
+  if(pay){const show=ci.use>EPS||adv>EPS;pay.style.display=show?'flex':'none';const v=document.getElementById('sv-payable');if(v)v.textContent='Rs. '+fn(Math.max(0,grand-adv-ci.use));}
+  if(hint){if(ci.credit>EPS){hint.style.display='block';hint.innerHTML='💰 Is customer ka <b>Advance Rs.'+fn(ci.credit)+'</b> hai — is invoice mein khud minus ho jaye ga.';}else hint.style.display='none';}
+  return ci;
+}
+
+// ============================================================
+//  PREV BAL POPUP — uses each invoice's OWN unpaid amount
+//  (so the same rupee is never carried twice)
+// ============================================================
+function unpaidOwnInvoices(custName){
+  const key=custKey(custName);
+  return ACC().list.filter(t=>t.key===key&&t.ownRem>EPS).map(t=>({id:t.id,inv_no:t.inv_no,inv_date:t.inv_date,grand:t.grand,own:t.own,rem:t.ownRem,refs:t.refIds.map(i=>ACC().invs[i].inv_no)}));
+}
+function openPrevBalPopup(custName){
+  if(!db){toast('⚠️ DB load nahi hua');return;}
+  const unpaidList=unpaidOwnInvoices(custName);
+  if(!unpaidList.length){toast('✅ '+custName+' ka koi outstanding balance nahi');return;}
+  _prevPopupSelections={};
+  let html='';
+  unpaidList.forEach(u=>{
+    const k=u.inv_no.replace(/[^A-Za-z0-9]/g,'_');
+    html+='<div class="prevbal-inv-item" id="pbi-'+k+'" data-no="'+esc(u.inv_no)+'" data-rem="'+u.rem+'" onclick="togglePrevBalItem(this.dataset.no,+this.dataset.rem)">';
+    html+='<div class="prevbal-inv-left"><div class="prevbal-inv-check" id="pbc-'+k+'">&nbsp;</div>';
+    html+='<div><span class="prevbal-inv-no">'+esc(u.inv_no)+'</span><div class="prevbal-inv-date">📅 '+esc(u.inv_date)+'</div></div></div>';
+    html+='<div style="text-align:right;"><div class="prevbal-inv-amount">Rs. '+fn(u.rem)+'</div><div class="prevbal-inv-label">Remaining</div></div></div>';
+  });
+  document.getElementById('prevbal-popup-body').innerHTML=html;
+  document.getElementById('prevbal-selected-total-val').textContent='Rs. 0';
+  document.getElementById('prevbal-add-btn').disabled=true;
+  document.getElementById('prevbal-popup-overlay').classList.add('open');
+}
+function togglePrevBalItem(invNo,rem){
+  const k=invNo.replace(/[^A-Za-z0-9]/g,'_');
+  const itemEl=document.getElementById('pbi-'+k),checkEl=document.getElementById('pbc-'+k);
+  if(_prevPopupSelections[invNo]){delete _prevPopupSelections[invNo];if(itemEl)itemEl.classList.remove('selected');if(checkEl)checkEl.innerHTML='&nbsp;';}
+  else{_prevPopupSelections[invNo]=rem;if(itemEl)itemEl.classList.add('selected');if(checkEl)checkEl.innerHTML='✓';}
+  const total=Object.values(_prevPopupSelections).reduce((s,v)=>s+v,0);
+  document.getElementById('prevbal-selected-total-val').textContent='Rs. '+fn(total);
+  document.getElementById('prevbal-add-btn').disabled=total<=0;
+}
+function selectCustomer(name){
+  const el=document.getElementById('cust-name');if(el)el.value=name;
+  const sug=document.getElementById('cust-suggestions');if(sug)sug.style.display='none';
+  if(!db)return;
+  const c=custInfo(name);
+  if(c){const cityEl=document.getElementById('cust-city'),mobEl=document.getElementById('cust-mobile');
+    if(cityEl&&c.city&&!cityEl.value)cityEl.value=c.city;if(mobEl&&c.mobile&&!mobEl.value)mobEl.value=c.mobile;}
+  calcSummary();
+  if(c&&c.unpaid>EPS)toast('⚠️ Rs.'+fn(c.unpaid)+' outstanding — "Previous Balance" toggle karein',3000);
+  else if(c&&c.credit>EPS)toast('💰 Advance Rs.'+fn(c.credit)+' — invoice mein minus ho jaye ga',3000);
+  else toast('✅ '+name+' — Koi outstanding nahi');
+}
+
+// ============================================================
+//  RECEIVED PAYMENT (dashboard) — second way to receive money
+// ============================================================
+let _rp={key:null,name:'',uid:null,rows:[],saving:false};
+function rpInit(){
+  _rp={key:null,name:'',uid:newUid(),rows:[],saving:false};
+  ['rp-cust','rp-amount','rp-ref','rp-cheque','rp-bank','rp-note'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('rp-date').value=todayStr();
+  document.getElementById('rp-method').value='cash';rpMethodChange();
+  document.getElementById('rp-cust-info').innerHTML='';
+  document.getElementById('rp-inv-card').style.display='none';
+  document.getElementById('rp-hist-card').style.display='none';
+  document.getElementById('rp-success').style.display='none';
+  rpRecalc();
+}
+function openReceivePayment(custName){
+  showView('receive');
+  if(custName){rpPickCustomer(custName);}
+}
+function rpMethodChange(){
+  const m=document.getElementById('rp-method').value;
+  document.getElementById('rp-ref-row').style.display=(m==='online'||m==='jazzcash'||m==='easypaisa'||m==='bank')?'block':'none';
+  document.getElementById('rp-cheque-row').style.display=m==='cheque'?'grid':'none';
+}
+function allCustomers(){return Object.values(ACC().custs).filter(c=>c.key);}
+function rpCustInput(val){
+  const sug=document.getElementById('rp-cust-sug');
+  const k=custKey(val);
+  if(_rp.key&&k!==_rp.key){_rp.key=null;_rp.name='';_rp.rows=[];document.getElementById('rp-cust-info').innerHTML='';document.getElementById('rp-inv-card').style.display='none';document.getElementById('rp-hist-card').style.display='none';rpRecalc();}
+  const list=allCustomers().filter(c=>!k||c.key.includes(k)).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||'')).slice(0,12);
+  if(!list.length){sug.style.display='none';return;}
+  sug.innerHTML=list.map(c=>'<div class="cust-sug-item" data-cname="'+esc(c.name)+'" onclick="rpPickCustomer(this.dataset.cname)"><div class="cust-sug-name">👤 '+esc(c.name)+(c.city?' <span style="font-weight:400;color:#888;">— '+esc(c.city)+'</span>':'')+'</div>'+
+    '<div style="font-size:11px;color:var(--text2);margin-top:2px;">Baqi: <b style="color:var(--red)">Rs.'+fn(c.unpaid)+'</b>'+(c.credit>EPS?' • Advance: <b style="color:var(--green)">Rs.'+fn(c.credit)+'</b>':'')+'</div></div>').join('');
+  sug.style.display='block';
+}
+function rpPickCustomer(name){
+  const c=custInfo(name);
+  document.getElementById('rp-cust').value=c?c.name:name;
+  document.getElementById('rp-cust-sug').style.display='none';
+  _rp.key=custKey(name);_rp.name=c?c.name:name.trim();
+  rpRefreshCustomer();
+}
+function rpRefreshCustomer(){
+  if(!_rp.key)return;
+  const a=ACC();const c=a.custs[_rp.key];
+  const info=document.getElementById('rp-cust-info');
+  if(c){
+    info.innerHTML='<div class="rp-cust-box"><div style="font-weight:800;color:var(--navy);font-size:15px;">👤 '+esc(c.name)+'</div>'+
+      '<div style="font-size:12px;color:var(--text2);margin:2px 0 8px;">'+(c.city?'📍 '+esc(c.city)+'  ':'')+(c.mobile?'📞 '+esc(c.mobile):'')+'</div>'+
+      '<div class="rp-mini-stats"><div><b>Rs.'+fn(c.billed)+'</b><span>Billed</span></div><div><b style="color:var(--green)">Rs.'+fn(c.received)+'</b><span>Received</span></div><div><b style="color:var(--red)">Rs.'+fn(c.unpaid)+'</b><span>Unpaid Inv.</span></div><div><b style="color:#0b7a6b">Rs.'+fn(c.credit)+'</b><span>Advance</span></div></div></div>';
+  } else {
+    info.innerHTML='<div class="rp-cust-box" style="border-color:var(--orange);"><b style="color:var(--orange);">🆕 Naya customer:</b> '+esc(_rp.name)+'<div style="font-size:11px;color:var(--text2);margin-top:4px;">Is naam ki koi invoice nahi. Payment "Advance" ban kar save hogi aur is customer ki pehli invoice mein minus hogi.</div></div>';
+  }
+  // unpaid / partial invoices (own unpaid amount)
+  const old={};_rp.rows.forEach(r=>old[r.id]=r);
+  _rp.rows=a.list.filter(t=>t.key===_rp.key&&t.ownRem>EPS).map(t=>{const o=old[t.id];return {id:t.id,inv_no:t.inv_no,inv_date:t.inv_date,grand:t.grand,own:t.own,rem:t.ownRem,refs:t.refIds.map(i=>a.invs[i].inv_no),sel:o?o.sel:false,amt:o?o.amt:0,manual:o?o.manual:false};});
+  document.getElementById('rp-inv-card').style.display=c?'block':'none';
+  rpRenderInvoices();rpRecalc();rpRenderHistory();
+}
+function rpRenderInvoices(){
+  const cont=document.getElementById('rp-inv-list');
+  if(!_rp.rows.length){cont.innerHTML='<div class="pay-empty">✅ Is customer ki koi unpaid / partial invoice nahi.<br>Payment Advance ban kar save hogi.</div>';return;}
+  cont.innerHTML=_rp.rows.map((r,i)=>`
+    <div class="rp-inv-row ${r.sel?'sel':''}">
+      <label class="rp-inv-main"><input type="checkbox" ${r.sel?'checked':''} onchange="rpToggle(${i},this.checked)">
+        <div style="flex:1;min-width:0;">
+          <div><span class="inv-no-badge" style="font-size:12px;padding:2px 8px;">${esc(r.inv_no)}</span> <span style="font-size:11px;color:var(--text2);">📅 ${esc(r.inv_date)}</span></div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px;">Invoice: Rs.${fn(r.grand)} • <b style="color:var(--red);">Baqi: Rs.${fn(r.rem)}</b>${r.refs.length?'<br><i>Prev.Bal '+esc(r.refs.join(', '))+' alag list mein hain</i>':''}</div>
+        </div>
+      </label>
+      ${r.sel?`<div class="rp-amt-row"><span>Is invoice par:</span><input type="number" inputmode="decimal" min="0" value="${r.amt||''}" oninput="rpAmt(${i},this.value)"></div>`:''}
+    </div>`).join('');
+}
+function rpAutoFill(){
+  const amt=r2(parseFloat(document.getElementById('rp-amount').value)||0);
+  let left=r2(amt-_rp.rows.filter(r=>r.sel&&r.manual).reduce((s,r)=>s+r.amt,0));
+  _rp.rows.forEach(r=>{if(r.sel&&!r.manual){const x=Math.max(0,Math.min(r.rem,left));r.amt=r2(x);left=r2(left-x);}if(!r.sel){r.amt=0;r.manual=false;}});
+}
+function rpToggle(i,on){_rp.rows[i].sel=on;_rp.rows[i].manual=false;rpAutoFill();rpRenderInvoices();rpRecalc(true);}
+function rpAmt(i,v){_rp.rows[i].amt=r2(parseFloat(v)||0);_rp.rows[i].manual=true;rpAutoFill();rpRecalc(true);
+  // refresh other auto rows' inputs without losing focus
+  document.querySelectorAll('#rp-inv-list .rp-inv-row').forEach((el,j)=>{if(j!==i){const inp=el.querySelector('.rp-amt-row input');if(inp)inp.value=_rp.rows[j].amt||'';}});}
+function rpRecalc(skipFill){
+  if(!skipFill)rpAutoFill();
+  if(!skipFill&&_rp.rows.some(r=>r.sel))rpRenderInvoices();
+  const amt=r2(parseFloat(document.getElementById('rp-amount').value)||0);
+  const sel=_rp.rows.filter(r=>r.sel);
+  const allocSum=r2(sel.reduce((s,r)=>s+(r.amt||0),0));
+  const adv=r2(amt-allocSum);
+  const pv=document.getElementById('rp-preview');const errs=[];
+  if(!_rp.key)errs.push('Customer select karein');
+  if(!(amt>0))errs.push('Amount 0 se zyada honi chahiye');
+  sel.forEach(r=>{if(r.amt>r.rem+EPSZ)errs.push(r.inv_no+': baqi sirf Rs.'+fn(r.rem)+' hai');if(!(r.amt>0))errs.push(r.inv_no+': amount likhein ya select hatayein');});
+  if(allocSum>amt+EPSZ)errs.push('Invoices par raqam (Rs.'+fn(allocSum)+') payment se zyada hai');
+  let h='';
+  if(amt>0&&_rp.key){
+    h+='<div class="rp-pv-row head"><span>Payment Received</span><b>Rs.'+fn(amt)+'</b></div>';
+    if(!sel.length)h+='<div class="rp-pv-note">ℹ️ Koi invoice select nahi — poori raqam customer level par <b>Unallocated / Customer Advance</b> mein jaye gi. Koi invoice khud paid mark nahi hogi.</div>';
+    sel.forEach(r=>{const after=r2(r.rem-r.amt);h+='<div class="rp-pv-row"><span>'+esc(r.inv_no)+' <small>(baqi Rs.'+fn(r.rem)+')</small></span><b>Rs.'+fn(r.amt)+'</b></div><div class="rp-pv-sub">→ '+(after<=EPS?'<b style="color:var(--green)">PAID / CLEARED</b>':'<b style="color:var(--orange)">PARTIAL</b> — baqi Rs.'+fn(after))+'</div>';});
+    if(adv>EPSZ)h+='<div class="rp-pv-row adv"><span>💰 Customer Advance / Unallocated</span><b>Rs.'+fn(adv)+'</b></div>';
+  }
+  if(errs.length&&(amt>0||_rp.key))h+='<div class="rp-pv-err">'+errs.map(esc).join('<br>')+'</div>';
+  if(!h)h='<div class="pay-empty">Customer aur amount likhein — yahan preview nazar aaye ga.</div>';
+  pv.innerHTML=h;
+  const b=document.getElementById('rp-save-btn');if(b)b.disabled=!!errs.length||_rp.saving;
+  return {amt,sel,allocSum,adv,errs};
+}
+async function rpSave(){
+  if(_rp.saving)return;
+  const typed=document.getElementById('rp-cust').value.trim();
+  if(!_rp.key&&typed){
+    const c=custInfo(typed);
+    if(c)rpPickCustomer(c.name);
+    else{
+      const near=allCustomers().filter(x=>x.key.includes(custKey(typed))||custKey(typed).includes(x.key)).slice(0,3);
+      if(!confirm('"'+typed+'" naam ka koi customer nahi.'+(near.length?'\nMilte julte: '+near.map(x=>x.name).join(', '):'')+'\n\nNaya customer bana kar payment Advance mein save karein?'))return;
+      _rp.key=custKey(typed);_rp.name=typed;rpRefreshCustomer();
+    }
+  }
+  const v=rpRecalc(true);
+  if(v.errs.length){toast('⚠️ '+v.errs[0]);return;}
+  if(qrows('SELECT id FROM payments WHERE uid=?',[_rp.uid]).length){toast('⚠️ Yeh payment pehle hi save ho chuki hai');return;}
+  const method=document.getElementById('rp-method').value;
+  const date=document.getElementById('rp-date').value||todayStr();
+  const note=document.getElementById('rp-note').value.trim();
+  const ref=method==='cheque'?document.getElementById('rp-cheque').value.trim():document.getElementById('rp-ref').value.trim();
+  const bank=method==='cheque'?document.getElementById('rp-bank').value.trim():'';
+  const alloc=v.sel.map(r=>({inv:r.id,inv_no:r.inv_no,amt:r.amt}));
+  const msg='Save karein?\n\n'+_rp.name+' — Rs.'+fn(v.amt)+' ('+payLabel(method)+', '+date+')\n'+(alloc.length?alloc.map(x=>'• '+x.inv_no+': Rs.'+fn(x.amt)).join('\n')+'\n':'')+(v.adv>EPSZ?'• Customer Advance: Rs.'+fn(v.adv):'');
+  if(!confirm(msg))return;
+  _rp.saving=true;document.getElementById('rp-save-btn').disabled=true;
+  try{
+    await dbTx(()=>db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at,cust_name,ref_no,bank_name,alloc_json,source,uid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+      [0,method,v.amt,date,note,new Date().toISOString(),_rp.name,ref,bank,JSON.stringify(alloc),'received',_rp.uid]));
+    const s=document.getElementById('rp-success');
+    s.innerHTML='✅ <b>Payment save ho gayi!</b><br>'+esc(_rp.name)+' — Rs.'+fn(v.amt)+(alloc.length?'<br>'+alloc.map(x=>esc(x.inv_no)+': Rs.'+fn(x.amt)).join(' • '):'')+(v.adv>EPSZ?'<br>💰 Advance: Rs.'+fn(v.adv):'')+'<br><span style="font-size:11px;">Khata, invoice aur dashboard update ho gaye.</span>';
+    s.style.display='block';
+    toast('✅ Payment saved: Rs.'+fn(v.amt),3000);
+    const keep=_rp.name;
+    _rp.uid=newUid();_rp.rows=[];
+    ['rp-amount','rp-ref','rp-cheque','rp-bank','rp-note'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    rpPickCustomer(keep);
+    s.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){toast('❌ Payment save nahi hui (kuch bhi change nahi hua): '+e.message,4500);}
+  finally{_rp.saving=false;rpRecalc(true);}
+}
+function rpRenderHistory(){
+  const card=document.getElementById('rp-hist-card'),cont=document.getElementById('rp-hist');
+  const a=ACC();const c=a.custs[_rp.key];
+  if(!c||!c.payIds.length){card.style.display='none';return;}
+  card.style.display='block';
+  cont.innerHTML=c.payIds.slice().reverse().map(id=>{const p=a.payInfo[id];
+    const where=p.allocs.length?p.allocs.map(x=>esc(x.inv_no)+(p.alloc_json?' Rs.'+fn(x.amt):'')).join(', '):'';
+    return `<div class="pay-item"><div class="pay-type-icon ${esc(p.method)}">${PAY_ICONS[p.method]||'💰'}</div>
+      <div class="pay-info"><div class="pay-info-top">${esc(payLabel(p.method))} <span class="mini-tag">${p.source==='received'?'Received':'Invoice PAY'}</span></div>
+      <div class="pay-info-bot">📅 ${esc(p.pay_date||'')}${where?' • → '+where:''}${p.unalloc>EPS?' • <b style="color:#0b7a6b">Advance Rs.'+fn(p.unalloc)+'</b>':''}${p.ref_no?' • '+esc(p.ref_no):''}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="pay-amount-text">Rs. ${fn(p.amount)}</div>
+      <button class="btn btn-red btn-sm" onclick="deletePayment(${p.id},0)">🗑</button></div></div>`;}).join('');
+}
+
+// ============================================================
+//  INVOICE PAGES — approved HD design, automatic multi-page
+// ============================================================
+const PG_W=720, PG_MAX_H=1360, PG_MERGE_H=1800;
+const ICO={
+  phone:'<svg viewBox="0 0 24 24" width="1em" height="1em"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" width="1em" height="1em"><path fill="#e53935" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>',
+  person:'<svg viewBox="0 0 24 24" width="1em" height="1em"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" width="1em" height="1em"><rect x="3" y="5" width="18" height="16" rx="2" fill="#fff"/><rect x="3" y="5" width="18" height="5" rx="2" fill="#e53935"/><rect x="7" y="2.5" width="2" height="5" rx="1" fill="#555"/><rect x="15" y="2.5" width="2" height="5" rx="1" fill="#555"/><rect x="7" y="13" width="3" height="3" fill="#0a3f63"/><rect x="11" y="13" width="3" height="3" fill="#0a3f63"/><rect x="15" y="13" width="3" height="3" fill="#0a3f63"/></svg>',
+  bank:'<svg viewBox="0 0 24 24" width="1em" height="1em"><path fill="#0a3f63" d="M12 2 2 7v2h20V7zM4 10v8h3v-8zm6.5 0v8h3v-8zM17 10v8h3v-8zM2 19v3h20v-3z"/></svg>',
+  card:'<svg viewBox="0 0 24 24" width="1em" height="1em"><rect x="2" y="5" width="20" height="14" rx="2.5" fill="none" stroke="#fff" stroke-width="2"/><rect x="2" y="9" width="20" height="2.5" fill="#fff"/><rect x="5" y="14" width="6" height="2" fill="#fff"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" width="1em" height="1em"><path fill="none" stroke="#0a3f63" stroke-width="2" d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/><path fill="none" stroke="#0a3f63" stroke-width="2" d="M4 7v15h11"/></svg>'
+};
+function gearLogo(){
+  let pts=[];const cx=50,cy=50,R=47,ri=38,n=10;
+  for(let i=0;i<n*4;i++){const a=2*Math.PI*i/(n*4)-Math.PI/2;const rr=(i%4===1||i%4===2)?R:ri;pts.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1));}
+  return '<svg viewBox="0 0 100 100" class="fgp-logo"><defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#e0a800"/></linearGradient></defs><polygon points="'+pts.join(' ')+'" fill="url(#gg)"/><circle cx="50" cy="50" r="31" fill="#0a3f63"/><circle cx="50" cy="50" r="31" fill="none" stroke="#ffd23f" stroke-width="2.5"/><text x="50" y="58.5" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="25" fill="#ffd23f">FGI</text></svg>';
+}
+function invPageParts(t){
+  const items=t.items||[];const hasCode=items.some(it=>it.code);const hasDD=items.some(it=>it.delDate);
+  // column widths (px of 684 table width)
+  const cols=[['#',38,'c']];if(hasCode)cols.push(['Code',62,'c']);
+  cols.push(['Description',0,'l']);if(hasDD)cols.push(['Del.Date',118,'c']);
+  cols.push(['Qty',64,'c'],['Rate',78,'r'],['Total',112,'r tot']);
+  const fixed=cols.reduce((s,c)=>s+c[1],0);cols.forEach(c=>{if(!c[1])c[1]=684-fixed;});
+  const colgroup='<colgroup>'+cols.map(c=>'<col style="width:'+c[1]+'px">').join('')+'</colgroup>';
+  const thead='<thead><tr>'+cols.map(c=>'<th class="'+c[2]+'">'+c[0]+'</th>').join('')+'</tr></thead>';
+  const rowHTML=(it,i)=>{let h='<tr class="'+(i%2?'odd':'')+'"><td class="c n">'+(i+1)+'</td>';if(hasCode)h+='<td class="c">'+esc(it.code||'')+'</td>';h+='<td class="l d">'+esc(it.desc)+'</td>';if(hasDD)h+='<td class="c dd">'+esc(it.delDate||'')+'</td>';h+='<td class="c">'+esc(it.qty)+'</td><td class="r">'+fn(it.rate)+'</td><td class="r tot">'+fn(it.total)+'</td></tr>';return h;};
+  const header='<div class="fgp-hd"><div class="fgp-hd-top">'+gearLogo()+'<div class="fgp-sep"></div><div><div class="fgp-co">Faisal Goraya Industry</div><div class="fgp-co-sub"><span class="ic">'+ICO.phone+'</span>03338058007 <span style="opacity:.6">|</span> <span class="ic">'+ICO.pin+'</span>Ali Pur Chattha</div></div></div>'+
+    '<div class="fgp-wave"></div><div class="fgp-hd-row2"><div class="fgp-invno">'+esc(t.inv_no)+'</div><div class="fgp-date"><span class="ic big">'+ICO.cal+'</span>'+esc(t.inv_date)+'</div></div></div>';
+  const cust='<div class="fgp-u"><div class="fgp-cust"><div style="min-width:0;flex:1;"><div class="fgp-cname"><span class="ic">'+ICO.person+'</span><span>'+esc(t.cust_name)+'</span></div>'+(t.cust_mobile?'<div class="fgp-cmob"><span class="ic">'+ICO.phone+'</span>'+esc(t.cust_mobile)+'</div>':'')+'</div>'+
+    (t.cust_city?'<div class="fgp-city"><span class="ic big">'+ICO.pin+'</span><span class="pill">'+esc(t.cust_city)+'</span></div>':'')+'</div></div>';
+  // summary unit
+  let s='<div class="fgp-u"><div class="fgp-sum"><div class="fgp-itot"><span>📦 Items Total ('+items.length+')</span><b>Rs. '+fn(t.iT)+'</b></div>';
+  if(t.lA>0)s+='<div class="fgp-sl minus"><span>Less'+(t.less_type==='percent'?' ('+t.less_val+'%)':'')+'</span><b>− Rs. '+fn(t.lA)+'</b></div>';
+  if(t.aA>0)s+='<div class="fgp-sl plus"><span>Add'+(t.add_type==='percent'?' ('+t.add_val+'%)':'')+'</span><b>+ Rs. '+fn(t.aA)+'</b></div>';
+  if(t.lA>0||t.aA>0)s+='<div class="fgp-sl"><span>Balance</span><b>Rs. '+fn(t.bill)+'</b></div>';
+  if(t.prev>0){
+    if(t.hasRef){t.refsParsed.forEach(rf=>{s+='<div class="fgp-sl prev"><span>Prev. Bal <i class="tag">'+esc(rf.label)+'</i></span><b>'+(rf.amt!=null?'+ Rs. '+fn(rf.amt):'')+'</b></div>';});
+      s+='<div class="fgp-sl prev strong"><span>Total Outstanding</span><b>+ Rs. '+fn(t.prev)+'</b></div>';}
+    else s+='<div class="fgp-sl prev strong"><span>Previous Balance</span><b>+ Rs. '+fn(t.prev)+'</b></div>';
+  }
+  s+='</div></div>';
+  const grand='<div class="fgp-u"><div class="fgp-grand"><span class="lbl">🪙 GRAND TOTAL</span><span class="val">Rs. '+fn(t.grand)+'</span></div></div>';
+  const units=[s,grand];
+  // payment history (each line = its own unit so long histories can break across pages)
+  const hist=t.hist.slice();
+  if(Math.abs(t.adjOther)>=1){const vn=Object.keys(t.via);hist.push({kind:'adj',method:'adj',date:'',amount:t.adjOther,note:vn.length&&t.recv<=EPS?'Cleared via '+vn.join(', '):'Adjusted (prev. invoices / other payments)'});}
+  hist.forEach((h,i)=>{
+    const icon=h.kind==='adj'?'↪':h.kind==='credit'?'🔁':(PAY_ICONS[h.method]||'💰');
+    const det=h.kind==='adj'?h.note:[payLabel(h.method),h.date,histLine(h)].filter(Boolean).join(' | ');
+    units.push('<div class="fgp-u tight"><div class="fgp-ph'+(i===0?' first':'')+(i===hist.length-1?' last':'')+'">'+(i===0?'<div class="fgp-ph-title">PAYMENT HISTORY</div>':'')+
+      '<div class="fgp-ph-row"><span class="m">'+icon+' '+esc(det)+'</span><b>'+(h.amount<0?'+':'−')+'Rs. '+fn(Math.abs(h.amount))+'</b></div></div></div>');
+  });
+  // final balance — one clear, non-contradictory state
+  if(hist.length){
+    if(t.status==='overpaid')units.push('<div class="fgp-u"><div class="fgp-fin over"><div><div class="lbl">OVERPAYMENT / CUSTOMER ADVANCE</div><div class="sub">Received Rs. '+fn(t.recv)+' • Remaining Invoice Balance Rs. 0</div></div><div class="val">Rs. '+fn(t.overflow)+'</div></div></div>');
+    else if(t.liveRem<=EPS)units.push('<div class="fgp-u"><div class="fgp-fin paid"><div class="lbl">PAID / CLEARED</div><div class="val">✓ Rs. 0</div></div></div>');
+    else units.push('<div class="fgp-u"><div class="fgp-fin due"><div class="lbl">REMAINING BALANCE</div><div class="val">Rs. '+fn(t.liveRem)+'</div></div></div>');
+  }
+  if(t.notes)units.push('<div class="fgp-u"><div class="fgp-notes">📝 <b>Note:</b> '+esc(t.notes)+'</div></div>');
+  units.push('<div class="fgp-u"><div class="fgp-bank"><div class="fgp-bank-title"><span class="ic">'+ICO.card+'</span>PAYMENT DETAILS</div>'+
+    '<div class="fgp-bk meezan"><div class="nm"><span class="ic big">'+ICO.bank+'</span><span class="bn">MEEZAN BANK</span></div><div class="dt"><b>Qaisar Naeem</b><br>A/C: 9865-0103586783<br>IBAN: PK59MEZN0098650103586783</div></div>'+
+    '<div class="fgp-bk jazz"><div class="nm"><span class="bn jz">JazzCash</span></div><div class="dt"><b>Qaisar Naeem</b><br>03008648624</div></div>'+
+    '<div class="fgp-bk easy"><div class="nm"><span class="bn ep">easypaisa</span></div><div class="dt"><b>Qaisar Naeem</b><br>03338058007</div></div></div></div>');
+  const foot=(i,n)=>'<div class="fgp-pfoot"><div class="fgp-pnum"><span class="ic">'+ICO.doc+'</span>Page '+i+' of '+n+'</div></div><div class="fgp-foot">Faisal Goraya Industry &nbsp;|&nbsp; '+esc(t.inv_no)+' &nbsp;|&nbsp; '+esc(t.inv_date)+'</div>';
+  return {header,cust,colgroup,thead,rows:items.map(rowHTML),units,foot};
+}
+function _measureHost(){
+  let m=document.getElementById('fgp-measure');
+  if(!m){m=document.createElement('div');m.id='fgp-measure';m.style.cssText='position:fixed;left:-12000px;top:0;width:'+PG_W+'px;visibility:hidden;pointer-events:none;';document.body.appendChild(m);}
+  return m;
+}
+async function buildInvoicePages(id){
+  const t=ACC().invs[id];if(!t)return [];
+  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
+  const P=invPageParts(t);const host=_measureHost();
+  const tbl=rows=>'<div class="fgp-u fgp-tu"><div class="fgp-tblwrap"><table class="fgp-tbl">'+P.colgroup+P.thead+'<tbody>'+rows.join('')+'</tbody></table></div></div>';
+  host.innerHTML='<div class="fgp"><div id="mH">'+P.header+'</div><div id="mC">'+P.cust+'</div><div id="mT">'+tbl(P.rows)+'</div>'+P.units.map((u,i)=>'<div id="mU'+i+'">'+u+'</div>').join('')+'<div id="mF">'+P.foot(1,1)+'</div></div>';
+  const H=sel=>host.querySelector(sel).getBoundingClientRect().height;
+  const hH=H('#mH'),hC=H('#mC'),hF=H('#mF');
+  const trs=[...host.querySelectorAll('#mT tbody tr')].map(tr=>tr.getBoundingClientRect().height);
+  const hT=H('#mT')-trs.reduce((a,b)=>a+b,0);
+  const hU=P.units.map((u,i)=>H('#mU'+i));
+  const base=hH+hC+hF;const pages=[];let cur={rows:[],units:[],h:base};
+  const push=()=>{pages.push(cur);cur={rows:[],units:[],h:base};};
+  trs.forEach((rh,i)=>{const need=(cur.rows.length?0:hT)+rh;if(cur.h+need>PG_MAX_H&&(cur.rows.length||cur.units.length))push();cur.h+=(cur.rows.length?0:hT)+rh;cur.rows.push(i);});
+  hU.forEach((uh,i)=>{if(cur.h+uh>PG_MAX_H&&(cur.rows.length||cur.units.length))push();cur.h+=uh;cur.units.push(i);});
+  pages.push(cur);host.innerHTML='';
+  // never make a page just for the closing blocks: merge into previous page when it stays phone-readable
+  if(pages.length>1){const last=pages[pages.length-1],prv=pages[pages.length-2];if(!last.rows.length&&prv.h+(last.h-base)<=PG_MERGE_H){prv.units=prv.units.concat(last.units);prv.h+=last.h-base;pages.pop();}}
+  const N=pages.length;
+  return pages.map((pg,pi)=>'<div class="fgp">'+P.header+P.cust+(pg.rows.length?tbl(pg.rows.map(i=>P.rows[i])):'')+pg.units.map(i=>P.units[i]).join('')+P.foot(pi+1,N)+'</div>');
+}
+async function openPreview(id){
+  previewData=loadInvoice(id);if(!previewData)return;
+  showView('print');
+  const cont=document.getElementById('preview-container');
+  cont.innerHTML='<div class="pay-empty">⏳ Invoice ban rahi hai...</div>';
+  const pages=await buildInvoicePages(id);
+  cont.innerHTML=pages.map(p=>'<div class="fgp-view"><div class="fgp-scale">'+p+'</div></div>').join('');
+  fitPreview();
+}
+function fitPreview(){
+  const cont=document.getElementById('preview-container');if(!cont)return;
+  const w=Math.min(cont.clientWidth||window.innerWidth,PG_W);const s=w/PG_W;
+  cont.querySelectorAll('.fgp-view').forEach(v=>{const inner=v.firstChild;inner.style.transform='scale('+s+')';v.style.width=(PG_W*s)+'px';v.style.height=(inner.firstChild.getBoundingClientRect().height)+'px';});
+}
+window.addEventListener('resize',()=>{if(document.getElementById('view-print').classList.contains('active'))fitPreview();});
+
+// ---------------- HD IMAGE (one PNG per page) ----------------
+let _imgFiles=[];
+async function renderPagePNG(html){
+  let wrap=document.getElementById('img-render-wrap');
+  if(!wrap){wrap=document.createElement('div');wrap.id='img-render-wrap';document.body.appendChild(wrap);}
+  wrap.style.cssText='position:fixed;left:-12000px;top:0;width:'+PG_W+'px;background:#fff;';
+  wrap.innerHTML=html;
+  const el=wrap.firstChild;
+  await new Promise(r=>setTimeout(r,60));
+  const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:PG_W,windowWidth:PG_W,scrollX:0,scrollY:0,logging:false});
+  const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
+  wrap.innerHTML='';
+  return {blob,w:canvas.width,h:canvas.height};
+}
+async function doSaveImage(){
+  if(!previewData){toast('⚠️ Pehle invoice open karo');return;}
+  if(typeof html2canvas==='undefined'){toast('❌ Image library load nahi hui.');return;}
+  toast('📸 HD image ban rahi hai...',4000);
+  try{
+    const pages=await buildInvoicePages(previewData.id);
+    const base='Invoice_'+String(previewData.inv_no||'FGI').replace(/#/g,'_').replace(/[^A-Za-z0-9_]/g,'');
+    _imgFiles=[];
+    for(let i=0;i<pages.length;i++){const r=await renderPagePNG(pages[i]);_imgFiles.push({blob:r.blob,name:base+(pages.length>1?'_Page_'+(i+1):'')+'.png',w:r.w,h:r.h});}
+    if(_imgFiles.length===1)openFolderPicker('📸 Image Kahan Save Karein?','HD invoice image ('+_imgFiles[0].w+'×'+_imgFiles[0].h+')',_imgFiles[0].blob,_imgFiles[0].name);
+    else openImgPagesModal();
+  }catch(e){toast('❌ Image error: '+e.message,4000);}
+}
+function quickImage(id){previewData=loadInvoice(id);if(previewData)doSaveImage();}
+function openImgPagesModal(){
+  const b=document.getElementById('imgp-body');
+  b.innerHTML=_imgFiles.map((f,i)=>'<div class="imgp-row"><div><b>Page '+(i+1)+' of '+_imgFiles.length+'</b><div style="font-size:11px;color:var(--text2);">'+esc(f.name)+' • '+f.w+'×'+f.h+'</div></div>'+
+    '<div style="display:flex;gap:6px;"><button class="btn btn-blue btn-sm" onclick="imgPageAction('+i+',\'download\')">⬇️</button><button class="btn btn-green btn-sm" onclick="imgPageAction('+i+',\'share\')">📤</button></div></div>').join('');
+  document.getElementById('imgp-modal').classList.add('open');
+}
+function closeImgPagesModal(){document.getElementById('imgp-modal').classList.remove('open');}
+function _dl(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},2000);}
+function imgPageAction(i,act){
+  const f=_imgFiles[i];if(!f)return;
+  if(act==='download'){_dl(f.blob,f.name);toast('✅ '+f.name+' saved');return;}
+  const file=new File([f.blob],f.name,{type:'image/png'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))navigator.share({files:[file],title:f.name}).catch(e=>{if(e.name!=='AbortError')toast('⚠️ '+e.message);});
+  else{_dl(f.blob,f.name);toast('Share nahi hua — download kar diya');}
+}
+function imgAllAction(act){
+  if(act==='download'){_imgFiles.forEach((f,i)=>setTimeout(()=>_dl(f.blob,f.name),i*700));toast('✅ '+_imgFiles.length+' pages download ho rahe hain');return;}
+  const files=_imgFiles.map(f=>new File([f.blob],f.name,{type:'image/png'}));
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files}))navigator.share({files,title:'FGI Invoice'}).catch(e=>{if(e.name!=='AbortError')toast('⚠️ '+e.message);});
+  else imgAllAction('download');
+}
+
+// ---------------- PDF (vector, A4, auto page breaks) ----------------
+function _makePDF(inv){
+  const t=ACC().invs[inv.id]||inv;
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297,M=10,NAVY=[10,63,99],NAVY2=[13,92,138],GOLD=[255,210,63];
+  const TOP=50,BOT=20;
+  function head(){
+    doc.setFillColor(...NAVY);doc.rect(0,0,W,31,'F');doc.setFillColor(...GOLD);doc.rect(0,31,W,1.2,'F');
+    doc.setFillColor(...GOLD);doc.circle(M+9,15.5,8.5,'F');doc.setFillColor(...NAVY);doc.circle(M+9,15.5,6,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...GOLD);doc.text('FGI',M+9,16.9,{align:'center'});
+    doc.setFontSize(19);doc.text('Faisal Goraya Industry',M+22,14);
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(225,238,248);doc.text('Phone: 03338058007   |   Ali Pur Chattha',M+22,21.5);
+    doc.setFillColor(...GOLD);doc.roundedRect(W-M-44,6,44,11.5,2.5,2.5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(...NAVY);doc.text(String(t.inv_no),W-M-22,14,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(255,255,255);doc.text('Date: '+(t.inv_date||''),W-M-22,24,{align:'center'});
+    doc.setFillColor(...NAVY2);doc.rect(0,32.2,W,14.5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(12.5);doc.setTextColor(255,255,255);doc.text(String(t.cust_name||''),M,39);
+    if(t.cust_mobile){doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...GOLD);doc.text('Ph: '+t.cust_mobile,M,44);}
+    if(t.cust_city){doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(...GOLD);doc.text(String(t.cust_city),W-M,41,{align:'right'});}
+  }
+  head();
+  const items=t.items||[];const hasCode=items.some(it=>it.code),hasDD=items.some(it=>it.delDate);
+  const cols=['#'];if(hasCode)cols.push('Code');cols.push('Description');if(hasDD)cols.push('Del.Date');cols.push('Qty','Rate','Total');
+  const cs={};let ci=0;cs[ci++]={halign:'center',cellWidth:9};if(hasCode)cs[ci++]={halign:'center',cellWidth:16};cs[ci++]={halign:'left'};if(hasDD)cs[ci++]={halign:'center',cellWidth:23};cs[ci++]={halign:'center',cellWidth:15};cs[ci++]={halign:'right',cellWidth:20};cs[ci++]={halign:'right',fontStyle:'bold',cellWidth:25,fillColor:[255,246,207]};
+  doc.autoTable({startY:TOP,margin:{top:TOP,left:M,right:M,bottom:BOT},head:[cols],
+    body:items.map((it,i)=>{const r=[String(i+1)];if(hasCode)r.push(it.code||'');r.push(it.desc);if(hasDD)r.push(it.delDate||'');r.push(String(it.qty),fn(it.rate),fn(it.total));return r;}),
+    styles:{fontSize:10,cellPadding:2.6,overflow:'linebreak',textColor:[10,44,69],lineColor:[214,230,244],lineWidth:0.2},
+    headStyles:{fillColor:NAVY,textColor:[255,255,255],fontStyle:'bold',fontSize:9.5,halign:'center'},
+    alternateRowStyles:{fillColor:[238,246,253]},columnStyles:cs,theme:'grid',rowPageBreak:'avoid',showHead:'everyPage',
+    didDrawPage:d=>{if(d.pageNumber>1)head();}});
+  let y=doc.lastAutoTable.finalY+4;
+  const ensure=h=>{if(y+h>H-BOT){doc.addPage();head();y=TOP;}};
+  const line=(l,r,col,bold)=>{ensure(7);doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(10);doc.setTextColor(...(col||[60,70,90]));doc.text(l,W/2+5,y+4.5);doc.setTextColor(...(col||NAVY));doc.setFont('helvetica','bold');doc.text(r,W-M-2,y+4.5,{align:'right'});y+=6.5;};
+  line('Items Total ('+items.length+')','Rs. '+fn(t.iT));
+  if(t.lA>0)line('Less'+(t.less_type==='percent'?' ('+t.less_val+'%)':''),'- Rs. '+fn(t.lA),[178,34,34]);
+  if(t.aA>0)line('Add'+(t.add_type==='percent'?' ('+t.add_val+'%)':''),'+ Rs. '+fn(t.aA),[26,102,48]);
+  if(t.lA>0||t.aA>0)line('Balance','Rs. '+fn(t.bill));
+  if(t.prev>0){if(t.hasRef){t.refsParsed.forEach(rf=>line('Prev. Bal '+rf.label,rf.amt!=null?'+ Rs. '+fn(rf.amt):'',[26,102,48]));line('Total Outstanding','+ Rs. '+fn(t.prev),[26,102,48],true);}else line('Previous Balance','+ Rs. '+fn(t.prev),[26,102,48],true);}
+  ensure(14);y+=1;doc.setFillColor(...NAVY);doc.roundedRect(M,y,W-2*M,12,2,2,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(...GOLD);doc.text('GRAND TOTAL',M+5,y+8);
+  doc.setFontSize(15);doc.setTextColor(255,255,255);doc.text('Rs. '+fn(t.grand),W-M-4,y+8.3,{align:'right'});y+=16;
+  const hist=(t.hist||[]).slice();
+  if(Math.abs(t.adjOther||0)>=1){const vn=Object.keys(t.via||{});hist.push({kind:'adj',method:'adj',date:'',amount:t.adjOther,note:vn.length&&t.recv<=EPS?'Cleared via '+vn.join(', '):'Adjusted (prev. invoices / other payments)'});}
+  if(hist.length){
+    ensure(20);doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(...NAVY);doc.text('PAYMENT HISTORY',M,y+4);y+=6;
+    doc.autoTable({startY:y,margin:{top:TOP,left:M,right:M,bottom:BOT},head:[['Date','Method / Details','Amount']],
+      body:hist.map(h=>[h.date||'',h.kind==='adj'?h.note:payLabel(h.method)+(histLine(h)?' - '+histLine(h):''),(h.amount<0?'+ ':'- ')+'Rs. '+fn(Math.abs(h.amount))]),
+      styles:{fontSize:9.5,cellPadding:2.3,textColor:[10,44,69]},headStyles:{fillColor:[26,74,53],textColor:[255,255,255],fontSize:9.5},theme:'striped',rowPageBreak:'avoid',
+      columnStyles:{0:{cellWidth:26},2:{halign:'right',fontStyle:'bold',textColor:[26,127,90],cellWidth:34}},didDrawPage:d=>{if(d.pageNumber>1&&d.cursor&&d.table)head();}});
+    y=doc.lastAutoTable.finalY+3;
+    ensure(14);
+    let lbl,val,col;
+    if(t.status==='overpaid'){lbl='OVERPAYMENT / CUSTOMER ADVANCE';val='Rs. '+fn(t.overflow);col=[11,94,84];}
+    else if(t.liveRem<=EPS){lbl='PAID / CLEARED';val='Rs. 0';col=[26,74,53];}
+    else{lbl='REMAINING BALANCE';val='Rs. '+fn(t.liveRem);col=[122,26,26];}
+    doc.setFillColor(...col);doc.roundedRect(M,y,W-2*M,12,2,2,'F');doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(255,255,255);doc.text(lbl,M+5,y+7.8);
+    doc.setFontSize(14);doc.setTextColor(255,230,140);doc.text(val,W-M-4,y+8.2,{align:'right'});y+=14;
+    if(t.status==='overpaid'){doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(60,70,90);doc.text('Payment Received: Rs. '+fn(t.recv)+'   |   Remaining Invoice Balance: Rs. 0',M,y+3);y+=6;}
+  }
+  if(t.notes){const ls=doc.splitTextToSize('Note: '+t.notes,W-2*M);ensure(ls.length*4.5+3);doc.setFont('helvetica','italic');doc.setFontSize(9.5);doc.setTextColor(100,90,60);doc.text(ls,M,y+4);y+=ls.length*4.5+3;}
+  ensure(36);y+=2;doc.setFillColor(...NAVY);doc.roundedRect(M,y,W-2*M,8,1.5,1.5,'F');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(255,255,255);doc.text('PAYMENT DETAILS',M+4,y+5.5);y+=10;
+  const bw=(W-2*M-8)/3;
+  [{n:'MEEZAN BANK',c:[10,63,99],bg:[225,238,250],l:['Account Holder: Qaisar Naeem','A/C: 9865-0103586783','IBAN: PK59MEZN0098650103586783']},
+   {n:'JAZZCASH',c:[192,57,43],bg:[253,232,232],l:['Qaisar Naeem','03008648624']},
+   {n:'EASYPAISA',c:[39,174,96],bg:[226,246,232],l:['Qaisar Naeem','03338058007']}].forEach((b,i)=>{
+    const bx=M+i*(bw+4);doc.setFillColor(...b.bg);doc.roundedRect(bx,y,bw,23,1.5,1.5,'F');doc.setFillColor(...b.c);doc.rect(bx,y,1.4,23,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(...b.c);doc.text(b.n,bx+4,y+5.5);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.2);doc.setTextColor(40,40,40);b.l.forEach((l,li)=>doc.text(l,bx+4,y+11+li*4.4));
+  });
+  const N=doc.getNumberOfPages();
+  for(let p=1;p<=N;p++){doc.setPage(p);doc.setFillColor(...NAVY);doc.rect(0,H-11,W,11,'F');doc.setFillColor(...GOLD);doc.rect(0,H-11.8,W,0.8,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...GOLD);doc.text('Faisal Goraya Industry  |  '+t.inv_no+'  |  '+t.inv_date,M,H-4.3);
+    doc.setTextColor(255,255,255);doc.text('Page '+p+' of '+N,W-M,H-4.3,{align:'right'});}
+  return doc;
+}
+function doDownloadPDF(){
+  if(!previewData){toast('⚠️ Pehle invoice open karo');return;}
+  toast('📄 PDF ban rahi hai...',3000);
+  try{const doc=_makePDF(previewData);
+    const fname='Invoice_'+String(previewData.inv_no||'FGI').replace(/#/g,'_')+'_'+String(previewData.cust_name||'').replace(/[^A-Za-z0-9]+/g,'_')+'.pdf';
+    openFolderPicker('📄 PDF Kahan Save Karein?','Invoice PDF ki jagah choose karein',doc.output('blob'),fname);
+  }catch(e){toast('❌ PDF error: '+e.message);}
+}
+function quickPDF(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
+function quickPrint(id){previewData=loadInvoice(id);if(previewData)doDownloadPDF();}
+
+// ============================================================
+//  CUSTOMER REPORT
+// ============================================================
+function custStatus(c){return c.unpaid>EPS?(c.received>EPS?'partial':'unpaid'):(c.credit>EPS?'overpaid':'paid');}
 function renderReportList(){
   if(!db)return;
-  var el=document.getElementById('report-search');
-  var q=(el?el.value:'').toLowerCase().trim().replace(/'/g,"''");
-  var cont=document.getElementById('report-cust-list');if(!cont)return;
-  var det=document.getElementById('report-detail');if(det)det.innerHTML='';
-  var where=q?"WHERE LOWER(i.cust_name) LIKE '%"+q+"%'":'';
-  var res;
-  try{res=db.exec("SELECT i.cust_name,MAX(i.cust_city) city,MAX(i.cust_mobile) mobile,COUNT(i.id) cnt,SUM(i.grand_total) billed,MAX(i.inv_date) last_date FROM invoices i "+where+" GROUP BY LOWER(i.cust_name) ORDER BY last_date DESC");}
-  catch(e){cont.innerHTML='<div class="empty-state"><div class="es-icon">⚠</div><p>Error</p></div>';return;}
-  if(!res||!res[0]||!res[0].values.length){cont.innerHTML='<div class="empty-state"><div class="es-icon">👤</div><p>'+(q?'Koi customer nahi mila':'Koi invoice nahi')+'</p></div>';return;}
-  var html='';
-  res[0].values.forEach(r=>{
-    var name=r[0],city=r[1]||'',mobile=r[2]||'',cnt=r[3],billed=r[4],lastDate=r[5]||'';
-    var pr;try{pr=db.exec("SELECT COALESCE(SUM(p.amount),0) FROM payments p INNER JOIN invoices i ON i.id=p.invoice_id WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){pr=null;}
-    var paid=pr&&pr[0]?pr[0].values[0][0]||0:0;var rem=billed-paid;
-    var st=rem<=0?'paid':paid>0?'partial':'unpaid';
-    html+='<div class="rpt-cust-item" data-cname="'+name.replace(/"/g,'&quot;')+'" onclick="openCustomerReportEl(this)">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">';
-    html+='<div><div class="rpt-cust-name">👤 '+name+'</div><div class="rpt-cust-meta">'+(city?'📍 '+city+'  ':''+(mobile?'📞 '+mobile:''))+'</div>';
-    html+='<div class="rpt-cust-meta">Last: '+lastDate+'</div></div>';
-    html+='<span class="pay-status-badge '+st+'">'+(st==='paid'?'Paid':st==='partial'?'Partial':'Unpaid')+'</span></div>';
-    html+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">';
-    html+='<div style="flex:1;min-width:60px;background:var(--gray1);border-radius:7px;padding:5px 6px;text-align:center;"><div style="font-size:12px;font-weight:800;color:var(--navy);">'+cnt+'</div><div style="font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;margin-top:1px;">Invoices</div></div>';
-    html+='<div style="flex:1;min-width:60px;background:var(--gray1);border-radius:7px;padding:5px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:var(--navy);">Rs.'+fn(billed)+'</div><div style="font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;margin-top:1px;">Total</div></div>';
-    html+='<div style="flex:1;min-width:60px;background:var(--gray1);border-radius:7px;padding:5px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:var(--green);">Rs.'+fn(paid)+'</div><div style="font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;margin-top:1px;">Paid</div></div>';
-    html+='<div style="flex:1;min-width:60px;background:var(--gray1);border-radius:7px;padding:5px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:'+(rem>0?'var(--red)':'var(--green)')+';">'+(rem>0?'Rs.'+fn(rem):'Clear')+'</div><div style="font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;margin-top:1px;">Baki</div></div>';
-    html+='</div></div>';
-  });
-  cont.innerHTML=html;
+  const q=custKey((document.getElementById('report-search')||{}).value||'');
+  const cont=document.getElementById('report-cust-list');if(!cont)return;
+  const det=document.getElementById('report-detail');if(det)det.innerHTML='';
+  const list=allCustomers().filter(c=>!q||c.key.includes(q)).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||''));
+  if(!list.length){cont.innerHTML='<div class="empty-state"><div class="es-icon">👤</div><p>'+(q?'Koi customer nahi mila':'Koi invoice nahi')+'</p></div>';return;}
+  const box=(v,l,c)=>'<div style="flex:1;min-width:60px;background:var(--gray1);border-radius:7px;padding:5px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:'+c+';">'+v+'</div><div style="font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;margin-top:1px;">'+l+'</div></div>';
+  cont.innerHTML=list.map(c=>{const st=custStatus(c);
+    return '<div class="rpt-cust-item" data-cname="'+esc(c.name)+'" onclick="openCustomerReport(this.dataset.cname)">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><div><div class="rpt-cust-name">👤 '+esc(c.name)+'</div><div class="rpt-cust-meta">'+(c.city?'📍 '+esc(c.city)+'  ':'')+(c.mobile?'📞 '+esc(c.mobile):'')+'</div><div class="rpt-cust-meta">Last: '+esc(c.lastDate)+'</div></div>'+
+      '<span class="pay-status-badge '+st+'">'+statusBadge(st)+'</span></div>'+
+      '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+box(c.invIds.length,'Invoices','var(--navy)')+box('Rs.'+fn(c.billed),'Billed','var(--navy)')+box('Rs.'+fn(c.received),'Received','var(--green)')+box(c.unpaid>EPS?'Rs.'+fn(c.unpaid):'Clear','Baki',c.unpaid>EPS?'var(--red)':'var(--green)')+(c.credit>EPS?box('Rs.'+fn(c.credit),'Advance','#0b7a6b'):'')+'</div></div>';}).join('');
 }
-function openCustomerReportEl(el){openCustomerReport((el.getAttribute('data-cname')||'').replace(/&quot;/g,'"'));}
+function openCustomerReportEl(el){openCustomerReport(el.getAttribute('data-cname')||'');}
 function openCustomerReport(custName){
-  if(!db)return;
-  var res;
-  try{res=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id DESC");}catch(e){return;}
-  if(!res||!res[0]||!res[0].values.length)return;
-  var invs=res[0].values.map(v=>{var o={};res[0].columns.forEach((col,i)=>o[col]=v[i]);o.items=JSON.parse(o.items_json||'[]');o.payments=getPayments(o.id);o.totalPaid=getTotalPaid(o.id);o.remaining=o.grand_total-o.totalPaid;return o;});
-  var city=invs[0].cust_city||'';var mobile=invs[0].cust_mobile||'';
-  var tBilled=invs.reduce((s,i)=>s+i.grand_total,0);var tPaid=invs.reduce((s,i)=>s+i.totalPaid,0);var tRem=tBilled-tPaid;
+  if(!db)return;const a=ACC();const c=a.custs[custKey(custName)];if(!c)return;
+  const invs=c.invIds.map(i=>a.invs[i]).reverse();
   document.getElementById('report-cust-list').innerHTML='';
-  var det=document.getElementById('report-detail');
-  var cards='';
-  invs.forEach(inv=>{
-    var st=getStatus(inv.id,inv.grand_total);
-    var desc=inv.items.map(it=>it.desc+' ('+it.qty+'x'+fn(it.rate)+')').join(' | ');
-    var pays='';
-    if(inv.payments.length){inv.payments.forEach(p=>{pays+='<div class="rpt-pay-line"><span>'+(PAY_ICONS[p.method]||'')+' '+p.method+(p.note?' - '+p.note:'')+' | '+(p.date||'')+'</span><span class="rpt-pay-amt">-Rs.'+fn(p.amount)+'</span></div>';});}
-    else{pays='<div style="font-size:11px;color:#aaa;">Koi payment nahi</div>';}
-    cards+='<div class="rpt-inv-card status-'+st+'">';
-    cards+='<div class="rpt-inv-top"><span class="rpt-inv-no">'+inv.inv_no+'</span><span class="rpt-inv-date">'+inv.inv_date+'</span></div>';
-    cards+='<div class="rpt-inv-desc">'+(desc||'---')+'</div>';
-    cards+='<div style="display:flex;justify-content:space-between;align-items:center;">';
-    cards+='<div><div style="font-size:15px;font-weight:800;color:var(--navy);">Rs.'+fn(inv.grand_total)+'</div><div style="font-size:10px;color:var(--text2);">Paid: Rs.'+fn(inv.totalPaid)+'</div></div>';
-    cards+='<div style="text-align:right;"><span class="pay-status-badge '+st+'">'+(st==='paid'?'Paid':st==='partial'?'Partial':'Unpaid')+'</span>';
-    cards+=(inv.remaining>0?'<div style="font-size:12px;font-weight:800;color:var(--orange);margin-top:4px;">Baki: Rs.'+fn(inv.remaining)+'</div>':'<div style="font-size:12px;font-weight:700;color:var(--green);margin-top:4px;">Clear</div>');
-    cards+='</div></div>';
-    if(inv.payments.length){cards+='<div style="margin-top:8px;border-top:1px solid var(--gray2);padding-top:6px;"><div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:4px;">PAYMENTS</div>'+pays+'</div>';}
-    cards+='<div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="openPreview('+inv.id+')" style="flex:1;justify-content:center;">View</button><button class="btn btn-orange btn-sm" onclick="openPaymentView('+inv.id+')" style="flex:1;justify-content:center;">Pay</button><button class="btn btn-blue btn-sm" onclick="quickPDF('+inv.id+')" style="flex:1;justify-content:center;">PDF</button></div></div>';
+  const det=document.getElementById('report-detail');
+  let cards='';
+  invs.forEach(t=>{const st=t.status;
+    const desc=t.items.map(it=>it.desc+' ('+it.qty+'x'+fn(it.rate)+')').join(' | ');
+    cards+='<div class="rpt-inv-card status-'+st+'"><div class="rpt-inv-top"><span class="rpt-inv-no">'+esc(t.inv_no)+'</span><span class="rpt-inv-date">'+esc(t.inv_date)+'</span></div>'+
+      '<div class="rpt-inv-desc">'+esc(desc||'---')+'</div><div style="display:flex;justify-content:space-between;align-items:center;">'+
+      '<div><div style="font-size:15px;font-weight:800;color:var(--navy);">Rs.'+fn(t.grand)+'</div><div style="font-size:10px;color:var(--text2);">Received: Rs.'+fn(t.recv)+'</div></div>'+
+      '<div style="text-align:right;"><span class="pay-status-badge '+st+'">'+statusBadge(st)+'</span>'+
+      (st==='overpaid'?'<div style="font-size:12px;font-weight:800;color:#0b7a6b;margin-top:4px;">Advance: Rs.'+fn(t.overflow)+'</div>':t.liveRem>EPS?'<div style="font-size:12px;font-weight:800;color:var(--orange);margin-top:4px;">Baki: Rs.'+fn(t.liveRem)+'</div>':'<div style="font-size:12px;font-weight:700;color:var(--green);margin-top:4px;">Clear</div>')+'</div></div>';
+    if(t.hist.length){cards+='<div style="margin-top:8px;border-top:1px solid var(--gray2);padding-top:6px;"><div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:4px;">PAYMENTS</div>'+t.hist.map(h=>'<div class="rpt-pay-line"><span>'+(PAY_ICONS[h.method]||'💰')+' '+esc(payLabel(h.method))+' | '+esc(h.date||'')+'</span><span class="rpt-pay-amt">-Rs.'+fn(h.amount)+'</span></div>').join('')+'</div>';}
+    cards+='<div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="openPreview('+t.id+')" style="flex:1;justify-content:center;">View</button><button class="btn btn-orange btn-sm" onclick="openPaymentView('+t.id+')" style="flex:1;justify-content:center;">Pay</button><button class="btn btn-blue btn-sm" onclick="quickPDF('+t.id+')" style="flex:1;justify-content:center;">PDF</button></div></div>';
   });
-  var backBtn='<button class="btn btn-gray btn-sm" id="rpt-back-btn" style="margin-bottom:10px;">◀ Wapas</button>';
-  det.innerHTML='<div style="background:var(--navy);border-radius:12px;padding:16px;margin-bottom:12px;">'+backBtn+
-    '<div style="font-size:22px;font-weight:800;color:var(--gold);">'+custName+'</div>'+
-    '<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;">'+(city?city+'   ':'')+( mobile||'')+'</div>'+
-    '<div style="display:flex;gap:6px;margin-top:10px;">'+
-    '<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:14px;font-weight:800;color:#fff;">'+invs.length+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">Invoices</div></div>'+
-    '<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:var(--gold);">Rs.'+fn(tBilled)+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">Total</div></div>'+
-    '<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:#7dffbc;">Rs.'+fn(tPaid)+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">Paid</div></div>'+
-    '<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:'+(tRem>0?'#ffcc44':'#7dffbc')+'">'+(tRem>0?'Rs.'+fn(tRem):'Clear')+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">Baki</div></div>'+
-    '</div></div>'+
+  const sb=(v,l,col)=>'<div style="flex:1;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 4px;text-align:center;"><div style="font-size:11px;font-weight:800;color:'+col+';">'+v+'</div><div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">'+l+'</div></div>';
+  det.innerHTML='<div style="background:var(--navy);border-radius:12px;padding:16px;margin-bottom:12px;"><button class="btn btn-gray btn-sm" id="rpt-back-btn" style="margin-bottom:10px;">◀ Wapas</button>'+
+    '<div style="font-size:22px;font-weight:800;color:var(--gold);">'+esc(c.name)+'</div><div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;">'+esc(c.city)+'   '+esc(c.mobile)+'</div>'+
+    '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+sb(invs.length,'Invoices','#fff')+sb('Rs.'+fn(c.billed),'Billed','var(--gold)')+sb('Rs.'+fn(c.received),'Received','#7dffbc')+sb(c.unpaid>EPS?'Rs.'+fn(c.unpaid):'Clear','Baki',c.unpaid>EPS?'#ffcc44':'#7dffbc')+sb('Rs.'+fn(c.credit),'Advance','#7dffbc')+'</div>'+
+    '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:10px;" data-cname="'+esc(c.name)+'" onclick="openReceivePayment(this.dataset.cname)">💰 Received Payment</button></div>'+
     '<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin-bottom:8px;">Invoices ('+invs.length+')</div>'+cards;
   document.getElementById('rpt-back-btn').addEventListener('click',()=>{det.innerHTML='';renderReportList();});
   window.scrollTo(0,0);
 }
 
 // ============================================================
-//  IMAGE GENERATOR — with Folder Picker
-// ============================================================
-function doSaveImage(){
-  if(!previewData){toast('⚠️ Pehle invoice open karo');return;}
-  toast('📸 Image ban rahi hai...',4000);
-  var invHtml=buildInvoiceImageHTML(previewData);
-  var wrap=document.getElementById('img-render-wrap');
-  if(!wrap){wrap=document.createElement('div');wrap.id='img-render-wrap';wrap.style.cssText='position:fixed;left:-9999px;top:0;width:420px;background:#fff;z-index:-1;';document.body.appendChild(wrap);}
-  wrap.innerHTML=invHtml;
-  setTimeout(()=>{
-    if(typeof html2canvas==='undefined'){toast('❌ Image library load nahi hui.');return;}
-    html2canvas(wrap,{scale:3,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',width:420,scrollX:0,scrollY:0,logging:false}).then(canvas=>{
-      var inv=previewData;
-      var fname='FGI_'+(inv.inv_no||'Invoice')+'_'+(inv.cust_name||'').replace(/\s+/g,'_')+'.png';
-      canvas.toBlob(blob=>{
-        openFolderPicker('📸 Image Kahan Save Karein?','Invoice image ki jagah choose karein',blob,fname);
-      },'image/png',1.0);
-    }).catch(e=>{toast('❌ Image error: '+e.message);});
-  },400);
-}
-function quickImage(id){previewData=loadInvoice(id);if(previewData)doSaveImage();}
-
-function buildInvoiceImageHTML(inv){
-  var iT=inv.items_total||0;
-  var lA=inv.less_val>0?(inv.less_type==='percent'?iT*inv.less_val/100:inv.less_val):0;
-  var aA=inv.add_val>0?(inv.add_type==='percent'?iT*inv.add_val/100:inv.add_val):0;
-  var bal=iT-lA+aA;
-  var livePrevImg=0;
-  if(inv.prev_bal>0&&inv.prev_bal_ref&&db){
-    inv.prev_bal_ref.split('+').forEach(ref=>{var label=ref.split(':')[0].trim();if(!label)return;try{var rr=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(rr&&rr[0]&&rr[0].values.length){var iid=rr[0].values[0][0];livePrevImg+=Math.max(0,(rr[0].values[0][1]||0)-getTotalPaid(iid));}}catch(e){}});
-  } else {livePrevImg=inv.prev_bal||0;}
-  var grand=bal+livePrevImg;var paid=inv.totalPaid||0;var rem=Math.max(0,grand-paid);
-  var pays=inv.payments||[];
-  var hasCode=inv.items.some(it=>it.code);var hasDD=inv.items.some(it=>it.delDate);
-  var thC='padding:9px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:center;';
-  var thL='padding:9px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:left;padding-left:10px;';
-  var thR='padding:9px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:right;padding-right:8px;';
-  var tdS='padding:8px 5px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;';
-  var tRows='';
-  inv.items.forEach((it,i)=>{var rowBg=i%2===0?'#fff':'#f0f8fc';tRows+='<tr style="background:'+rowBg+'"><td style="'+tdS+'text-align:center;color:#666;">'+(i+1)+'</td>';if(hasCode)tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.code||'')+'</td>';tRows+='<td style="'+tdS+'text-align:left;padding-left:10px;font-weight:600;">'+it.desc+'</td>';if(hasDD)tRows+='<td style="'+tdS+'text-align:center;color:#555;">'+(it.delDate||'')+'</td>';tRows+='<td style="'+tdS+'text-align:center;font-weight:600;">'+it.qty+'</td><td style="'+tdS+'text-align:right;padding-right:8px;">'+fn(it.rate)+'</td><td style="'+tdS+'text-align:right;font-weight:800;padding-right:8px;color:#0a4a6e;">'+fn(it.total)+'</td></tr>';});
-  var tHead='<th style="'+thC+'">#</th>';if(hasCode)tHead+='<th style="'+thC+'">Code</th>';tHead+='<th style="'+thL+'">Description</th>';if(hasDD)tHead+='<th style="'+thC+'">Del.Date</th>';tHead+='<th style="'+thC+'">Qty</th><th style="'+thR+'">Rate</th><th style="'+thR+'">Total</th>';
-  var prevRows='';
-  if(inv.prev_bal>0&&inv.prev_bal_ref){var refs=inv.prev_bal_ref.split('+');var liveTotal=0;var prevLines=[];refs.forEach(ref=>{var label=ref.split(':')[0].trim();var liveRem=0;if(db){try{var r=db.exec("SELECT i.id,i.grand_total FROM invoices i WHERE i.inv_no='"+label+"' LIMIT 1");if(r&&r[0]&&r[0].values.length){var iid=r[0].values[0][0];var igt=r[0].values[0][1]||0;var ipaid=getTotalPaid(iid);liveRem=Math.max(0,igt-ipaid);}}catch(e){}}liveTotal+=liveRem;prevLines.push({label,amt:liveRem});});prevLines.forEach(pl=>{prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span style="color:#1a6630;">Prev. Bal <span style="background:#FFD700;color:#0a4a6e;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;">'+pl.label+'</span></span><span style="color:#1a6630;font-weight:700;">'+(pl.amt>0?'+ Rs. '+fn(pl.amt):'✅ Clear')+'</span></div>';});if(refs.length>1){prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;font-weight:800;border-top:2px solid #FFD70044;"><span style="color:#1a6630;">Total Outstanding</span><span style="color:#1a6630;">+ Rs. '+fn(liveTotal)+'</span></div>';}}
-  else if(inv.prev_bal>0){prevRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span style="color:#1a6630;">Previous Balance</span><span style="color:#1a6630;font-weight:700;">+ Rs. '+fn(inv.prev_bal)+'</span></div>';}
-  var payRows='';pays.forEach(p=>{var icons={cash:'💵',online:'🌐',jazzcash:'📲',easypaisa:'💳',bank:'🏦'};payRows+='<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:10px;border-bottom:1px dotted #cce0f0;"><span>'+(icons[p.method]||'💰')+' '+p.method+(p.note?' — '+p.note:'')+' | '+(p.date||'')+'</span><span style="color:#1a7f5a;font-weight:700;">−Rs. '+fn(p.amount)+'</span></div>';});
-  var lessRow=lA>0?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;color:#b22222;"><span>Less'+(inv.less_type==='percent'?' ('+inv.less_val+'%)':'')+'</span><span>− Rs. '+fn(lA)+'</span></div>':'';
-  var addRow=aA>0?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;color:#1a6630;"><span>Add'+(inv.add_type==='percent'?' ('+inv.add_val+'%)':'')+'</span><span>+ Rs. '+fn(aA)+'</span></div>':'';
-  var balRow=bal!==iT?'<div style="display:flex;justify-content:space-between;padding:5px 14px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span>Balance</span><span style="font-weight:700;">Rs. '+fn(bal)+'</span></div>':'';
-  return '<div style="font-family:Arial,sans-serif;background:#f0f7fc;width:420px;color:#000;border:1px solid #cce0f0;">'+
-    '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:6px;"></div>'+
-    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;"><div><div style="color:#FFD700;font-size:19px;font-weight:900;letter-spacing:.5px;line-height:1.1;">Faisal Goraya Industry</div><div style="color:#a0d0e8;font-size:9.5px;margin-top:3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div></div><div style="text-align:right;"><div style="background:#FFD700;color:#0a4a6e;font-size:14px;font-weight:900;padding:5px 14px;border-radius:6px;letter-spacing:1px;">'+inv.inv_no+'</div><div style="color:#b0d8f0;font-size:10px;margin-top:5px;font-weight:600;">📅 '+inv.inv_date+'</div></div></div>'+
-    '<div style="background:#0d5c8a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;"><div><div style="color:#fff;font-size:15px;font-weight:800;">'+inv.cust_name+'</div>'+(inv.cust_mobile?'<div style="color:#FFD700;font-size:10px;margin-top:2px;">📞 '+inv.cust_mobile+'</div>':'')+'</div>'+(inv.cust_city?'<div style="background:#1470a0;color:#ffe066;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+inv.cust_city+'</div>':'')+'</div>'+
-    '<div style="background:#fff;padding:0;"><table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:7%">'+(hasCode?'<col style="width:10%">':'')+(hasDD?'<col style="width:'+(Math.max(28,48-10))+'%"><col style="width:18%">':'<col style="width:'+Math.max(35,55)+'%">')+'<col style="width:10%"><col style="width:14%"><col style="width:14%"></colgroup><thead><tr>'+tHead+'</tr></thead><tbody>'+tRows+'</tbody></table></div>'+
-    '<div style="background:#fff;margin:0;border-top:1px solid #d0e8f4;border-bottom:1px solid #d0e8f4;"><div style="display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;border-bottom:1px dotted #cce0f0;"><span style="color:#555;">Items Total</span><span style="font-weight:800;color:#0a4a6e;">Rs. '+fn(iT)+'</span></div>'+lessRow+addRow+balRow+prevRows+'</div>'+
-    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;"><div style="color:#FFD700;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Grand Total</div><div style="color:#fff;font-size:22px;font-weight:900;">Rs. '+fn(grand)+'</div></div>'+
-    (pays.length?'<div style="background:#fff;border-top:3px solid #FFD700;"><div style="padding:6px 16px 3px;font-size:9.5px;font-weight:800;color:#0a4a6e;text-transform:uppercase;letter-spacing:1px;">Payment History</div>'+payRows+'</div>':'')+
-    (pays.length?'<div style="background:'+(rem<=0?'#1a4a35':'#7a1a1a')+';display:flex;justify-content:space-between;align-items:center;padding:10px 16px;"><div style="color:rgba(255,255,255,.8);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Remaining Balance</div><div style="color:'+(rem<=0?'#7dffbc':'#ffb3b3')+';font-size:17px;font-weight:900;">'+(rem<=0?'✅ FULLY PAID':'Rs. '+fn(rem))+'</div></div>':'')+
-    '<div style="height:1px;background:linear-gradient(90deg,#FFD700,#ffe066,#FFD700);"></div>'+
-    '<div style="background:#fff;padding:10px 16px 12px;"><div style="font-size:9px;font-weight:900;color:#0a4a6e;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0a4a6e;">Payment Details</div><div style="display:flex;gap:7px;"><div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;"><div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div></div><div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;"><div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03008648624</div></div><div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;"><div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03338058007</div></div></div></div>'+
-    '<div style="background:#0a4a6e;text-align:center;padding:7px;border-top:2px solid #FFD700;"><div style="color:#FFD700;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; '+inv.inv_no+' &nbsp;•&nbsp; '+inv.inv_date+'</div></div>'+
-    '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:4px;"></div></div>';
-}
-
-// ============================================================
-//  LEDGER / KHATA BOOK
+//  KHATA / LEDGER
 // ============================================================
 function renderLedgerList(){
   if(!db)return;
-  var el=document.getElementById('ldg-search');var q=(el?el.value:'').toLowerCase().trim().replace(/'/g,"''");
-  var cont=document.getElementById('ldg-cust-list');if(!cont)return;
-  var where=q?"WHERE LOWER(i.cust_name) LIKE '%"+q+"%'":'';
-  var res;
-  try{res=db.exec("SELECT i.cust_name,MAX(i.cust_city) city,MAX(i.cust_mobile) mobile,COUNT(i.id) cnt,SUM(i.grand_total) billed,MAX(i.inv_date) last_date FROM invoices i "+where+" GROUP BY LOWER(i.cust_name) ORDER BY last_date DESC");}
-  catch(e){cont.innerHTML='<div class="ldg-empty">Error loading data</div>';return;}
-  if(!res||!res[0]||!res[0].values.length){cont.innerHTML='<div class="ldg-empty">🔍 '+(q?'Koi customer nahi mila':'Koi invoice nahi — Pehle invoice banao')+'</div>';return;}
-  var html='';
-  res[0].values.forEach(r=>{
-    var name=r[0],city=r[1]||'',mobile=r[2]||'',cnt=r[3],billed=r[4];
-    var pr;try{pr=db.exec("SELECT COALESCE(SUM(p.amount),0) FROM payments p INNER JOIN invoices i ON i.id=p.invoice_id WHERE LOWER(i.cust_name)=LOWER('"+name.replace(/'/g,"''")+"')");}catch(e){pr=null;}
-    var paid=pr&&pr[0]?pr[0].values[0][0]||0:0;var rem=billed-paid;
-    var st=rem<=0?'paid':paid>0?'partial':'unpaid';
-    var badgeTxt=st==='paid'?'✅ Clear':st==='partial'?'⚠️ Partial':'🔴 Unpaid';
-    html+='<div class="ldg-search-item" onclick="openLedger(\''+name.replace(/'/g,"\\'").replace(/"/g,'&quot;')+'\')">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="name">📒 '+name+'</div><span class="pay-status-badge '+st+'">'+badgeTxt+'</span></div>';
-    html+='<div class="meta">'+(city?'📍 '+city+'  ':'')+( mobile?'📞 '+mobile:'')+'</div>';
-    html+='<div class="badges"><span style="background:var(--navy);color:var(--gold);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">'+cnt+' Invoices</span>';
-    html+='<span style="background:#d0eaf8;color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Rs.'+fn(billed)+'</span>';
-    html+='<span style="background:'+(rem>0?'#fde8e8':'#d4f0e5')+';color:'+(rem>0?'var(--red)':'var(--green)')+';font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Baki: '+(rem>0?'Rs.'+fn(rem):'Clear')+'</span>';
-    html+='</div></div>';
-  });
-  cont.innerHTML=html;
+  const q=custKey((document.getElementById('ldg-search')||{}).value||'');
+  const cont=document.getElementById('ldg-cust-list');if(!cont)return;
+  const list=allCustomers().filter(c=>!q||c.key.includes(q)).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||''));
+  if(!list.length){cont.innerHTML='<div class="ldg-empty">🔍 '+(q?'Koi customer nahi mila':'Koi invoice nahi — Pehle invoice banao')+'</div>';return;}
+  cont.innerHTML=list.map(c=>{const st=custStatus(c);const bt=st==='paid'?'✅ Clear':st==='overpaid'?'💰 Advance':st==='partial'?'⚠️ Partial':'🔴 Unpaid';
+    return '<div class="ldg-search-item" data-cname="'+esc(c.name)+'" onclick="openLedger(this.dataset.cname)">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="name">📒 '+esc(c.name)+'</div><span class="pay-status-badge '+st+'">'+bt+'</span></div>'+
+      '<div class="meta">'+(c.city?'📍 '+esc(c.city)+'  ':'')+(c.mobile?'📞 '+esc(c.mobile):'')+'</div>'+
+      '<div class="badges"><span style="background:var(--navy);color:var(--gold);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">'+c.invIds.length+' Invoices</span>'+
+      '<span style="background:#d0eaf8;color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Rs.'+fn(c.billed)+'</span>'+
+      '<span style="background:'+(c.unpaid>EPS?'#fde8e8':'#d4f0e5')+';color:'+(c.unpaid>EPS?'var(--red)':'var(--green)')+';font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Baki: '+(c.unpaid>EPS?'Rs.'+fn(c.unpaid):'Clear')+'</span>'+
+      (c.credit>EPS?'<span style="background:#d4f5ef;color:#0b7a6b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;">Advance: Rs.'+fn(c.credit)+'</span>':'')+'</div></div>';}).join('');
 }
-
+function buildLedgerData(custName){
+  const a=ACC();const c=a.custs[custKey(custName)];if(!c)return null;
+  const E=[];
+  c.invIds.forEach(id=>{const t=a.invs[id];
+    E.push({date:t.inv_date,ord:0,id:t.id,type:'invoice',invNo:t.inv_no,itemCount:t.items.length,particulars:t.inv_no+' • '+t.items.length+(t.items.length===1?' item':' items'),debit:0,credit:t.bill});
+    if(t.manualPrev>0)E.push({date:t.inv_date,ord:0,id:t.id,type:'invoice',invNo:'',particulars:'Pre.Balance • carried over',debit:0,credit:t.manualPrev});
+    if(t.creditApplied>0)E.push({date:t.inv_date,ord:2,id:t.id,type:'info',particulars:'🔁 Advance adjusted in '+t.inv_no+' (Rs.'+fn(t.creditApplied)+')',debit:0,credit:0});
+  });
+  c.payIds.forEach(id=>{const p=a.payInfo[id];
+    let where=p.allocs.filter(x=>x.amt>EPSZ).map(x=>x.inv_no).join(', ');
+    let part=(PAY_ICONS[p.method]||'💰')+' '+payLabel(p.method)+(p.ref_no?' • '+(p.method==='cheque'?'Chq# ':'Ref ')+p.ref_no:'')+(p.note?' — '+p.note:'');
+    if(where)part+=' → '+where;
+    if(p.unalloc>EPS)part+=(where?' + ':' → ')+'Advance Rs.'+fn(p.unalloc);
+    E.push({date:p.pay_date||'',ord:1,id:p.id,type:'payment',particulars:part,debit:r2(p.amount),credit:0});
+  });
+  E.sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:x.ord!==y.ord?x.ord-y.ord:x.id-y.id);
+  let bal=0;E.forEach(e=>{bal=r2(bal+e.credit-e.debit);e.balance=bal;});
+  const totalCredit=r2(E.reduce((s,e)=>s+e.credit,0)),totalDebit=r2(E.reduce((s,e)=>s+e.debit,0));
+  return {custName:c.name,city:c.city,mobile:c.mobile,entries:E,totalCredit,totalDebit,finalBalance:r2(totalCredit-totalDebit),unpaid:c.unpaid,advance:c.credit};
+}
+function balTxt(b){return b>EPS?'Rs.'+fn(b):b<-EPS?'Adv Rs.'+fn(-b):'✅ Clear';}
+function ledgerStatusHTML(L,big){
+  if(L.unpaid>EPS&&L.advance>EPS)return '<span style="color:#ffcc44;font-weight:800;">Baqi Rs.'+fn(L.unpaid)+'</span> <span style="color:#7dffbc;font-weight:800;">| Advance Rs.'+fn(L.advance)+'</span>';
+  if(L.unpaid>EPS)return '<span style="color:#ffcc44;font-weight:800;">Rs.'+fn(L.unpaid)+' BAQI</span>';
+  if(L.advance>EPS)return '<span style="color:#7dffbc;font-weight:800;">ADVANCE Rs.'+fn(L.advance)+'</span>';
+  return '<span style="color:#7dffbc;font-weight:800;">✅ CLEAR</span>';
+}
 function openLedger(custName){
-  if(!db)return;
-  var invRes;
-  try{invRes=db.exec("SELECT id,inv_no,inv_date,items_json,grand_total,cust_city,cust_mobile,notes,items_total,prev_bal,prev_bal_ref FROM invoices WHERE LOWER(cust_name)=LOWER('"+custName.replace(/'/g,"''")+"') ORDER BY id ASC");}catch(e){return;}
-  if(!invRes||!invRes[0]||!invRes[0].values.length)return;
-  var city=invRes[0].values[0][5]||'';var mobile=invRes[0].values[0][6]||'';
-  var ledgerEntries=[];var runningBalance=0;
-  invRes[0].values.forEach(v=>{
-    var invId=v[0],invNo=v[1],invDate=v[2],itemsJson=v[3],grand=v[4]||0;
-    var itemsTotal=v[8]||0,prevBal=v[9]||0,prevBalRefVal=v[10]||'';
-    var items=[];try{items=JSON.parse(itemsJson||'[]');}catch(e){}
-    var itemCount=items.length;
-    var compactParticulars='<b style="color:#FFD700">'+invNo+'</b> <span style="font-size:11px;opacity:0.7">• '+itemCount+(itemCount===1?' item':' items')+'</span>';
-    var creditAmount=itemsTotal>0?itemsTotal:Math.max(0,grand-prevBal);
-    runningBalance+=creditAmount;
-    ledgerEntries.push({date:invDate,type:'invoice',invNo,itemCount,particulars:compactParticulars,particularsPlain:invNo+' • '+itemCount+' items',debit:0,credit:creditAmount,balance:runningBalance});
-    if(prevBal>0&&!prevBalRefVal){runningBalance+=prevBal;ledgerEntries.push({date:invDate,type:'invoice',invNo,particulars:'<b style="color:#ffe066">Pre.Balance</b> <span style="font-size:11px;opacity:0.7">• carried over</span>',particularsPlain:'Pre.Balance • carried over',debit:0,credit:prevBal,balance:runningBalance});}
-    var pays=getPayments(invId);
-    pays.forEach(p=>{runningBalance-=p.amount;var payDesc=(PAY_ICONS[p.method]||'💰')+' '+p.method+(p.note?' — '+p.note:'');ledgerEntries.push({date:p.date||invDate,type:'payment',invNo,particulars:payDesc,particularsPlain:payDesc,debit:p.amount,credit:0,balance:runningBalance});});
-  });
-  ledgerEntries.sort((a,b)=>{if(a.date<b.date)return -1;if(a.date>b.date)return 1;if(a.type==='invoice'&&b.type==='payment')return -1;if(a.type==='payment'&&b.type==='invoice')return 1;return 0;});
-  var bal=0;ledgerEntries.forEach(e=>{bal+=e.credit;bal-=e.debit;e.balance=bal;});
-  var totalCredit=ledgerEntries.reduce((s,e)=>s+e.credit,0);
-  var totalDebit=ledgerEntries.reduce((s,e)=>s+e.debit,0);
-  var finalBalance=totalCredit-totalDebit;
-  currentLedgerData={custName,city,mobile,entries:ledgerEntries.map(e=>({date:e.date,particulars:e.type==='payment'?e.particularsPlain:'',type:e.type,invNo:e.type==='invoice'?(e.invNo||''):'',itemCount:e.type==='invoice'?(e.itemCount||0):0,debit:e.debit,credit:e.credit,balance:e.balance})),totalDebit,totalCredit,finalBalance};
-  var rows='';
-  ledgerEntries.forEach((e,idx)=>{
-    var rowCls=e.type==='invoice'?'ldg-invoice':'ldg-payment';
-    var balCls=e.balance>0?'ldg-balance-pos':'ldg-balance-zero';
-    var typeTag=e.type==='invoice'?'<span class="ldg-inv-tag">INV</span>':'<span class="ldg-pay-tag">PAY</span>';
-    rows+='<tr class="'+rowCls+'"><td>'+(idx+1)+'</td><td>'+e.date+'</td><td class="left">'+e.particulars+typeTag+'</td>';
-    rows+='<td class="ldg-debit">'+(e.debit>0?'Rs.'+fn(e.debit):'—')+'</td>';
-    rows+='<td class="ldg-credit">'+(e.credit>0?'Rs.'+fn(e.credit):'—')+'</td>';
-    rows+='<td class="'+balCls+'">'+(e.balance>0?'Rs.'+fn(e.balance):'✅ Clear')+'</td></tr>';
-  });
-  var statusTxt=finalBalance>0?'<span style="color:#ffcc44;font-weight:800;">Rs.'+fn(finalBalance)+' BAQI</span>':'<span style="color:#7dffbc;font-weight:800;">✅ CLEAR</span>';
-  var html='<div class="ldg-header">'+
+  if(!db)return;const L=buildLedgerData(custName);if(!L)return;
+  currentLedgerData=L;
+  const rows=L.entries.map((e,idx)=>{
+    if(e.type==='info')return '<tr class="ldg-info"><td>'+(idx+1)+'</td><td>'+esc(e.date)+'</td><td class="left" colspan="4" style="font-size:11px;color:#0b7a6b;font-weight:700;">'+esc(e.particulars)+'</td></tr>';
+    const tag=e.type==='invoice'?'<span class="ldg-inv-tag">INV</span>':'<span class="ldg-pay-tag">PAY</span>';
+    const part=e.type==='invoice'&&e.invNo?'<b style="color:#FFD700;background:var(--navy);padding:1px 5px;border-radius:3px;">'+esc(e.invNo)+'</b> <span style="font-size:11px;opacity:0.7">• '+e.itemCount+(e.itemCount===1?' item':' items')+'</span>':esc(e.particulars);
+    return '<tr class="'+(e.type==='invoice'?'ldg-invoice':'ldg-payment')+'"><td>'+(idx+1)+'</td><td>'+esc(e.date)+'</td><td class="left">'+part+tag+'</td>'+
+      '<td class="ldg-debit">'+(e.debit>0?'Rs.'+fn(e.debit):'—')+'</td><td class="ldg-credit">'+(e.credit>0?'Rs.'+fn(e.credit):'—')+'</td>'+
+      '<td class="'+(e.balance>EPS?'ldg-balance-pos':'ldg-balance-zero')+'">'+balTxt(e.balance)+'</td></tr>';}).join('');
+  const box=(v,l,c)=>'<div class="ldg-sum-box"><div class="ldg-sum-val" style="color:'+c+';">'+v+'</div><div class="ldg-sum-lbl">'+l+'</div></div>';
+  const html='<div class="ldg-header">'+
     '<button class="btn btn-gray btn-sm" onclick="document.getElementById(\'ldg-detail-state\').style.display=\'none\';document.getElementById(\'ldg-search-state\').style.display=\'block\';renderLedgerList();" style="margin-bottom:10px;">◀ Wapas</button>'+
-    '<div class="ldg-cust-name">📒 '+custName+'</div>'+
-    '<div class="ldg-cust-meta">'+(city?'📍 '+city+'   ':'')+( mobile?'📞 '+mobile:'')+'</div>'+
-    '<div class="ldg-summary-row">'+
-    '<div class="ldg-sum-box"><div class="ldg-sum-val" style="color:var(--gold);">Rs.'+fn(totalCredit)+'</div><div class="ldg-sum-lbl">Total Billed</div></div>'+
-    '<div class="ldg-sum-box"><div class="ldg-sum-val" style="color:#7dffbc;">Rs.'+fn(totalDebit)+'</div><div class="ldg-sum-lbl">Total Paid</div></div>'+
-    '<div class="ldg-sum-box"><div class="ldg-sum-val" style="color:'+(finalBalance>0?'#ffcc44':'#7dffbc')+';">'+(finalBalance>0?'Rs.'+fn(finalBalance):'Clear')+'</div><div class="ldg-sum-lbl">Balance</div></div>'+
-    '</div></div>'+
+    '<div class="ldg-cust-name">📒 '+esc(L.custName)+'</div><div class="ldg-cust-meta">'+(L.city?'📍 '+esc(L.city)+'   ':'')+(L.mobile?'📞 '+esc(L.mobile):'')+'</div>'+
+    '<div class="ldg-summary-row">'+box('Rs.'+fn(L.totalCredit),'Total Billed','var(--gold)')+box('Rs.'+fn(L.totalDebit),'Total Received','#7dffbc')+'</div>'+
+    '<div class="ldg-summary-row" style="margin-top:6px;">'+box(L.unpaid>EPS?'Rs.'+fn(L.unpaid):'Clear','Unpaid Invoices',L.unpaid>EPS?'#ffcc44':'#7dffbc')+box('Rs.'+fn(L.advance),'Customer Advance','#7dffbc')+box(balTxt(L.finalBalance),'Net Balance','#fff')+'</div>'+
+    '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:10px;" data-cname="'+esc(L.custName)+'" onclick="openReceivePayment(this.dataset.cname)">💰 Received Payment</button></div>'+
     '<div class="ldg-table-wrap"><div class="ldg-table-title"><span>📋 Khata — Ledger Statement</span><button class="btn btn-gold btn-sm" onclick="downloadLedgerImage()">📷 Save Image</button></div>'+
-    '<div class="ldg-tbl-scroll"><table class="ldg-tbl">'+
-    '<thead><tr><th>#</th><th>Date</th><th class="left">Particulars</th>'+
-    '<th>💰 Debit<br><span style="font-size:8px;font-weight:400;">(Payment In)</span></th>'+
-    '<th>📋 Credit<br><span style="font-size:8px;font-weight:400;">(Invoice Out)</span></th>'+
-    '<th>⚖️ Balance</th></tr></thead><tbody>'+rows+'</tbody>'+
-    '<tfoot><tr class="ldg-total"><td colspan="3" style="text-align:left;padding-left:12px;font-size:13px;">TOTAL / REMAINING</td>'+
-    '<td class="debit">Rs.'+fn(totalDebit)+'</td><td class="credit">Rs.'+fn(totalCredit)+'</td>'+
-    '<td class="balance">'+(finalBalance>0?'Rs.'+fn(finalBalance):'✅ Clear')+'</td></tr></tfoot></table></div>'+
-    '<div style="background:var(--navy2);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">'+
-    '<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);">Final Status:</span>'+statusTxt+'</div></div>';
+    '<div class="ldg-tbl-scroll"><table class="ldg-tbl"><thead><tr><th>#</th><th>Date</th><th class="left">Particulars</th><th>💰 Paid<br><span style="font-size:8px;font-weight:400;">(In)</span></th><th>📋 Billed<br><span style="font-size:8px;font-weight:400;">(Out)</span></th><th>⚖️ Balance</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr class="ldg-total"><td colspan="3" style="text-align:left;padding-left:12px;font-size:13px;">TOTAL / REMAINING</td><td class="debit">Rs.'+fn(L.totalDebit)+'</td><td class="credit">Rs.'+fn(L.totalCredit)+'</td><td class="balance">'+balTxt(L.finalBalance)+'</td></tr></tfoot></table></div>'+
+    '<div style="background:var(--navy2);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);">Final Status:</span>'+ledgerStatusHTML(L)+'</div></div>';
   document.getElementById('ldg-detail-container').innerHTML=html;
   document.getElementById('ldg-search-state').style.display='none';
   document.getElementById('ldg-detail-state').style.display='block';
   window.scrollTo(0,0);
 }
-
-function downloadLedgerImage(custName){
-  var el=document.getElementById('ldg-detail-container');if(!el){toast('❌ Ledger nahi mili');return;}
-  if(!custName){var nmEl=el.querySelector('.ldg-cust-name');if(nmEl){custName=(nmEl.textContent||'').replace(/^[^A-Za-z0-9ا-ی]+/,'').trim();}}
-  custName=custName||'Customer';if(!currentLedgerData){toast('❌ Ledger data nahi mila');return;}
+function downloadLedgerImage(){
+  if(!currentLedgerData){toast('❌ Ledger data nahi mila');return;}
+  if(typeof html2canvas==='undefined'){toast('❌ Image library load nahi hui.');return;}
   toast('📷 Image ban rahi hai...',4000);
-  var ledgerHtml=buildLedgerImageHTML(currentLedgerData);
-  var wrap=document.getElementById('ldg-img-render-wrap');
-  if(!wrap){wrap=document.createElement('div');wrap.id='ldg-img-render-wrap';wrap.style.cssText='position:fixed;left:-9999px;top:0;width:460px;background:#fff;z-index:-1;';document.body.appendChild(wrap);}
-  wrap.innerHTML=ledgerHtml;
+  let wrap=document.getElementById('ldg-img-render-wrap');
+  if(!wrap){wrap=document.createElement('div');wrap.id='ldg-img-render-wrap';document.body.appendChild(wrap);}
+  wrap.style.cssText='position:fixed;left:-12000px;top:0;width:460px;background:#fff;';
+  wrap.innerHTML=buildLedgerImageHTML(currentLedgerData);
   setTimeout(()=>{
-    if(typeof html2canvas==='undefined'){toast('❌ Image library load nahi hui.');return;}
-    html2canvas(wrap,{scale:3,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',width:460,scrollX:0,scrollY:0,logging:false}).then(canvas=>{
-      var ts=new Date().toISOString().slice(0,10);
-      var safeName=String(custName).replace(/\s+/g,'_').replace(/[^A-Za-z0-9_\-ا-ی]/g,'');
-      var fname='FGI_Khata_'+safeName+'_'+ts+'.png';
-      canvas.toBlob(blob=>{
-        openFolderPicker('📒 Khata Image Kahan Save Karein?','Ledger image ki jagah choose karein',blob,fname);
-      },'image/png',1.0);
-    }).catch(e=>{toast('❌ Image error: '+e.message);});
-  },400);
+    html2canvas(wrap.firstChild,{scale:3,useCORS:true,backgroundColor:'#ffffff',width:460,windowWidth:460,scrollX:0,scrollY:0,logging:false}).then(canvas=>{
+      const fname='FGI_Khata_'+String(currentLedgerData.custName).replace(/[^A-Za-z0-9]+/g,'_')+'_'+todayStr()+'.png';
+      canvas.toBlob(blob=>openFolderPicker('📒 Khata Image Kahan Save Karein?','Ledger image ki jagah choose karein',blob,fname),'image/png');
+    }).catch(e=>toast('❌ Image error: '+e.message));
+  },300);
 }
-
 function buildLedgerImageHTML(L){
-  var thC='padding:10px 5px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:center;';
-  var thL='padding:10px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:left;padding-left:10px;';
-  var tdS='padding:9px 5px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;text-align:center;vertical-align:middle;font-weight:600;';
-  var tdL='padding:9px 6px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;text-align:left;padding-left:10px;font-weight:600;vertical-align:middle;';
-  var rows='';
-  L.entries.forEach((e,i)=>{
-    var rowBg=i%2===0?'#fff':'#f0f8fc';
-    var leftBorder=e.type==='invoice'?'border-left:3px solid #c0392b;':'border-left:3px solid #1a7f5a;';
-    var tag=e.type==='invoice'?'<span style="display:inline-block;background:#0a4a6e;color:#FFD700;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;">INV</span>':'<span style="display:inline-block;background:#d4f0e5;color:#1a7f5a;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;">PAY</span>';
-    var partTxt=e.particulars||'';
-    if(e.invNo){partTxt='<span style="background:#FFD700;color:#0a4a6e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:800;margin-right:4px;">'+e.invNo+'</span>'+(e.itemCount?'<span style="color:#555;font-size:10px;">'+e.itemCount+' item'+(e.itemCount>1?'s':'')+'</span>':'');}
-    rows+='<tr style="background:'+rowBg+';'+leftBorder+'"><td style="'+tdS+'color:#666;">'+(i+1)+'</td><td style="'+tdS+'color:#555;font-size:10.5px;">'+e.date+'</td><td style="'+tdL+'">'+partTxt+tag+'</td>';
-    rows+='<td style="'+tdS+'color:'+(e.debit>0?'#1a7f5a':'#aaa')+';font-weight:'+(e.debit>0?'800':'400')+';">'+(e.debit>0?'Rs. '+fn(e.debit):'—')+'</td>';
-    rows+='<td style="'+tdS+'color:'+(e.credit>0?'#c0392b':'#aaa')+';font-weight:'+(e.credit>0?'800':'400')+';">'+(e.credit>0?'Rs. '+fn(e.credit):'—')+'</td>';
-    rows+='<td style="'+tdS+'color:'+(e.balance>0?'#0a4a6e':'#1a7f5a')+';font-weight:800;">'+(e.balance>0?'Rs. '+fn(e.balance):'✅ Clear')+'</td></tr>';
-  });
-  var finalStatus=L.finalBalance>0?'<div style="color:#ffcc44;font-size:18px;font-weight:900;">Rs. '+fn(L.finalBalance)+' BAQI</div>':'<div style="color:#7dffbc;font-size:16px;font-weight:900;">✅ CLEAR</div>';
-  return '<div style="font-family:Arial,sans-serif;background:#f0f7fc;width:460px;color:#000;border:1px solid #cce0f0;">'+
+  const thC='padding:10px 5px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:center;';
+  const thL='padding:10px 6px;font-size:10px;font-weight:800;color:#ffe066;text-transform:uppercase;letter-spacing:.5px;background:#0a4a6e;text-align:left;padding-left:10px;';
+  const tdS='padding:9px 5px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;text-align:center;vertical-align:middle;font-weight:600;';
+  const tdL='padding:9px 6px;font-size:11px;border-bottom:1px solid #ddeef8;color:#222;text-align:left;padding-left:10px;font-weight:600;vertical-align:middle;';
+  const rows=L.entries.map((e,i)=>{
+    const bg=i%2===0?'#fff':'#f0f8fc';
+    if(e.type==='info')return '<tr style="background:#eafaf6;border-left:3px solid #0b7a6b;"><td style="'+tdS+'color:#666;">'+(i+1)+'</td><td style="'+tdS+'font-size:10.5px;">'+esc(e.date)+'</td><td colspan="4" style="'+tdL+'color:#0b7a6b;font-size:10px;">'+esc(e.particulars)+'</td></tr>';
+    const lb=e.type==='invoice'?'border-left:3px solid #c0392b;':'border-left:3px solid #1a7f5a;';
+    const tag=e.type==='invoice'?'<span style="display:inline-block;background:#0a4a6e;color:#FFD700;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;">INV</span>':'<span style="display:inline-block;background:#d4f0e5;color:#1a7f5a;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:4px;">PAY</span>';
+    const part=e.type==='invoice'&&e.invNo?'<span style="background:#FFD700;color:#0a4a6e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:800;margin-right:4px;">'+esc(e.invNo)+'</span><span style="color:#555;font-size:10px;">'+e.itemCount+' item'+(e.itemCount>1?'s':'')+'</span>':esc(e.particulars);
+    return '<tr style="background:'+bg+';'+lb+'"><td style="'+tdS+'color:#666;">'+(i+1)+'</td><td style="'+tdS+'color:#555;font-size:10.5px;">'+esc(e.date)+'</td><td style="'+tdL+'">'+part+tag+'</td>'+
+      '<td style="'+tdS+'color:'+(e.debit>0?'#1a7f5a':'#aaa')+';font-weight:'+(e.debit>0?'800':'400')+';">'+(e.debit>0?'Rs. '+fn(e.debit):'—')+'</td>'+
+      '<td style="'+tdS+'color:'+(e.credit>0?'#c0392b':'#aaa')+';font-weight:'+(e.credit>0?'800':'400')+';">'+(e.credit>0?'Rs. '+fn(e.credit):'—')+'</td>'+
+      '<td style="'+tdS+'color:'+(e.balance>EPS?'#0a4a6e':'#1a7f5a')+';font-weight:800;">'+balTxt(e.balance).replace('Rs.','Rs. ')+'</td></tr>';}).join('');
+  const box=(v,l,c,last)=>'<div style="flex:1;padding:9px 4px;text-align:center;'+(last?'':'border-right:1px solid #e0eef8;')+'"><div style="font-size:13.5px;font-weight:900;color:'+c+';">'+v+'</div><div style="font-size:8px;font-weight:700;color:#777;text-transform:uppercase;margin-top:2px;">'+l+'</div></div>';
+  const today=todayStr();
+  return '<div style="font-family:Barlow,Arial,sans-serif;background:#f0f7fc;width:460px;color:#000;border:1px solid #cce0f0;">'+
     '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:6px;"></div>'+
-    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;"><div><div style="color:#FFD700;font-size:19px;font-weight:900;letter-spacing:.5px;">Faisal Goraya Industry</div><div style="color:#a0d0e8;font-size:9.5px;margin-top:3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div></div><div style="text-align:right;"><div style="background:#FFD700;color:#0a4a6e;font-size:12px;font-weight:900;padding:5px 12px;border-radius:6px;letter-spacing:1px;">KHATA</div><div style="color:#b0d8f0;font-size:10px;margin-top:5px;font-weight:600;">📅 '+new Date().toISOString().slice(0,10)+'</div></div></div>'+
-    '<div style="background:#0d5c8a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #1470a0;"><div><div style="color:#fff;font-size:15px;font-weight:800;">📒 '+L.custName+'</div>'+(L.mobile?'<div style="color:#FFD700;font-size:10px;margin-top:2px;">📞 '+L.mobile+'</div>':'')+'</div>'+(L.city?'<div style="background:#1470a0;color:#ffe066;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+L.city+'</div>':'')+'</div>'+
-    '<div style="background:#fff;display:flex;border-bottom:1px solid #d0e8f4;"><div style="flex:1;padding:10px;text-align:center;border-right:1px solid #e0eef8;"><div style="font-size:15px;font-weight:900;color:#c0392b;">Rs. '+fn(L.totalCredit)+'</div><div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;margin-top:2px;">Total Billed</div></div><div style="flex:1;padding:10px;text-align:center;border-right:1px solid #e0eef8;"><div style="font-size:15px;font-weight:900;color:#1a7f5a;">Rs. '+fn(L.totalDebit)+'</div><div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;margin-top:2px;">Total Paid</div></div><div style="flex:1;padding:10px;text-align:center;"><div style="font-size:15px;font-weight:900;color:'+(L.finalBalance>0?'#0a4a6e':'#1a7f5a')+';">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</div><div style="font-size:8.5px;font-weight:700;color:#777;text-transform:uppercase;margin-top:2px;">Balance</div></div></div>'+
-    '<div style="background:#fff;"><table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:7%"><col style="width:15%"><col style="width:30%"><col style="width:15%"><col style="width:15%"><col style="width:18%"></colgroup><thead><tr><th style="'+thC+'">#</th><th style="'+thC+'">Date</th><th style="'+thL+'">Particulars</th><th style="'+thC+'">Paid<br><span style="font-size:8px;font-weight:500;opacity:.8;">(In)</span></th><th style="'+thC+'">Billed<br><span style="font-size:8px;font-weight:500;opacity:.8;">(Out)</span></th><th style="'+thC+'">Balance</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr style="background:#0a4a6e;"><td colspan="3" style="padding:10px;text-align:left;padding-left:12px;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;">Total / Remaining</td><td style="padding:10px 5px;text-align:center;color:#7dffbc;font-size:12px;font-weight:900;">Rs. '+fn(L.totalDebit)+'</td><td style="padding:10px 5px;text-align:center;color:#ff8080;font-size:12px;font-weight:900;">Rs. '+fn(L.totalCredit)+'</td><td style="padding:10px 5px;text-align:center;color:#FFD700;font-size:12px;font-weight:900;">'+(L.finalBalance>0?'Rs. '+fn(L.finalBalance):'Clear')+'</td></tr></tfoot></table></div>'+
-    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-top:2px solid #FFD700;"><div style="color:#FFD700;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Final Status</div>'+finalStatus+'</div>'+
+    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;"><div><div style="color:#FFD700;font-size:21px;font-weight:900;letter-spacing:.5px;">Faisal Goraya Industry</div><div style="color:#a0d0e8;font-size:10px;margin-top:3px;">📞 03338058007 &nbsp;|&nbsp; 📍 Ali Pur Chattha</div></div><div style="text-align:right;"><div style="background:#FFD700;color:#0a4a6e;font-size:12px;font-weight:900;padding:5px 12px;border-radius:6px;letter-spacing:1px;">KHATA</div><div style="color:#b0d8f0;font-size:10px;margin-top:5px;font-weight:600;">📅 '+today+'</div></div></div>'+
+    '<div style="background:#0d5c8a;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #1470a0;"><div><div style="color:#fff;font-size:15px;font-weight:800;">📒 '+esc(L.custName)+'</div>'+(L.mobile?'<div style="color:#FFD700;font-size:10px;margin-top:2px;">📞 '+esc(L.mobile)+'</div>':'')+'</div>'+(L.city?'<div style="background:#1470a0;color:#ffe066;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;">📍 '+esc(L.city)+'</div>':'')+'</div>'+
+    '<div style="background:#fff;display:flex;border-bottom:1px solid #d0e8f4;">'+box('Rs. '+fn(L.totalCredit),'Total Billed','#c0392b')+box('Rs. '+fn(L.totalDebit),'Total Received','#1a7f5a')+box(L.unpaid>EPS?'Rs. '+fn(L.unpaid):'Clear','Unpaid Inv.',L.unpaid>EPS?'#0a4a6e':'#1a7f5a')+box('Rs. '+fn(L.advance),'Advance','#0b7a6b',1)+'</div>'+
+    '<div style="background:#fff;"><table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:7%"><col style="width:15%"><col style="width:30%"><col style="width:15%"><col style="width:15%"><col style="width:18%"></colgroup><thead><tr><th style="'+thC+'">#</th><th style="'+thC+'">Date</th><th style="'+thL+'">Particulars</th><th style="'+thC+'">Paid<br><span style="font-size:8px;font-weight:500;opacity:.8;">(In)</span></th><th style="'+thC+'">Billed<br><span style="font-size:8px;font-weight:500;opacity:.8;">(Out)</span></th><th style="'+thC+'">Balance</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot><tr style="background:#0a4a6e;"><td colspan="3" style="padding:10px;text-align:left;padding-left:12px;color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;">Total / Remaining</td><td style="padding:10px 5px;text-align:center;color:#7dffbc;font-size:12px;font-weight:900;">Rs. '+fn(L.totalDebit)+'</td><td style="padding:10px 5px;text-align:center;color:#ff8080;font-size:12px;font-weight:900;">Rs. '+fn(L.totalCredit)+'</td><td style="padding:10px 5px;text-align:center;color:#FFD700;font-size:12px;font-weight:900;">'+balTxt(L.finalBalance).replace('Rs.','Rs. ')+'</td></tr></tfoot></table></div>'+
+    '<div style="background:#0a4a6e;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 16px;border-top:2px solid #FFD700;"><div style="color:#FFD700;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;">Final Status</div><div style="font-size:15px;text-align:right;">'+ledgerStatusHTML(L)+'</div></div>'+
     '<div style="height:1px;background:linear-gradient(90deg,#FFD700,#ffe066,#FFD700);"></div>'+
     '<div style="background:#fff;padding:10px 16px 12px;"><div style="font-size:9px;font-weight:900;color:#0a4a6e;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #0a4a6e;">Payment Details</div><div style="display:flex;gap:7px;"><div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #1a5276;"><div style="font-size:9px;font-weight:800;color:#1a5276;margin-bottom:4px;">🏦 MEEZAN BANK</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>A/C: 9865-0103586783<br><span style="font-size:7.5px;color:#777;">IBAN: PK59MEZN0098650103586783</span></div></div><div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #c0392b;"><div style="font-size:9px;font-weight:800;color:#c0392b;margin-bottom:4px;">📲 JAZZCASH</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03008648624</div></div><div style="flex:1;background:#f0f8fc;border-radius:6px;padding:8px;border-left:3px solid #27ae60;"><div style="font-size:9px;font-weight:800;color:#27ae60;margin-bottom:4px;">💚 EASYPAISA</div><div style="font-size:8.5px;color:#333;line-height:1.7;">Qaisar Naeem<br>03338058007</div></div></div></div>'+
-    '<div style="background:#0a4a6e;text-align:center;padding:7px;border-top:2px solid #FFD700;"><div style="color:#FFD700;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; Khata: '+L.custName+' &nbsp;•&nbsp; '+new Date().toISOString().slice(0,10)+'</div></div>'+
+    '<div style="background:#0a4a6e;text-align:center;padding:7px;border-top:2px solid #FFD700;"><div style="color:#FFD700;font-size:8.5px;font-weight:700;letter-spacing:.5px;">Faisal Goraya Industry &nbsp;•&nbsp; Khata: '+esc(L.custName)+' &nbsp;•&nbsp; '+today+'</div></div>'+
     '<div style="background:linear-gradient(90deg,#0a4a6e 60%,#1470a0 100%);height:4px;"></div></div>';
 }
+
 </script>
 
 <!-- PDF OVERLAY -->
