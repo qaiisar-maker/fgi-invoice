@@ -20,7 +20,7 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<title>FGI Invoice System v18</title>
+<title>FGI Invoice System v18.1</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <script src="lib/sql-wasm.js"></script>
 <script src="lib/html2canvas.min.js"></script>
@@ -860,7 +860,7 @@ table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
         ✅ <b>IndexedDB</b> — Permanent storage<br>
         ✅ <b>localStorage</b> — Backup layer<br>
         ✅ <b>No Google, No Cloud, No CDN</b> — 100% offline (libraries + fonts app ke andar)<br>
-        ℹ️ FGI Invoice System <b>v18</b>
+        ℹ️ FGI Invoice System <b>v18.1</b>
       </div>
     </div>
 
@@ -1725,6 +1725,16 @@ function computeAccounts(){
         allocs.push({inv:ti.id,inv_no:ti.inv_no,amt:x});
         ti.hist.push(Object.assign({},h,{amount:x,kind:'alloc'}));
       });
+      // Bachi raqam pehle USI selected invoice par lagay (agar baad mein us ka bill barh gaya ho)
+      let lastT=null;
+      al.forEach(a=>{
+        const ti=invs[a.inv];if(!ti||ti.key!==key)return;lastT=ti;if(left<=EPSZ)return;
+        const before=left;left=wf(ti,left,ti.inv_no,{});const used=r2(before-left);
+        if(used>EPSZ){ti.recv=r2(ti.recv+used);const hh=ti.hist.find(x=>x.payId===p.id);if(hh)hh.amount=r2(hh.amount+used);else ti.hist.push(Object.assign({},h,{amount:used,kind:'alloc'}));
+          const ae=allocs.find(x=>x.inv===ti.id);if(ae)ae.amt=r2(ae.amt+used);}
+      });
+      if(left>EPSZ&&lastT){lastT.overflow=r2(lastT.overflow+left);lastT.recv=r2(lastT.recv+left);
+        const hh=lastT.hist.find(x=>x.payId===p.id);if(hh)hh.amount=r2(hh.amount+left);}
     } else if(t){
       t.recv=r2(t.recv+amt);t.hist.push(Object.assign({},h,{amount:amt,kind:'direct'}));
       left=wf(t,amt,t.inv_no,{});
@@ -1746,10 +1756,11 @@ function computeAccounts(){
 
   function live(t,seen){if(!t||seen[t.id])return 0;seen[t.id]=1;let s=Math.max(0,r2(t.own-t.ownPaid));t.refIds.forEach(rid=>{s+=live(invs[rid],seen);});return r2(s);}
   const tot={billed:0,received:0,unpaid:0,credit:0,count:list.length};
+  list.forEach(t=>{t.ovRaw=t.overflow;if(t.overflow>0)t.overflow=Math.min(t.overflow,Math.max(0,custs[t.key].credit));});
   list.forEach(t=>{
     t.ownRem=Math.max(0,r2(t.own-t.ownPaid));
     t.liveRem=live(t,{});
-    t.adjOther=r2(t.grand-(t.recv-t.overflow)-t.liveRem);
+    t.adjOther=r2(t.grand-(t.recv-t.ovRaw)-t.liveRem);
     t.status=t.overflow>EPS?'overpaid':t.liveRem<=EPS?'paid':(t.recv>EPS||t.adjOther>EPS)?'partial':'unpaid';
     custs[t.key].unpaid=r2(custs[t.key].unpaid+t.ownRem);
   });
