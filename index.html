@@ -20,7 +20,7 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<title>FGI Invoice System v18.1</title>
+<title>FGI Invoice System v18.2</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <script src="lib/sql-wasm.js"></script>
 <script src="lib/html2canvas.min.js"></script>
@@ -860,7 +860,7 @@ table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
         ✅ <b>IndexedDB</b> — Permanent storage<br>
         ✅ <b>localStorage</b> — Backup layer<br>
         ✅ <b>No Google, No Cloud, No CDN</b> — 100% offline (libraries + fonts app ke andar)<br>
-        ℹ️ FGI Invoice System <b>v18.1</b>
+        ℹ️ FGI Invoice System <b>v18.2</b>
       </div>
     </div>
 
@@ -1594,9 +1594,8 @@ function closePrevBalPopup(e){
 function onCustNameInput(val){
   var sug=document.getElementById('cust-suggestions');
   if(!db||!val||val.length<2){if(sug)sug.style.display='none';return;}
-  var q=val.toLowerCase().replace(/'/g,"''");
-  var res;
-  try{res=db.exec("SELECT DISTINCT cust_name,cust_city,cust_mobile FROM invoices WHERE LOWER(cust_name) LIKE '%"+q+"%' ORDER BY id DESC LIMIT 8");}
+  var z=sNorm(val),seenN={},res=[{values:[]}];
+  try{qrows('SELECT cust_name,cust_city,cust_mobile FROM invoices ORDER BY id DESC').forEach(function(r){var k=custKey(r.cust_name);if(!seenN[k]&&sNorm(r.cust_name).includes(z)&&res[0].values.length<8){seenN[k]=1;res[0].values.push([r.cust_name,r.cust_city,r.cust_mobile]);}});}
   catch(e){if(sug)sug.style.display='none';return;}
   if(!res||!res[0]||!res[0].values.length){if(sug)sug.style.display='none';return;}
   var html='';
@@ -1647,6 +1646,7 @@ let SQLlib=null;
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function r2(x){return Math.round((+x||0)*100)/100;}
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function sNorm(x){return String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
 function custKey(n){return String(n||'').trim().replace(/\s+/g,' ').toLowerCase();}
 function qrows(sql,params){const r=db.exec(sql,params||[]);if(!r[0])return[];return r[0].values.map(v=>{const o={};r[0].columns.forEach((c,i)=>o[c]=v[i]);return o;});}
 function payLabel(m){return PAY_LABELS[m]||(m?String(m).charAt(0).toUpperCase()+String(m).slice(1):'Payment');}
@@ -1761,6 +1761,9 @@ function computeAccounts(){
     t.ownRem=Math.max(0,r2(t.own-t.ownPaid));
     t.liveRem=live(t,{});
     t.adjOther=r2(t.grand-(t.recv-t.ovRaw)-t.liveRem);
+    // Customer paid the printed amount but older invoices carried in Prev.Bal were actually smaller:
+    // the difference is the customer's advance — show it once, not as a separate "Adjusted" line.
+    t.prevOver=0;if(t.ovRaw>EPS&&t.adjOther>EPS){t.prevOver=r2(Math.min(t.adjOther,t.ovRaw));t.adjOther=r2(t.adjOther-t.prevOver);}
     t.status=t.overflow>EPS?'overpaid':t.liveRem<=EPS?'paid':(t.recv>EPS||t.adjOther>EPS)?'partial':'unpaid';
     custs[t.key].unpaid=r2(custs[t.key].unpaid+t.ownRem);
   });
@@ -1934,12 +1937,12 @@ function renderList(){
   const q=(document.getElementById('search-inv')?.value||'').toLowerCase();
   const cont=document.getElementById('inv-list-container');
   if(!a.list.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🧾</div><p>No invoices yet.<br>Tap <b>+ New</b> to create one.</p></div>`;return;}
-  const list=a.list.slice().reverse().filter(t=>!q||(t.inv_no||'').toLowerCase().includes(q)||(t.cust_name||'').toLowerCase().includes(q)||(t.cust_city||'').toLowerCase().includes(q));
+  const list=a.list.slice().reverse().filter(t=>{const z=sNorm(q);return !z||sNorm(t.inv_no).includes(z)||sNorm(t.cust_name).includes(z)||sNorm(t.cust_city).includes(z);});
   if(!list.length){cont.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No results found.</p></div>`;return;}
   cont.innerHTML=list.map(t=>{
     const st=t.status;const viaNos=Object.keys(t.via);
     let right;
-    if(st==='overpaid')right=`<div class="inv-remaining zero" style="margin-top:4px;text-align:right;">Advance: Rs.${fn(t.overflow)}</div>`;
+    if(st==='overpaid')right=`<div class="inv-remaining zero" style="margin-top:4px;text-align:right;">Advance: Rs.${fn(t.overflow)}${t.prevOver>=1?'<br><span style="font-size:10px;font-weight:600;">(Prev.Bal zyada likha tha)</span>':''}</div>`;
     else if(st==='paid')right=`<div class="inv-remaining zero" style="margin-top:4px;text-align:right;">Cleared ✓${viaNos.length&&t.recv<=EPS?'<br><span style="font-size:10px;">via '+esc(viaNos.join(', '))+'</span>':''}</div>`;
     else right=`<div class="inv-remaining positive" style="margin-top:4px;text-align:right;">Due: Rs.${fn(t.liveRem)}</div>`;
     return `<div class="inv-card status-${st}">
@@ -2184,7 +2187,7 @@ function rpCustInput(val){
   const sug=document.getElementById('rp-cust-sug');
   const k=custKey(val);
   if(_rp.key&&k!==_rp.key){_rp.key=null;_rp.name='';_rp.rows=[];document.getElementById('rp-cust-info').innerHTML='';document.getElementById('rp-inv-card').style.display='none';document.getElementById('rp-hist-card').style.display='none';rpRecalc();}
-  const list=allCustomers().filter(c=>!k||c.key.includes(k)).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||'')).slice(0,12);
+  const list=allCustomers().filter(c=>!k||sNorm(c.name).includes(sNorm(k))||sNorm(c.city).includes(sNorm(k))).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||'')).slice(0,12);
   if(!list.length){sug.style.display='none';return;}
   sug.innerHTML=list.map(c=>'<div class="cust-sug-item" data-cname="'+esc(c.name)+'" onclick="rpPickCustomer(this.dataset.cname)"><div class="cust-sug-name">👤 '+esc(c.name)+(c.city?' <span style="font-weight:400;color:#888;">— '+esc(c.city)+'</span>':'')+'</div>'+
     '<div style="font-size:11px;color:var(--text2);margin-top:2px;">Baqi: <b style="color:var(--red)">Rs.'+fn(c.unpaid)+'</b>'+(c.credit>EPS?' • Advance: <b style="color:var(--green)">Rs.'+fn(c.credit)+'</b>':'')+'</div></div>').join('');
@@ -2362,12 +2365,13 @@ function invPageParts(t){
   const units=[s,grand];
   // payment history (each line = its own unit so long histories can break across pages)
   const hist=t.hist.slice();
+  if(t.prevOver>=1)hist.push({kind:'note',method:'note',date:'',amount:0,note:'Prev. Bal ('+t.refsParsed.map(r=>r.label).join(', ')+') asal baqi se Rs.'+fn(t.prevOver)+' zyada likha tha — yeh raqam Customer Advance hai'});
   if(Math.abs(t.adjOther)>=1){const vn=Object.keys(t.via);hist.push({kind:'adj',method:'adj',date:'',amount:t.adjOther,note:vn.length&&t.recv<=EPS?'Cleared via '+vn.join(', '):'Adjusted (prev. invoices / other payments)'});}
   hist.forEach((h,i)=>{
-    const icon=h.kind==='adj'?'↪':h.kind==='credit'?'🔁':(PAY_ICONS[h.method]||'💰');
-    const det=h.kind==='adj'?h.note:[payLabel(h.method),h.date,histLine(h)].filter(Boolean).join(' | ');
+    const icon=h.kind==='note'?'ℹ️':h.kind==='adj'?'↪':h.kind==='credit'?'🔁':(PAY_ICONS[h.method]||'💰');
+    const det=(h.kind==='adj'||h.kind==='note')?h.note:[payLabel(h.method),h.date,histLine(h)].filter(Boolean).join(' | ');
     units.push('<div class="fgp-u tight"><div class="fgp-ph'+(i===0?' first':'')+(i===hist.length-1?' last':'')+'">'+(i===0?'<div class="fgp-ph-title">PAYMENT HISTORY</div>':'')+
-      '<div class="fgp-ph-row"><span class="m">'+icon+' '+esc(det)+'</span><b>'+(h.amount<0?'+':'−')+'Rs. '+fn(Math.abs(h.amount))+'</b></div></div></div>');
+      '<div class="fgp-ph-row"><span class="m"'+(h.kind==='note'?' style="color:#0b6b5f;font-size:19px;"':'')+'>'+icon+' '+esc(det)+'</span>'+(h.kind==='note'?'':'<b>'+(h.amount<0?'+':'−')+'Rs. '+fn(Math.abs(h.amount))+'</b>')+'</div></div></div>');
   });
   // final balance — one clear, non-contradictory state
   if(hist.length){
@@ -2517,11 +2521,12 @@ function _makePDF(inv){
   doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(...GOLD);doc.text('GRAND TOTAL',M+5,y+8);
   doc.setFontSize(15);doc.setTextColor(255,255,255);doc.text('Rs. '+fn(t.grand),W-M-4,y+8.3,{align:'right'});y+=16;
   const hist=(t.hist||[]).slice();
+  if(t.prevOver>=1)hist.push({kind:'note',method:'note',date:'',amount:0,note:'Prev. Bal ('+t.refsParsed.map(r=>r.label).join(', ')+') asal baqi se Rs.'+fn(t.prevOver)+' zyada likha tha — yeh raqam Customer Advance hai'});
   if(Math.abs(t.adjOther||0)>=1){const vn=Object.keys(t.via||{});hist.push({kind:'adj',method:'adj',date:'',amount:t.adjOther,note:vn.length&&t.recv<=EPS?'Cleared via '+vn.join(', '):'Adjusted (prev. invoices / other payments)'});}
   if(hist.length){
     ensure(20);doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(...NAVY);doc.text('PAYMENT HISTORY',M,y+4);y+=6;
     doc.autoTable({startY:y,margin:{top:TOP,left:M,right:M,bottom:BOT},head:[['Date','Method / Details','Amount']],
-      body:hist.map(h=>[h.date||'',h.kind==='adj'?h.note:payLabel(h.method)+(histLine(h)?' - '+histLine(h):''),(h.amount<0?'+ ':'- ')+'Rs. '+fn(Math.abs(h.amount))]),
+      body:hist.map(h=>[h.date||'',(h.kind==='adj'||h.kind==='note')?h.note:payLabel(h.method)+(histLine(h)?' - '+histLine(h):''),h.kind==='note'?'':(h.amount<0?'+ ':'- ')+'Rs. '+fn(Math.abs(h.amount))]),
       styles:{fontSize:9.5,cellPadding:2.3,textColor:[10,44,69]},headStyles:{fillColor:[26,74,53],textColor:[255,255,255],fontSize:9.5},theme:'striped',rowPageBreak:'avoid',
       columnStyles:{0:{cellWidth:26},2:{halign:'right',fontStyle:'bold',textColor:[26,127,90],cellWidth:34}},didDrawPage:d=>{if(d.pageNumber>1&&d.cursor&&d.table)head();}});
     y=doc.lastAutoTable.finalY+3;
@@ -2570,7 +2575,7 @@ function renderReportList(){
   const q=custKey((document.getElementById('report-search')||{}).value||'');
   const cont=document.getElementById('report-cust-list');if(!cont)return;
   const det=document.getElementById('report-detail');if(det)det.innerHTML='';
-  const list=allCustomers().filter(c=>!q||c.key.includes(q)).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||''));
+  const list=allCustomers().filter(c=>!q||sNorm(c.name).includes(sNorm(q))||sNorm(c.city).includes(sNorm(q))).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||''));
   if(!list.length){cont.innerHTML='<div class="empty-state"><div class="es-icon">👤</div><p>'+(q?'Koi customer nahi mila':'Koi invoice nahi')+'</p></div>';return;}
   const box=(v,l,c)=>'<div style="flex:1;min-width:60px;background:var(--gray1);border-radius:7px;padding:5px 6px;text-align:center;"><div style="font-size:11px;font-weight:800;color:'+c+';">'+v+'</div><div style="font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;margin-top:1px;">'+l+'</div></div>';
   cont.innerHTML=list.map(c=>{const st=custStatus(c);
@@ -2613,7 +2618,7 @@ function renderLedgerList(){
   if(!db)return;
   const q=custKey((document.getElementById('ldg-search')||{}).value||'');
   const cont=document.getElementById('ldg-cust-list');if(!cont)return;
-  const list=allCustomers().filter(c=>!q||c.key.includes(q)).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||''));
+  const list=allCustomers().filter(c=>!q||sNorm(c.name).includes(sNorm(q))||sNorm(c.city).includes(sNorm(q))).sort((a,b)=>(b.lastDate||'').localeCompare(a.lastDate||''));
   if(!list.length){cont.innerHTML='<div class="ldg-empty">🔍 '+(q?'Koi customer nahi mila':'Koi invoice nahi — Pehle invoice banao')+'</div>';return;}
   cont.innerHTML=list.map(c=>{const st=custStatus(c);const bt=st==='paid'?'✅ Clear':st==='overpaid'?'💰 Advance':st==='partial'?'⚠️ Partial':'🔴 Unpaid';
     return '<div class="ldg-search-item" data-cname="'+esc(c.name)+'" onclick="openLedger(this.dataset.cname)">'+

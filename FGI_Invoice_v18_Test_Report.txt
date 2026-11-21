@@ -149,3 +149,15 @@ AL-ASIF HARDWARE (APP SAHI HAI — DATA MEIN FARQ)
          mein khud minus ho jaye ga.
 
 Har customer ke liye check: Billed − Received = Unpaid − Advance  → sab sahi (0 farq).
+
+v18.2 (21-11-2026)
+------------------
+1. SEARCH: naam mein space, dash (-), dot ka farq nahi parta.
+   "Al asif", "alasif", "AL-ASIF" → Al-Asif Hardware milta hai
+   (Dashboard, Nayi Invoice ka customer, Received Payment, Khata, Report). PASS
+2. FGI#41: pehle "Adjusted −3,312" aur "Advance 3,312" do jagah dikhta tha.
+   Ab ek hi saaf line: "Prev. Bal (FGI#35) asal baqi se Rs.3,312 zyada likha tha —
+   yeh raqam Customer Advance hai". Hisaab nahi badla. PASS
+   Wajah (aap ke data se): FGI#35 mein "FGI#26: 47,831" likha hai, magar FGI#26 ka
+   bill 44,519 hai (3 items: 15,244 + 14,560 + 14,715), aur us par koi payment nahi.
+3. Pichhle 41 tests dobara: 41/41 PASS.
