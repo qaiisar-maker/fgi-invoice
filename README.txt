@@ -1,12 +1,20 @@
 FGI INVOICE SYSTEM v18 — README
 ================================
-Faisal Goraya Industry, Ali Pur Chattha | Tayyar: 15-11-2026
+Faisal Goraya Industry, Ali Pur Chattha | Tayyar: 15-11-2026 | v18.3: 22-11-2026
 Repo: github.com/qaiisar-maker/fgi-invoice (GitHub Pages)
+
+v18.3 MEIN NAYA (22-11-2026)
+  - Invoice delete karne se khata (payments) ka record delete NAHI hota. Us invoice
+    par mili payment khata mein rahti hai aur customer ka Advance ban jati hai
+    (nayi invoice par khud "Less Advance" lag jata hai).
+  - Khata > customer > "🗑 Khata khatam karein": us customer ki saari invoices +
+    payments + advance delete. Pakka karne ke liye customer ka naam likhna hota hai.
+  - Upload: sirf index.html, sw.js, README.txt aur Test Report badle hain.
 
 1. ZIP KE ANDAR KYA HAI
 -----------------------
   index.html        poori app (HTML + CSS + JS)
-  sw.js             service worker  (CACHE = 'fgi-invoice-v18')
+  sw.js             service worker  (CACHE = 'fgi-invoice-v18.3')
   manifest.json     asli manifest (install ke liye)
   lib/              sql-wasm.js, sql-wasm.wasm, html2canvas, jsPDF, autotable  (koi CDN nahi)
   fonts/            Barlow + Barlow Condensed (woff2) + fonts.css

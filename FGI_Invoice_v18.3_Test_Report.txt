@@ -1,0 +1,186 @@
+FGI INVOICE SYSTEM v18.3 — TEST REPORT (naya hissa)
+===================================================
+Tareekh: 22-11-2026
+Tabdeeli: invoice delete = khata record mehfooz; khata sirf Khata page se khatam hota hai.
+
+D-TESTS                                                         NATIJA: 14 / 14 PASS
+D0  PASS  Mr Test: invoice Rs.10,000, invoice par 4,000 + Received Payment 10,000
+D1  PASS  Delete se pehle message: "Khata ka record delete NAHI hoga ... Rs.14,000 Advance"
+D2  PASS  Invoice delete → Billed 0, Received 14,000, Advance 14,000 (khata mehfooz)
+D3  PASS  Dono payments database mein maujood
+D4  PASS  Reload ke baad bhi wahi
+D5  PASS  Nayi invoice Rs.5,000 → Advance khud minus, invoice PAID
+D6  PASS  Baqi Advance 9,000
+D7  PASS  "Khata khatam karein" — ghalat naam likha → kuch delete nahi hua
+D8  PASS  Sahi naam → poora khata (invoice + payments + advance) delete
+D9  PASS  Database mein Mr Test ki koi row nahi bachi
+D10 PASS  Khata list mein Mr Test nahi
+D11 PASS  Baqi tamam customers ke Billed/Received/Baqi/Advance bilkul same
+D12 PASS  Reload ke baad bhi delete
+D13 PASS  Koi JavaScript error nahi
+
+Purane 41 tests dobara chalaye — sab PASS. Tafseel neeche:
+
+FGI INVOICE SYSTEM v18.1 — TEST REPORT
+======================================
+Tareekh: 19-11-2026 (v18: 15-11-2026)
+Tareeqa: asal app (index.html) headless Google Chrome mein Playwright se UI ke zariye chalayi gayi.
+Purana data: v17 schema ka database aap ke screenshots ke figures se banaya gaya
+(Al-Asif Hardware Khata = 1,041,244 / 919,000 / 122,244; FGI#54, FGI#65 waghera).
+Har total Python mein alag se calculate karke app ke jawab se milaya gaya.
+
+NATIJA: 41 / 41 PASS
+
+ID     STATUS  TEST
+------ ------  ----
+0.1    PASS    Old Khata Al-Asif = 1,041,244 / 919,000 / 122,244 (same as screenshot)
+               -> {'billed': 1041244, 'recv': 919000, 'unpaid': 122244, 'credit': 0}
+0.2    PASS    FGI#65 still Rs.481,176, paid 450,000, due 31,176
+               -> {'id': 65, 'grand': 481176, 'recv': 450000, 'due': 31176, 'own': 31176, 'st': 'partial', 'adv': 0, 'adj': 0, 'credit': 0}
+0.3    PASS    FGI#54 Hussan due 118,600 (screenshot)
+               -> {'id': 54, 'grand': 868600, 'recv': 750000, 'due': 118600, 'own': 118600, 'st': 'partial', 'adv': 0, 'adj': 0, 'credit': 0}
+0.4    PASS    FGI#53 (carried into FGI#65) now PAID, not double counted
+               -> {'id': 53, 'grand': 314262, 'recv': 200000, 'due': 0, 'own': 0, 'st': 'paid', 'adv': 0, 'adj': 114262, 'credit': 0}
+0.5    PASS    Migration kept all 66 invoices / 31 payments / prev refs
+               -> [66, 31, 'FGI#53:114262+FGI#59:93324']
+0.6    PASS    Pre-migration backup saved
+0.7    PASS    Khata now uses Less (10%): 45,000 not 50,000
+               -> khata billed 45000
+T1     PASS    Normal payment 50,000/50,000 -> PAID / CLEARED
+               -> {'id': 67, 'grand': 50000, 'recv': 50000, 'due': 0, 'own': 0, 'st': 'paid', 'adv': 0, 'adj': 0, 'credit': 0}
+T2     PASS    Partial 125,000 - 50,000 -> remaining 75,000 PARTIAL
+               -> {'id': 68, 'grand': 125000, 'recv': 50000, 'due': 75000, 'own': 75000, 'st': 'partial', 'adv': 0, 'adj': 0, 'credit': 0}
+T3     PASS    Overpaid 56,450 / 60,000 -> OVERPAID, advance 3,550, remaining 0
+               -> {'id': 69, 'grand': 56450, 'recv': 60000, 'due': 0, 'own': 0, 'st': 'overpaid', 'adv': 3550, 'adj': 0, 'credit': 0}{'billed': 56450, 'recv': 60000, 'unpaid': 0, 'credit': 3550}
+T3b    PASS    Card shows OVERPAID + Advance (not just Cleared)
+               ->  |       FGI#69📅 2026-11-19 |       👤 T3 Over |       📍 Lahore |        |         Rs. 56,450Paid: Rs.60,000 |         💰 OverpaidAdvance: Rs.3,550 |        |    
+T3c    PASS    Khata: billed 56,450, received 60,000, advance 3,550 separate
+T3d    PASS    Advance 3,550 auto "Less Advance" on next new invoice (10,000 -> due 6,450)
+               -> {'id': 70, 'grand': 10000, 'recv': 3550, 'due': 6450, 'own': 6450, 'st': 'partial', 'adv': 0, 'adj': 0, 'credit': 3550}{'billed': 66450, 'recv': 60000, 'unpaid': 6450, 'credit': 0}
+T4     PASS    Payment 30,000 without invoice -> customer advance, no invoice marked paid
+               -> {'billed': 250000, 'recv': 30000, 'unpaid': 250000, 'credit': 30000}['unpaid', 'unpaid', 'unpaid']
+T5     PASS    100,000 split 60,000/40,000 -> 65,000 & 40,000 left, third untouched
+               -> [65000, 40000, 45000, {'billed': 250000, 'recv': 130000, 'unpaid': 150000, 'credit': 30000}]
+T5b    PASS    Allocation preview showed both invoices before save
+               -> Payment Received | Rs.100,000 | FGI#71 (baqi Rs.125,000) | Rs.60,000 | → PARTIAL — baqi Rs.65,000 | FGI#72 (baqi Rs.80,000) | Rs.40,000 | → PARTIAL — baqi Rs.40,000
+T5c    PASS    Auto-fill: 50,000 on 45,000 invoice -> OVERPAID + 5,000 advance
+               -> {'billed': 250000, 'recv': 180000, 'unpaid': 105000, 'credit': 35000}
+T6     PASS    Old 75,000 carried; both invoices separate; Khata combined 125,000 (no double count)
+               -> [{'id': 68, 'grand': 125000, 'recv': 50000, 'due': 75000, 'own': 75000, 'st': 'partial', 'adv': 0, 'adj': 0, 'credit': 0}, {'id': 74, 'grand': 125000, 'recv': 0, 'due': 125000, 'own': 50000, 'st': 'unpaid', 'adv': 0, 'ad
+T6b    PASS    Paying new invoice clears the carried old one first (75,000) then new (25,000)
+               -> ['paid', 25000, {'billed': 175000, 'recv': 150000, 'unpaid': 25000, 'credit': 0}]
+T7     PASS    32 items: total correct, 3 pages, every row once in order, "Page X of N"
+               -> total 200640/200640 pages 3 nums ['Page 1 of 3', 'Page 2 of 3', 'Page 3 of 3']
+T7b    PASS    PDF (vector) generates with auto page breaks
+               -> 2 PDF pages
+T8     PASS    20-item image: 2 separate HD pages, width 1440px
+               -> [(1440, 2646), (1440, 2584)]
+T8b    PASS    Img button -> per-page download/share list (Invoice_FGI_N_Page_1...)
+               -> Page 1 of 2 Invoice_FGI_76_Page_1.png • 1440×2646 ⬇️ 📤 Page 2 of 2 Invoice_FGI_76_Page_2.png • 1440×2584 ⬇️ 📤
+T9     PASS    Old FGI#54: PAY button 18,600 (cheque) -> remaining 100,000
+               -> {'id': 54, 'grand': 868600, 'recv': 768600, 'due': 100000, 'own': 100000, 'st': 'partial', 'adv': 0, 'adj': 0, 'credit': 0}
+T10    PASS    Dashboard Received Payment 31,176 -> FGI#65 PAID; Khata received 950,176, unpaid 91,068
+               -> {'billed': 1041244, 'recv': 950176, 'unpaid': 91068, 'credit': 0}
+T10b   PASS    Same payment visible in FGI#65 payment history (both methods share one engine)
+               -> ['direct:450000', 'alloc:31176']
+T11    PASS    Payment 150,000 on 100,000 invoice, invoice later +30,000 -> PAID, advance 20,000 (Hussan case)
+               -> {'id': 77, 'grand': 130000, 'recv': 150000, 'due': 0, 'own': 0, 'st': 'overpaid', 'adv': 20000, 'adj': 0, 'credit': 0}{'billed': 130000, 'recv': 150000, 'unpaid': 0, 'credit': 20000}
+S1     PASS    Triple-tap SAVE -> only 1 payment recorded
+               -> 41->42
+S2     PASS    Delete payment -> advance & Khata reverse
+               -> {'billed': 50000, 'recv': 50000, 'unpaid': 0, 'credit': 0}
+S3     PASS    Every customer: Billed - Received = Unpaid - Advance (no rupee counted twice)
+               -> []
+S4     PASS    Editing an invoice keeps its payment history
+               -> {'id': 68, 'grand': 125000, 'recv': 50000, 'due': 0, 'own': 0, 'st': 'paid', 'adv': 0, 'adj': 75000, 'credit': 0}
+S5     PASS    Amount 0 rejected
+S6     PASS    Export -> Import (v5) round-trip gives identical totals
+               -> {"billed":3555078,"received":2677706,"unpaid":932372,"credit":55000,"count":77}
+S7     PASS    Old v4 backup JSON imports (prev-bal refs kept, Khata 122,244)
+               -> {'billed': 1041244, 'recv': 919000, 'unpaid': 122244, 'credit': 0}
+S8     PASS    Backup of data before import kept
+S9     PASS    No JavaScript errors during all tests
+S10    PASS    PIN recovery: answer "a" rejected (old bug)
+               -> ❌ Jawab galat hai. Dobara koshish karein.
+S11    PASS    PIN recovery: correct answer (any case/spaces) accepted
+               -> ✅ Sahi jawab! Naya PIN set karein:
+S12    PASS    Date at 2:00 AM Pakistan = 2026-11-16 (old code gave 11-15)
+               -> 2026-11-16
+S13    PASS    OFFLINE (no internet): app opens, DB loads, PDF + HD image + fonts work
+               -> [2, 1440, True]
+S14    PASS    Real manifest.json with PNG icons (installable)
+
+GROUPS
+  0.x  Purana data aur migration
+  T1-T10  Aap ke 10 required test cases
+  S1-S14  Data safety, backup/import, PIN, date, offline, install
+
+PEHLE SE MAUJOOD BUGS JO IS UPDATE MEIN FIX HUE
+  1. Prev.Bal wali purani invoices (jaise FGI#53, #59, #25, #26) list mein 'Due' dikhati thin
+     aur dashboard Outstanding/Total Billed do dafa ginta tha. Ab sahi.
+  2. Overpayment ko sirf 'Cleared' dikhata tha, extra raqam ghaib. Ab Customer Advance.
+  3. Khata mein Less/Add (discount) shamil nahi tha. Ab invoice ke barabar.
+  4. Raat 12 se 5 baje tak date pichhle din ki aati thi (UTC). Ab Pakistan ka local date.
+  5. PIN recovery mein jawab ka ek harf bhi chal jata tha. Ab poora jawab zaroori.
+  6. Database bara hone par save crash ho sakta tha (base64 stack). Ab chunked.
+  7. Import purani invoices ka prev_bal_ref (Prev.Bal links) gira deta tha. Ab sab columns.
+  8. Save / Pay button do dafa dabane se duplicate entry ban sakti thi. Ab guard + unique ID.
+  9. Invoice save aur advance payment ek transaction mein; fail ho to kuch save nahi hota.
+ 10. PDF mein A/C number aur IBAN adhoore the. Ab poore: 9865-0103586783, PK59MEZN0098650103586783.
+ 11. sql.js/fonts CDN se aate the — internet ke baghair pehli dafa app nahi khulti thi. Ab bundle.
+ 12. manifest.json icons (icon-192.png / icon-512.png) ZIP mein the hi nahi. Ab PNG icons.
+
+MALOOM HADOOD (Known limitations)
+  * Customer ki pehchan naam se hai (pehle jaisa). 'Ali Traders' aur 'Ali Traders.' do customer ginay jayen ge.
+  * Advance sirf NAYI invoice par khud lagta hai, purani unpaid invoices par nahi (aap ka faisla).
+  * Kisi invoice ke saath uski PAY-button payments bhi delete hoti hain (purana rawaiya); app pehle batati hai.
+  * Share button sirf un browsers mein jo file share support karte hain (Android Chrome haan); warna download.
+  * Testing headless Chrome (Linux) par hui; asal Android phone par ek dafa checklist zaroor chalayein.
+
+PHONE PAR KHUD CHECK (5 minute)
+  [ ] Upload ke baad app khulti hai, PIN se unlock, purani invoices aur totals wahi hain
+  [ ] Dashboard > Received Payment > customer > amount > invoice select > preview > Save
+  [ ] Invoice > Pay se payment: dono jagah (invoice + Khata) foran nazar aaye
+  [ ] Zyada payment par 'Customer Advance' ka sawal aur OVERPAID status
+  [ ] Usi customer ki nayi invoice mein 'Less Advance' khud lage
+  [ ] Img button: page(s) ki HD image, WhatsApp share
+  [ ] PDF button: A4 PDF khulti hai
+  [ ] Airplane mode on karke app dobara kholein — chalni chahiye
+  [ ] Settings > Export Backup kar ke file WhatsApp/Drive par rakh lein
+
+
+v18.1 — ASAL DATA (FGI_Backup_2026-11-19.json, 62 invoices, 76 payments) PAR JAANCH
+---------------------------------------------------------------------------------
+HUSSAN (FIX HUA)
+  Wajah : 14-11 ko Rs.350,000 Received Payment se FGI#54 par lagay. Us waqt FGI#54 ka
+          baqi 118,600 tha, is liye 231,400 Advance bane. Baad mein FGI#54 mein 2 items
+          (210,000) add hue, magar bachi raqam us invoice par wapas nahi lagi.
+  Fix   : Payment ki bachi raqam pehle USI select ki hui invoice par lagti hai.
+  Natija: FGI#54 = OVERPAID, Customer Advance Rs.21,400, Unpaid 0.
+          Khata: Billed 1,616,380 | Received 1,637,780 | Advance 21,400 (ek hi number).
+
+AL-ASIF HARDWARE (APP SAHI HAI — DATA MEIN FARQ)
+  - FGI#35 mein "Prev. Bal FGI#26" Rs.47,831 likha hai, jab ke FGI#26 ka asal bill
+    Rs.44,519 hai. Farq = Rs.3,312.
+    (FGI#26 shayad baad mein edit hui; ya Prev.Bal haath se badla gaya.)
+  - FGI#41 (Grand 269,000) par 269,000 aaye. Asal dues (#26 44,519 + #35 144,670 +
+    #41 76,499) = 265,688. Is liye 3,312 zyada aaye = Customer Advance.
+  - FGI#25 (Rs.90,000) kisi invoice ke Prev.Bal mein shamil nahi aur us par koi
+    payment record nahi — records ke mutabiq yeh abhi tak baqi hai.
+  - Khata ka net Rs.117,864 sahi hai (= Unpaid 121,176 − Advance 3,312).
+  Karna: FGI#25 ki payment mili thi to darj karein; 3,312 advance agli nayi invoice
+         mein khud minus ho jaye ga.
+
+Har customer ke liye check: Billed − Received = Unpaid − Advance  → sab sahi (0 farq).
+
+v18.2 (21-11-2026)
+------------------
+1. SEARCH: naam mein space, dash (-), dot ka farq nahi parta.
+   "Al asif", "alasif", "AL-ASIF" → Al-Asif Hardware milta hai
+   (Dashboard, Nayi Invoice ka customer, Received Payment, Khata, Report). PASS
+2. FGI#41: pehle "Adjusted −3,312" aur "Advance 3,312" do jagah dikhta tha.
+   Ab ek hi saaf line: "Prev. Bal (FGI#35) asal baqi se Rs.3,312 zyada likha tha —
+   yeh raqam Customer Advance hai". Hisaab nahi badla. PASS
+   Wajah (aap ke data se): FGI#35 mein "FGI#26: 47,831" likha hai, magar FGI#26 ka
+   bill 44,519 hai (3 items: 15,244 + 14,560 + 14,715), aur us par koi payment nahi.
+3. Pichhle 41 tests dobara: 41/41 PASS.

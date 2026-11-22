@@ -20,7 +20,7 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<title>FGI Invoice System v18.2</title>
+<title>FGI Invoice System v18.3</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <script src="lib/sql-wasm.js"></script>
 <script src="lib/html2canvas.min.js"></script>
@@ -860,7 +860,7 @@ table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
         ✅ <b>IndexedDB</b> — Permanent storage<br>
         ✅ <b>localStorage</b> — Backup layer<br>
         ✅ <b>No Google, No Cloud, No CDN</b> — 100% offline (libraries + fonts app ke andar)<br>
-        ℹ️ FGI Invoice System <b>v18.2</b>
+        ℹ️ FGI Invoice System <b>v18.3</b>
       </div>
     </div>
 
@@ -1969,14 +1969,32 @@ function renderList(){
 async function delInv(id,e){
   e.stopPropagation();
   const t=ACC().invs[id];if(!t)return;
-  const direct=t.hist.filter(h=>h.kind==='direct');
+  // v18.3: invoice delete se khata (payments) ka record KABHI delete nahi hota
+  const paid=r2(t.hist.filter(h=>h.kind==='direct'||h.kind==='alloc').reduce((s,h)=>s+h.amount,0));
   let msg='Invoice '+t.inv_no+' delete karein?';
-  if(direct.length)msg+='\n\nIs invoice par '+direct.length+' payment(s) (Rs.'+fn(direct.reduce((s,h)=>s+h.amount,0))+') bhi delete hongi.';
-  if(t.hist.some(h=>h.kind==='alloc'))msg+='\nReceived Payment se is par lagi raqam customer Advance ban jaye gi.';
+  if(paid>EPSZ)msg+='\n\nKhata ka record delete NAHI hoga: is invoice par mili Rs.'+fn(paid)+' payment khata mein rahe gi aur '+(t.cust_name||'customer')+' ka Advance ban jaye gi.\n(Poora khata khatam karna ho to Khata > customer > "Khata khatam karein")';
   if(!confirm(msg))return;
-  try{await dbTx(()=>{db.run('DELETE FROM payments WHERE invoice_id=?',[id]);db.run('DELETE FROM invoices WHERE id=?',[id]);});}
+  try{await dbTx(()=>{
+    db.run("UPDATE payments SET cust_name=CASE WHEN cust_name IS NULL OR TRIM(cust_name)='' THEN ? ELSE cust_name END, invoice_id=0 WHERE invoice_id=?",[t.cust_name||'',id]);
+    db.run('DELETE FROM invoices WHERE id=?',[id]);});}
   catch(err){toast('❌ Delete failed: '+err.message);return;}
-  renderList();toast('🗑 Deleted');
+  renderList();toast(paid>EPSZ?'🗑 Invoice deleted — Rs.'+fn(paid)+' khata mein Advance':'🗑 Deleted',3500);
+}
+
+// Poora khata khatam — sirf Khata page se (invoices + saari payments + advance)
+async function delKhata(custName){
+  const a=ACC();const c=a.custs[custKey(custName)];if(!c)return;
+  const nInv=c.invIds.length,nPay=c.payIds.length;
+  const msg='⚠️ '+c.name+' ka POORA KHATA khatam karein?\n\nYeh sab hamesha ke liye delete ho ga:\n• '+nInv+' invoice(s) — Rs.'+fn(c.billed)+'\n• '+nPay+' payment(s) — Rs.'+fn(c.received)+(c.credit>EPS?'\n• Advance Rs.'+fn(c.credit):'')+(c.unpaid>EPS?'\n• Baqi Rs.'+fn(c.unpaid):'')+'\n\nPehle Backup le lena behtar hai.\n\nPakka karne ke liye customer ka naam likhein:';
+  const typed=prompt(msg,'');if(typed===null)return;
+  if(custKey(typed)!==custKey(c.name)){alert('Naam match nahi hua — khata delete NAHI hua.');return;}
+  try{await dbTx(()=>{
+    c.payIds.forEach(pid=>db.run('DELETE FROM payments WHERE id=?',[pid]));
+    c.invIds.forEach(iid=>{db.run('DELETE FROM payments WHERE invoice_id=?',[iid]);db.run('DELETE FROM invoices WHERE id=?',[iid]);});});}
+  catch(err){toast('❌ Delete failed: '+err.message);return;}
+  currentLedgerData=null;
+  document.getElementById('ldg-detail-state').style.display='none';document.getElementById('ldg-search-state').style.display='block';
+  renderLedgerList();toast('🗑 '+c.name+' ka khata khatam',3500);
 }
 
 // ============================================================
@@ -2605,7 +2623,8 @@ function openCustomerReport(custName){
   det.innerHTML='<div style="background:var(--navy);border-radius:12px;padding:16px;margin-bottom:12px;"><button class="btn btn-gray btn-sm" id="rpt-back-btn" style="margin-bottom:10px;">◀ Wapas</button>'+
     '<div style="font-size:22px;font-weight:800;color:var(--gold);">'+esc(c.name)+'</div><div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;">'+esc(c.city)+'   '+esc(c.mobile)+'</div>'+
     '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+sb(invs.length,'Invoices','#fff')+sb('Rs.'+fn(c.billed),'Billed','var(--gold)')+sb('Rs.'+fn(c.received),'Received','#7dffbc')+sb(c.unpaid>EPS?'Rs.'+fn(c.unpaid):'Clear','Baki',c.unpaid>EPS?'#ffcc44':'#7dffbc')+sb('Rs.'+fn(c.credit),'Advance','#7dffbc')+'</div>'+
-    '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:10px;" data-cname="'+esc(c.name)+'" onclick="openReceivePayment(this.dataset.cname)">💰 Received Payment</button></div>'+
+    '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:10px;" data-cname="'+esc(c.name)+'" onclick="openReceivePayment(this.dataset.cname)">💰 Received Payment</button>'+
+    '<button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px;background:transparent;border:1.5px solid #ff8a8a;color:#ffb3b3;" data-cname="'+esc(L.custName)+'" onclick="delKhata(this.dataset.cname)">🗑 Khata khatam karein</button></div>'+
     '<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin-bottom:8px;">Invoices ('+invs.length+')</div>'+cards;
   document.getElementById('rpt-back-btn').addEventListener('click',()=>{det.innerHTML='';renderReportList();});
   window.scrollTo(0,0);
@@ -2672,7 +2691,8 @@ function openLedger(custName){
     '<div class="ldg-cust-name">📒 '+esc(L.custName)+'</div><div class="ldg-cust-meta">'+(L.city?'📍 '+esc(L.city)+'   ':'')+(L.mobile?'📞 '+esc(L.mobile):'')+'</div>'+
     '<div class="ldg-summary-row">'+box('Rs.'+fn(L.totalCredit),'Total Billed','var(--gold)')+box('Rs.'+fn(L.totalDebit),'Total Received','#7dffbc')+'</div>'+
     '<div class="ldg-summary-row" style="margin-top:6px;">'+box(L.unpaid>EPS?'Rs.'+fn(L.unpaid):'Clear','Unpaid Invoices',L.unpaid>EPS?'#ffcc44':'#7dffbc')+box('Rs.'+fn(L.advance),'Customer Advance','#7dffbc')+box(balTxt(L.finalBalance),'Net Balance','#fff')+'</div>'+
-    '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:10px;" data-cname="'+esc(L.custName)+'" onclick="openReceivePayment(this.dataset.cname)">💰 Received Payment</button></div>'+
+    '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:10px;" data-cname="'+esc(L.custName)+'" onclick="openReceivePayment(this.dataset.cname)">💰 Received Payment</button>'+
+    '<button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px;background:transparent;border:1.5px solid #ff8a8a;color:#ffb3b3;" data-cname="'+esc(L.custName)+'" onclick="delKhata(this.dataset.cname)">🗑 Khata khatam karein</button></div>'+
     '<div class="ldg-table-wrap"><div class="ldg-table-title"><span>📋 Khata — Ledger Statement</span><button class="btn btn-gold btn-sm" onclick="downloadLedgerImage()">📷 Save Image</button></div>'+
     '<div class="ldg-tbl-scroll"><table class="ldg-tbl"><thead><tr><th>#</th><th>Date</th><th class="left">Particulars</th><th>💰 Paid<br><span style="font-size:8px;font-weight:400;">(In)</span></th><th>📋 Billed<br><span style="font-size:8px;font-weight:400;">(Out)</span></th><th>⚖️ Balance</th></tr></thead><tbody>'+rows+'</tbody>'+
     '<tfoot><tr class="ldg-total"><td colspan="3" style="text-align:left;padding-left:12px;font-size:13px;">TOTAL / REMAINING</td><td class="debit">Rs.'+fn(L.totalDebit)+'</td><td class="credit">Rs.'+fn(L.totalCredit)+'</td><td class="balance">'+balTxt(L.finalBalance)+'</td></tr></tfoot></table></div>'+

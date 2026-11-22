@@ -1,5 +1,5 @@
 // FGI Invoice System — Service Worker (v18, 100% offline: no CDN)
-const CACHE = 'fgi-invoice-v18.2';
+const CACHE = 'fgi-invoice-v18.3';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './lib/sql-wasm.js', './lib/sql-wasm.wasm', './lib/html2canvas.min.js',
