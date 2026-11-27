@@ -1,7 +1,26 @@
 FGI INVOICE SYSTEM v18 — README
 ================================
-Faisal Goraya Industry, Ali Pur Chattha | Tayyar: 15-11-2026 | v18.3: 22-11-2026
+Faisal Goraya Industry, Ali Pur Chattha | Tayyar: 15-11-2026 | v18.3: 22-11-2026 | v18.4/v18.5: 27-11-2026
 Repo: github.com/qaiisar-maker/fgi-invoice (GitHub Pages)
+
+v18.5 MEIN NAYA (27-11-2026)
+  - Report page: 2 tab — "👤 Customer Report" aur "📅 Date wise Report".
+  - Customer Report: customer ki saari invoices + saari payments (kis invoice par lagi),
+    Report PDF (pehle preview) aur Report Image.  (Pehle customer kholne par page
+    khali reh jata tha — yeh bug theek.)
+  - Date wise: Aaj / Kal / Is hafte / Is mahine / Pichla mahina ya apni tareekh,
+    optional customer. Invoices jo bani + payments jo aayi (kis invoice par) + Cash/Online total.
+  - Upload: index.html, sw.js, README.txt, Test Report, aur lib/ mein 2 NAYI files:
+    pdf.min.js aur pdf.worker.min.js (zaroor daalein).
+
+v18.4 MEIN NAYA (27-11-2026)
+  - Received Payment mein invoice select na ho to raqam customer ke BAQI balance se
+    minus hoti hai (sab se purani invoice pehle). Advance sirf tab banta hai jab payment
+    poore baqi se zyada ho — sirf zyada wala hissa. (Bombay Hardware: Baqi 137,247, Adv 0)
+  - Invoice par haath se likhe bill ki photo (optional, max 3): Camera / Gallery.
+    Photo app ke andar alag storage mein, chhoti (~200 KB) ho kar save hoti hai.
+    List mein 📎 button se poori screen par dekhein (zoom). Backup mein shamil.
+  - Upload: sirf index.html, sw.js, README.txt aur Test Report badle hain.
 
 v18.3 MEIN NAYA (22-11-2026)
   - Invoice delete karne se khata (payments) ka record delete NAHI hota. Us invoice
@@ -14,7 +33,7 @@ v18.3 MEIN NAYA (22-11-2026)
 1. ZIP KE ANDAR KYA HAI
 -----------------------
   index.html        poori app (HTML + CSS + JS)
-  sw.js             service worker  (CACHE = 'fgi-invoice-v18.3')
+  sw.js             service worker  (CACHE = 'fgi-invoice-v18.5')
   manifest.json     asli manifest (install ke liye)
   lib/              sql-wasm.js, sql-wasm.wasm, html2canvas, jsPDF, autotable  (koi CDN nahi)
   fonts/            Barlow + Barlow Condensed (woff2) + fonts.css

@@ -1,9 +1,9 @@
 // FGI Invoice System — Service Worker (v18, 100% offline: no CDN)
-const CACHE = 'fgi-invoice-v18.3';
+const CACHE = 'fgi-invoice-v18.5';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './lib/sql-wasm.js', './lib/sql-wasm.wasm', './lib/html2canvas.min.js',
-  './lib/jspdf.umd.min.js', './lib/jspdf.plugin.autotable.min.js',
+  './lib/jspdf.umd.min.js', './lib/jspdf.plugin.autotable.min.js', './lib/pdf.min.js', './lib/pdf.worker.min.js',
   './fonts/fonts.css',
   './fonts/barlow-latin-400-normal.woff2', './fonts/barlow-latin-500-normal.woff2',
   './fonts/barlow-latin-600-normal.woff2', './fonts/barlow-latin-700-normal.woff2',

@@ -20,7 +20,7 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<title>FGI Invoice System v18.3</title>
+<title>FGI Invoice System v18.5</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <script src="lib/sql-wasm.js"></script>
 <script src="lib/html2canvas.min.js"></script>
@@ -471,6 +471,55 @@ table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
 .fgp-pfoot{padding:14px 16px 12px;display:flex;justify-content:flex-end;}
 .fgp-pnum{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #9cc3e6;border-radius:12px;padding:6px 16px;font-size:22px;font-weight:800;color:#0a3f63;}
 .fgp-foot{background:linear-gradient(160deg,#08385a,#0a4a6e);border-top:4px solid #FFC400;color:#FFD23F;text-align:center;font-family:'Barlow Condensed',Arial,sans-serif;font-size:24px;font-weight:800;letter-spacing:.5px;padding:14px 10px;}
+/* v18.5 reports */
+.rpt-tabs{display:flex;gap:8px;margin:0 0 12px;}
+.rtab{flex:1;padding:11px 8px;border-radius:10px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;}
+.rtab.on{background:var(--navy);color:var(--gold);}
+.rpt-presets{display:flex;gap:6px;flex-wrap:wrap;}
+.dr-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px;}
+.dr-sum div{background:var(--navy);border-radius:10px;padding:10px;text-align:center;}
+.dr-sum b{display:block;color:var(--gold);font-size:16px;}.dr-sum span{color:rgba(255,255,255,.7);font-size:10px;text-transform:uppercase;font-weight:700;}
+.dr-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.dr-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:520px;}
+.dr-tbl th{background:var(--navy);color:var(--gold);padding:8px 6px;font-size:11px;text-transform:uppercase;text-align:left;white-space:nowrap;}
+.dr-tbl td{border-bottom:1px solid var(--gray2);padding:8px 6px;vertical-align:top;}
+.dr-tbl td.n{text-align:right;white-space:nowrap;font-weight:700;}
+.dr-tbl tfoot td{font-weight:800;background:#eef3f8;}
+.dr-where{font-size:11.5px;color:var(--text2);margin-top:2px;}
+.dr-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2);}
+.dr-row:last-child{border-bottom:none;}
+.dr-row .l{min-width:0;flex:1;}.dr-row .t1{font-size:12.5px;font-weight:700;color:var(--navy);}.dr-row .t2{font-size:14px;font-weight:700;color:var(--text);margin-top:2px;}
+.dr-row .r{text-align:right;font-weight:800;font-size:14.5px;color:var(--navy);white-space:nowrap;}
+.dr-row.tot{background:#eef3f8;margin:0 -12px;padding:10px 12px;border-radius:0 0 10px 10px;font-weight:800;color:var(--navy);}
+#pdf-pv{position:fixed;inset:0;background:#3a4250;z-index:9990;display:none;flex-direction:column;}
+.pv-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--navy);color:#fff;padding:10px 14px;}
+.pv-title{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pv-sub{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pv-x{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:18px;border-radius:8px;width:38px;height:38px;cursor:pointer;flex:none;}
+.pv-zoom{display:flex;align-items:center;justify-content:center;gap:10px;background:#2c333f;padding:6px;color:#fff;font-weight:800;font-size:13px;}
+.pv-zoom .btn{background:#fff;}
+#pv-pages{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 8px;}
+.pv-page{display:block;margin:0 auto 12px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.45);}
+.pv-load{color:#fff;text-align:center;padding:40px 16px;font-weight:700;}
+.pv-actions{display:flex;gap:8px;padding:10px;background:#fff;flex-wrap:wrap;}
+.pv-actions .btn{flex:1;justify-content:center;min-width:100px;}
+/* v18.4 bill photos */
+.ph-box{border:1.5px dashed #9fb3c8;border-radius:12px;padding:10px 12px;margin:6px 0 12px;background:#f7fafc;}
+.ph-head{font-weight:800;color:var(--navy);font-size:14px;margin-bottom:8px;}
+.ph-head small{font-weight:600;color:var(--text2);font-size:11px;}
+.ph-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.ph-th{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;border:1px solid #cfd8e3;background:#fff;}
+.ph-th img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;}
+.ph-th button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(200,30,30,.9);color:#fff;font-weight:900;font-size:13px;line-height:24px;padding:0;cursor:pointer;}
+#ph-viewer{position:fixed;inset:0;background:#111;z-index:9995;display:none;flex-direction:column;}
+.phv-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:#1d2733;color:#fff;}
+.phv-bar b{font-size:15px;}.phv-bar span{font-size:12px;opacity:.8;}
+.phv-x{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:18px;border-radius:8px;width:40px;height:40px;cursor:pointer;flex:none;}
+#phv-img-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:flex-start;justify-content:center;padding:8px;}
+#phv-img{max-width:100%;height:auto;display:block;margin:auto;background:#fff;}
+#phv-img.zoom{max-width:none;width:240%;}
+.phv-nav{display:flex;gap:8px;padding:10px;background:#1d2733;}
+.phv-nav .btn{flex:1;justify-content:center;}
 </style>
 </head>
 <body>
@@ -539,6 +588,13 @@ table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
   </div>
 </div>
 
+<div id="ph-viewer"><div class="phv-bar"><div><b id="phv-title"></b><br><span id="phv-sub"></span></div><button class="phv-x" onclick="phClose()">✖</button></div>
+  <div id="phv-img-wrap"><img id="phv-img" alt="Bill photo" onclick="this.classList.toggle('zoom')"></div>
+  <div class="phv-nav"><button class="btn btn-outline btn-sm" id="phv-prev" onclick="phStep(-1)">◀ Pichli</button><button class="btn btn-outline btn-sm" onclick="document.getElementById('phv-img').classList.toggle('zoom')">🔍 Zoom</button><button class="btn btn-outline btn-sm" id="phv-next" onclick="phStep(1)">Agli ▶</button></div></div>
+<div id="pdf-pv"><div class="pv-bar"><div style="min-width:0;"><div id="pv-title" class="pv-title"></div><div id="pv-sub" class="pv-sub"></div></div><button class="pv-x" onclick="closePdfPv()">✖</button></div>
+  <div class="pv-zoom"><button class="btn btn-outline btn-sm" onclick="pvZoom(-1)">➖ Chota</button><span id="pv-z">100%</span><button class="btn btn-outline btn-sm" onclick="pvZoom(1)">➕ Bara</button></div>
+  <div id="pv-pages"></div>
+  <div class="pv-actions"><button class="btn btn-gold" onclick="pvAction('download')">📥 Download</button><button class="btn btn-green" onclick="pvAction('share')">📤 Share / WhatsApp</button><button class="btn btn-outline" onclick="closePdfPv()">✖ Band</button></div></div>
 <div class="toast" id="toast"></div>
 <div id="print-area"></div>
 
@@ -659,6 +715,12 @@ table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
     <div class="sec-toggle" onclick="toggleOpt('notes')"><div class="tgl-sw" id="sw-notes"></div><input type="checkbox" id="toggle-notes"><span class="tgl-lbl">📝 Notes / Remarks</span></div>
     <div class="collap closed" id="sec-notes" style="max-height:100px;">
       <div class="fr" style="margin-bottom:10px;"><textarea id="inv-notes" rows="2" placeholder="Optional note..." style="resize:none;"></textarea></div>
+    </div>
+    <div class="ph-box">
+      <div class="ph-head">📎 Bill photo <small>(optional — haath se likha bill, max 3)</small></div>
+      <div id="ph-thumbs" class="ph-thumbs"></div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="phPick()">📷 Photo lagayein</button>
+      <input type="file" id="ph-file" accept="image/*" style="display:none;" onchange="phPicked(this)">
     </div>
     <div class="sum-box">
       <div class="sum-row"><span class="sum-label">Items Total</span><span class="sum-val" id="s-items">Rs. 0</span></div>
@@ -860,7 +922,7 @@ table.fgp-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
         ✅ <b>IndexedDB</b> — Permanent storage<br>
         ✅ <b>localStorage</b> — Backup layer<br>
         ✅ <b>No Google, No Cloud, No CDN</b> — 100% offline (libraries + fonts app ke andar)<br>
-        ℹ️ FGI Invoice System <b>v18.3</b>
+        ℹ️ FGI Invoice System <b>v18.5</b>
       </div>
     </div>
 
@@ -1218,7 +1280,7 @@ function showView(name){
   if(name==='ledger'){renderLedgerList();const ls=document.getElementById('ldg-search');if(ls)ls.value='';document.getElementById('ldg-search-state').style.display='block';document.getElementById('ldg-detail-state').style.display='none';}
   if(name==='new-invoice'&&!editMode)resetForm();
   if(name==='settings'){updateDbStatus();updateSQStatus();}
-  if(name==='report'){const rs=document.getElementById('report-search');if(rs)rs.value='';renderReportList();}
+  if(name==='report'){const rs=document.getElementById('report-search');if(rs)rs.value='';renderReportList();const ds=document.getElementById('rpt-date-sec');if(ds&&ds.style.display!=='none'){drInit();renderDateReport();}}
   window.scrollTo(0,0);
 }
 function toast(msg,ms=2500){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',ms);}
@@ -1329,7 +1391,7 @@ function renderItemsTable(){
 // ============================================================
 function openEditInvoice(id){
   const inv=loadInvoice(id);if(!inv)return;
-  editMode=true;editInvId=id;
+  editMode=true;editInvId=id;phFormLoad(id);
   document.getElementById('edit-banner').style.display='flex';
   document.getElementById('edit-inv-no-label').textContent=inv.inv_no;
   document.getElementById('form-card-title').textContent='✏️ Edit Invoice';
@@ -1360,7 +1422,7 @@ function openEditInvoice(id){
   calcSummary();showView('new-invoice');toast('✏️ Edit mode — changes karo aur save karo');
 }
 function cancelEdit(){
-  editMode=false;editInvId=null;
+  editMode=false;editInvId=null;phFormReset();
   document.getElementById('edit-banner').style.display='none';
   document.getElementById('form-card-title').textContent='🧾 Invoice Details';
   document.getElementById('save-btn').textContent='💾 Save Invoice';
@@ -1423,6 +1485,90 @@ function calcSummary(){
 }
 
 // ============================================================
+//  BILL PHOTOS (v18.4) — alag IndexedDB mein (localStorage mein nahi), backup mein shamil
+// ============================================================
+const PH_DB='FGI_InvoicePhotos',PH_ST='photos',PH_MAX=3;
+let PHOTO_IDX={};            // invId -> [photoId]
+let _phForm={keep:[],add:[],del:[]};
+let _phView={list:[],i:0,title:''};
+function phOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(PH_DB,1);
+  r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(PH_ST)){const st=d.createObjectStore(PH_ST,{keyPath:'id'});st.createIndex('inv','invId');}};
+  r.onsuccess=e=>res(e.target.result);r.onerror=()=>rej(r.error);});}
+function phTx(mode,fn){return phOpen().then(d=>new Promise((res,rej)=>{const tx=d.transaction(PH_ST,mode);const st=tx.objectStore(PH_ST);let out;
+  try{out=fn(st);}catch(e){rej(e);return;}tx.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new Error('abort'));}));}
+async function phLoadIndex(){
+  PHOTO_IDX={};
+  // photo sirf usi invoice par dikhe jis ka number bhi match kare (purana backup import hone par ghalat invoice se na jure)
+  const nos={},cks={};try{qrows('SELECT id,inv_no,cust_name FROM invoices').forEach(r=>{nos[r.id]=r.inv_no;cks[r.id]=custKey(r.cust_name);});}catch(e){}
+  try{const d=await phOpen();await new Promise(res=>{const tx=d.transaction(PH_ST,'readonly');const c=tx.objectStore(PH_ST).openCursor();
+    c.onsuccess=e=>{const cur=e.target.result;if(!cur){res();return;}const v=cur.value;
+      if(v&&nos[v.invId]!==undefined&&(!v.invNo||v.invNo===nos[v.invId])&&(!v.cust||v.cust===cks[v.invId]))(PHOTO_IDX[v.invId]=PHOTO_IDX[v.invId]||[]).push(v.id);cur.continue();};c.onerror=()=>res();});}
+  catch(e){}
+}
+function phGet(id){return phTx('readonly',st=>st.get(id));}
+function phCount(invId){return (PHOTO_IDX[invId]||[]).length;}
+async function phDeleteForInvoices(ids){
+  const all=[];ids.forEach(i=>(PHOTO_IDX[i]||[]).forEach(p=>all.push(p)));if(!all.length)return;
+  try{await phTx('readwrite',st=>{all.forEach(p=>st.delete(p));});}catch(e){}
+  ids.forEach(i=>delete PHOTO_IDX[i]);
+}
+// Photo chhoti karo: lambi side max 1600px, JPEG — likhai saaf, size ~150-350 KB
+function phCompress(file){return new Promise((res,rej)=>{
+  const url=URL.createObjectURL(file);const img=new Image();
+  img.onload=()=>{try{const M=1600;let w=img.naturalWidth,h=img.naturalHeight;const k=Math.min(1,M/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);URL.revokeObjectURL(url);
+    c.toBlob(b=>{if(!b)return rej(new Error('photo convert nahi hui'));if(b.size>450000)c.toBlob(b2=>res(b2||b),'image/jpeg',0.6);else res(b);},'image/jpeg',0.75);}catch(e){rej(e);}};
+  img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('yeh photo khul nahi saki'));};img.src=url;});}
+function phFormReset(){_phForm.add.forEach(a=>URL.revokeObjectURL(a.url));_phForm={keep:[],add:[],del:[]};phRenderThumbs();}
+async function phFormLoad(invId){phFormReset();_phForm.keep=(PHOTO_IDX[invId]||[]).slice();phRenderThumbs();}
+function phPick(){if(_phForm.keep.length+_phForm.add.length>=PH_MAX){toast('⚠️ Ek invoice par zyada se zyada '+PH_MAX+' photos');return;}document.getElementById('ph-file').click();}
+async function phPicked(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+  try{toast('⏳ Photo tayyar ho rahi hai...',1500);const b=await phCompress(f);_phForm.add.push({tid:'n'+Date.now(),blob:b,url:URL.createObjectURL(b)});phRenderThumbs();toast('📎 Photo lag gayi ('+Math.round(b.size/1024)+' KB) — invoice Save karein',2500);}
+  catch(e){toast('❌ '+e.message,3500);}}
+async function phRenderThumbs(){
+  const box=document.getElementById('ph-thumbs');if(!box)return;
+  const items=[];for(const id of _phForm.keep){let r=null;try{r=await phGet(id);}catch(e){}if(r&&r.blob)items.push({k:id,url:URL.createObjectURL(r.blob),old:1});}
+  _phForm.add.forEach(a=>items.push({k:a.tid,url:a.url,old:0}));
+  box.innerHTML=items.map((it,i)=>'<div class="ph-th"><img src="'+it.url+'" onclick="phViewForm('+i+')"><button onclick="phRemove(\''+it.k+'\','+it.old+')">✕</button></div>').join('');
+  box._items=items;
+}
+function phRemove(k,old){if(!confirm('Yeh photo hata dein?'))return;
+  if(old){_phForm.keep=_phForm.keep.filter(x=>x!==k);_phForm.del.push(k);}else{const a=_phForm.add.find(x=>x.tid===k);if(a)URL.revokeObjectURL(a.url);_phForm.add=_phForm.add.filter(x=>x.tid!==k);}
+  phRenderThumbs();}
+async function phCommit(invId,invNo){
+  if(!_phForm.add.length&&!_phForm.del.length&&!_phForm.keep.length){_phForm={keep:[],add:[],del:[]};return;}
+  try{await phTx('readwrite',st=>{_phForm.del.forEach(id=>st.delete(id));
+      const ck=custKey(document.getElementById('cust-name').value);
+      // edit mein customer ka naam badla ho to purani photos bhi saath rahen
+      _phForm.keep.forEach(id=>{const g=st.get(id);g.onsuccess=()=>{const v=g.result;if(v&&(v.cust!==ck||v.invNo!==invNo)){v.cust=ck;v.invNo=invNo;st.put(v);}};});
+      _phForm.add.forEach((a,i)=>st.put({id:'ph_'+invId+'_'+Date.now().toString(36)+i,invId,invNo,cust:ck,created:new Date().toISOString(),blob:a.blob}));});
+    _phForm.add.forEach(a=>URL.revokeObjectURL(a.url));}
+  catch(e){toast('⚠️ Invoice save ho gayi, lekin photo save nahi hui: '+e.message,4500);}
+  _phForm={keep:[],add:[],del:[]};await phLoadIndex();
+}
+function phShow(){const v=_phView;const it=v.list[v.i];if(!it)return;
+  const img=document.getElementById('phv-img');img.classList.remove('zoom');img.src=it.url;
+  document.getElementById('phv-title').textContent=v.title;document.getElementById('phv-sub').textContent='Photo '+(v.i+1)+' / '+v.list.length+'  ·  tap = zoom';
+  document.getElementById('phv-prev').disabled=v.i<=0;document.getElementById('phv-next').disabled=v.i>=v.list.length-1;
+  document.getElementById('ph-viewer').style.display='flex';}
+function phStep(d){const v=_phView;v.i=Math.max(0,Math.min(v.list.length-1,v.i+d));phShow();}
+function phClose(){document.getElementById('ph-viewer').style.display='none';_phView.list.forEach(x=>{if(x.own)URL.revokeObjectURL(x.url);});_phView={list:[],i:0,title:''};}
+async function phViewInvoice(invId){
+  const t=ACC().invs[invId];const list=[];
+  for(const id of (PHOTO_IDX[invId]||[])){try{const r=await phGet(id);if(r&&r.blob)list.push({url:URL.createObjectURL(r.blob),own:1});}catch(e){}}
+  if(!list.length){toast('ℹ️ Is invoice par koi photo nahi');return;}
+  _phView={list,i:0,title:'📎 '+(t?t.inv_no+' — '+t.cust_name:'Bill photo')};phShow();}
+function phViewForm(i){const items=(document.getElementById('ph-thumbs')._items)||[];if(!items.length)return;
+  _phView={list:items.map(x=>({url:x.url,own:0})),i,title:'📎 Bill photo'};phShow();}
+function blobToDataURL(b){return new Promise((res,rej)=>{const f=new FileReader();f.onload=()=>res(f.result);f.onerror=()=>rej(f.error);f.readAsDataURL(b);});}
+async function phExportAll(){
+  let recs=[];try{recs=await phTx('readonly',st=>st.getAll());}catch(e){return [];}
+  const out=[];for(const r of recs||[]){if(r&&r.blob)out.push({id:r.id,invId:r.invId,invNo:r.invNo,cust:r.cust||'',created:r.created,data:await blobToDataURL(r.blob)});}return out;}
+async function phImportAll(arr){
+  const recs=[];for(const x of arr){if(!x||!x.data||x.invId==null)continue;try{const b=await (await fetch(x.data)).blob();recs.push({id:x.id||('ph_'+x.invId+'_'+Math.random().toString(36).slice(2)),invId:x.invId,invNo:x.invNo||'',cust:x.cust||'',created:x.created||'',blob:b});}catch(e){}}
+  await phTx('readwrite',st=>{st.clear();recs.forEach(r=>st.put(r));});await phLoadIndex();return recs.length;}
+
+// ============================================================
 //  SAVE / UPDATE
 // ============================================================
 let _invSaving=false;
@@ -1452,6 +1598,7 @@ async function saveInvoice(){
     const pRef2=optState.prev&&prevBalRef?prevBalRef:'';
     await dbTx(()=>db.run(`UPDATE invoices SET inv_date=?,cust_name=?,cust_mobile=?,cust_city=?,items_json=?,less_val=?,less_type=?,add_val=?,add_type=?,advance_json=?,prev_bal=?,prev_bal_ref=?,notes=?,items_total=?,grand_total=? WHERE id=?`,
       [invDate,cn,mob,city,itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef2,notes,iT,grand,editInvId]));
+    await phCommit(editInvId,document.getElementById('inv-no').value);
     toast('✅ Invoice update ho gaya: '+document.getElementById('inv-no').value);
     editMode=false;editInvId=null;
     document.getElementById('edit-banner').style.display='none';
@@ -1464,9 +1611,11 @@ async function saveInvoice(){
     const pRef=optState.prev&&prevBalRef?prevBalRef:'';
     const advSum=optState.advance?advEntries.reduce((s,e)=>s+(e.amount>0?e.amount:0),0):0;
     const ci=formCreditInfo(grand,advSum);
+    let newInvId=null;
     await dbTx(()=>{
       db.run(`INSERT INTO invoices(inv_no,inv_date,cust_name,cust_mobile,cust_city,items_json,less_val,less_type,add_val,add_type,advance_json,prev_bal,prev_bal_ref,notes,items_total,grand_total,created_at,credit_used) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [invNo,invDate,cn,mob,city,itemsJson,optState.less?lv:0,lt,optState.add?av:0,at,advJson,optState.prev?prev:0,pRef,notes,iT,grand,new Date().toISOString(),ci.use]);
+      newInvId=db.exec("SELECT last_insert_rowid()")[0].values[0][0];
       if(optState.advance&&advEntries.length>0){
         const invId=db.exec("SELECT last_insert_rowid()")[0].values[0][0];
         const today=todayStr();
@@ -1475,6 +1624,7 @@ async function saveInvoice(){
         });
       }
     });
+    if(newInvId)await phCommit(newInvId,invNo);
     toast(ci.use>0?'✅ Saved: '+invNo+' — Advance Rs.'+fn(ci.use)+' minus hua':'✅ Saved: '+invNo,3000);
     showView('invoice-list');
   }
@@ -1520,7 +1670,7 @@ function doPrintOverlay(){doDownloadPDF();}
 //  RESET
 // ============================================================
 function resetForm(){
-  curItems=[];advEntries=[];editMode=false;editInvId=null;
+  curItems=[];advEntries=[];editMode=false;editInvId=null;phFormReset();
   ['cust-name','cust-mobile','cust-city','inv-notes','less-val','add-val','prev-bal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   Object.keys(optState).forEach(k=>{optState[k]=false;document.getElementById('toggle-'+k).checked=false;document.getElementById('sw-'+k).classList.remove('on');document.getElementById('sec-'+k).classList.add('closed');});
   document.getElementById('adv-entries').innerHTML='';
@@ -1636,7 +1786,7 @@ document.addEventListener('click',e=>{
 //   overpayments and customer advance are CALCULATED from the
 //   stored invoices + payments every time.)
 // ============================================================
-const APP_VER='v18';
+const APP_VER='v18.5';
 const PAY_LABELS={cash:'Cash',online:'Online',cheque:'Cheque',jazzcash:'JazzCash',easypaisa:'EasyPaisa',bank:'Bank',credit:'Advance Adjusted'};
 const EPS=0.5;      // half a rupee tolerance for status decisions
 const EPSZ=0.001;
@@ -1686,7 +1836,7 @@ function invCalc(r){
 // ------------------------------------------------------------
 function computeAccounts(){
   const invs={},byNo={},list=[],custs={},payInfo={};
-  const getC=(key,name)=>{if(!custs[key])custs[key]={key,name:name||key||'(Unknown)',city:'',mobile:'',billed:0,received:0,credit:0,unpaid:0,invIds:[],payIds:[],lastDate:''};return custs[key];};
+  const getC=(key,name)=>{if(!custs[key])custs[key]={key,name:name||key||'(Unknown)',city:'',mobile:'',billed:0,received:0,credit:0,unpaid:0,invIds:[],payIds:[],lastDate:'',srcs:[]};return custs[key];};
   qrows('SELECT * FROM invoices ORDER BY id ASC').forEach(r=>{
     const c=invCalc(r);const key=custKey(r.cust_name);
     const t=Object.assign({},r,c,{key,refsParsed:parseRefs(r.prev_bal_ref),refIds:[],ownPaid:0,recv:0,overflow:0,hist:[],via:{},creditApplied:0});
@@ -1742,6 +1892,7 @@ function computeAccounts(){
       allocs.push({inv:t.id,inv_no:t.inv_no,amt:r2(amt-left)});
     }
     cu.credit=r2(cu.credit+left);
+    if(left>EPSZ)cu.srcs.push({payId:p.id,amt:r2(left),h});
     payInfo[p.id]=Object.assign({},p,{key,allocs,unalloc:r2(left)});
   });
 
@@ -1751,7 +1902,27 @@ function computeAccounts(){
     const cu=custs[t.key];const use=Math.min(want,cu?cu.credit:0);if(use<=EPSZ)return;
     const left=wf(t,use,t.inv_no,{});const applied=r2(use-left);
     if(applied>EPSZ){t.creditApplied=applied;t.recv=r2(t.recv+applied);cu.credit=r2(cu.credit-applied);
+      let u=applied;while(u>EPSZ&&cu.srcs.length){const sx=cu.srcs[0];const x=r2(Math.min(u,sx.amt));sx.amt=r2(sx.amt-x);u=r2(u-x);if(sx.amt<=EPSZ)cu.srcs.shift();}
       t.hist.push({payId:null,date:t.inv_date,method:'credit',ref:'',bank:'',note:'Customer advance adjusted',amount:applied,full:applied,kind:'credit'});}
+  });
+
+  // v18.4: Advance sirf tab, jab payment POORE baqi balance se zyada ho.
+  // Bachi (bina invoice / zyada) raqam pehle customer ki sab se purani baqi invoice clear kare.
+  Object.values(custs).forEach(cu=>{
+    if(cu.credit<=EPSZ)return;
+    const open=list.filter(t=>t.key===cu.key&&r2(t.own-t.ownPaid)>EPSZ)
+      .sort((a,b)=>(a.inv_date||'')<(b.inv_date||'')?-1:(a.inv_date||'')>(b.inv_date||'')?1:a.id-b.id);
+    for(const t of open){
+      let room=r2(t.own-t.ownPaid);
+      while(room>EPSZ&&cu.credit>EPSZ&&cu.srcs.length){
+        const sx=cu.srcs[0];const x=r2(Math.min(room,sx.amt,cu.credit));if(x<=EPSZ){cu.srcs.shift();continue;}
+        t.ownPaid=r2(t.ownPaid+x);t.recv=r2(t.recv+x);room=r2(room-x);sx.amt=r2(sx.amt-x);cu.credit=r2(cu.credit-x);
+        const hh=t.hist.find(z=>z.payId===sx.payId);if(hh)hh.amount=r2(hh.amount+x);else t.hist.push(Object.assign({},sx.h,{amount:x,kind:'alloc'}));
+        const pi=payInfo[sx.payId];if(pi){const ae=pi.allocs.find(z=>z.inv===t.id);if(ae)ae.amt=r2(ae.amt+x);else pi.allocs.push({inv:t.id,inv_no:t.inv_no,amt:x});pi.unalloc=r2(pi.unalloc-x);}
+        if(sx.amt<=EPSZ)cu.srcs.shift();
+      }
+      if(cu.credit<=EPSZ)break;
+    }
   });
 
   function live(t,seen){if(!t||seen[t.id])return 0;seen[t.id]=1;let s=Math.max(0,r2(t.own-t.ownPaid));t.refIds.forEach(rid=>{s+=live(invs[rid],seen);});return r2(s);}
@@ -1827,6 +1998,7 @@ async function initDB(){
   )`);
   await migrateV18(saved);
   await sDB();
+  await phLoadIndex();
   setInvNo();setToday();showView('invoice-list');
   updateDbStatus();updateSQStatus();
 }
@@ -1866,8 +2038,11 @@ function dbToJSON(d){
   const tbl=n=>{const r=d.exec('SELECT * FROM '+n);return r[0]?r[0].values.map(v=>{const o={};r[0].columns.forEach((c,i)=>o[c]=v[i]);return o;}):[];};
   return {version:5,app:'FGI Invoice '+APP_VER,exported:new Date().toISOString(),invoices:tbl('invoices'),payments:tbl('payments')};
 }
-function exportData(){
-  const blob=new Blob([JSON.stringify(dbToJSON(db),null,2)],{type:'application/json'});
+async function exportData(){
+  const data=dbToJSON(db);
+  toast('⏳ Backup ban raha hai...',1500);
+  data.photos=await phExportAll();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   openFolderPicker('💾 Backup Kahan Save Karein?','JSON backup file ki jagah choose karein',blob,`FGI_Backup_${todayStr()}.json`);
 }
 async function importData(input){
@@ -1878,7 +2053,8 @@ async function importData(input){
     const bad=data.invoices.filter(i=>i==null||i.id==null||!i.inv_no);
     if(bad.length){toast('❌ Backup kharab hai: '+bad.length+' invoice(s) mein id/number nahi');input.value='';return;}
     const pays=Array.isArray(data.payments)?data.payments:[];
-    if(!confirm(`Import ${data.invoices.length} invoices + ${pays.length} payments?\n\nYeh SARI current data replace kar dega!\n(Current data ka backup pehle khud save ho jaye ga.)`)){input.value='';return;}
+    const phs=Array.isArray(data.photos)?data.photos:null;
+    if(!confirm(`Import ${data.invoices.length} invoices + ${pays.length} payments${phs?' + '+phs.length+' bill photos':''}?\n\nYeh SARI current data replace kar dega!\n(Current data ka backup pehle khud save ho jaye ga.)`)){input.value='';return;}
     await idbSave('db_backup_before_import',u8ToB64(db.export()));
     await idbSave('db_backup_before_import_date',new Date().toISOString());
     const iCols=tableCols('invoices'),pCols=tableCols('payments');
@@ -1889,7 +2065,8 @@ async function importData(input){
       data.invoices.forEach(o=>ins('invoices',iCols,o));
       pays.forEach(o=>ins('payments',pCols,Object.assign({invoice_id:0},o)));
     });
-    renderList();toast(`✅ ${data.invoices.length} invoices import ho gaye!`);
+    let nph=0;if(phs){try{nph=await phImportAll(phs);}catch(e){toast('⚠️ Photos import nahi huin: '+e.message,4000);}}else await phLoadIndex();
+    renderList();toast(`✅ ${data.invoices.length} invoices import ho gaye!`+(nph?` + ${nph} photos`:''));
   }catch(e){toast('❌ Import failed: '+e.message,4000);}
   input.value='';
 }
@@ -1960,6 +2137,7 @@ function renderList(){
         <button class="btn btn-blue btn-sm" onclick="quickPDF(${t.id})">📄 PDF</button>
         <button class="btn btn-green btn-sm" onclick="quickImage(${t.id})">📸 Img</button>
         <button class="btn btn-navy btn-sm" onclick="quickPrint(${t.id})">🖨️</button>
+        ${phCount(t.id)?`<button class="btn btn-outline btn-sm" style="border-color:#0b7a6b;color:#0b7a6b;" onclick="phViewInvoice(${t.id})">📎 ${phCount(t.id)}</button>`:''}
         <button class="btn btn-red btn-sm" onclick="delInv(${t.id},event)">🗑</button>
       </div>
     </div>`;
@@ -1972,12 +2150,14 @@ async function delInv(id,e){
   // v18.3: invoice delete se khata (payments) ka record KABHI delete nahi hota
   const paid=r2(t.hist.filter(h=>h.kind==='direct'||h.kind==='alloc').reduce((s,h)=>s+h.amount,0));
   let msg='Invoice '+t.inv_no+' delete karein?';
+  if(phCount(id))msg+='\n\n📎 Is invoice ki '+phCount(id)+' bill photo bhi delete hogi.';
   if(paid>EPSZ)msg+='\n\nKhata ka record delete NAHI hoga: is invoice par mili Rs.'+fn(paid)+' payment khata mein rahe gi aur '+(t.cust_name||'customer')+' ka Advance ban jaye gi.\n(Poora khata khatam karna ho to Khata > customer > "Khata khatam karein")';
   if(!confirm(msg))return;
   try{await dbTx(()=>{
     db.run("UPDATE payments SET cust_name=CASE WHEN cust_name IS NULL OR TRIM(cust_name)='' THEN ? ELSE cust_name END, invoice_id=0 WHERE invoice_id=?",[t.cust_name||'',id]);
     db.run('DELETE FROM invoices WHERE id=?',[id]);});}
   catch(err){toast('❌ Delete failed: '+err.message);return;}
+  await phDeleteForInvoices([id]);
   renderList();toast(paid>EPSZ?'🗑 Invoice deleted — Rs.'+fn(paid)+' khata mein Advance':'🗑 Deleted',3500);
 }
 
@@ -1992,6 +2172,7 @@ async function delKhata(custName){
     c.payIds.forEach(pid=>db.run('DELETE FROM payments WHERE id=?',[pid]));
     c.invIds.forEach(iid=>{db.run('DELETE FROM payments WHERE invoice_id=?',[iid]);db.run('DELETE FROM invoices WHERE id=?',[iid]);});});}
   catch(err){toast('❌ Delete failed: '+err.message);return;}
+  await phDeleteForInvoices(c.invIds);
   currentLedgerData=null;
   document.getElementById('ldg-detail-state').style.display='none';document.getElementById('ldg-search-state').style.display='block';
   renderLedgerList();toast('🗑 '+c.name+' ka khata khatam',3500);
@@ -2264,7 +2445,11 @@ function rpRecalc(skipFill){
   const amt=r2(parseFloat(document.getElementById('rp-amount').value)||0);
   const sel=_rp.rows.filter(r=>r.sel);
   const allocSum=r2(sel.reduce((s,r)=>s+(r.amt||0),0));
-  const adv=r2(amt-allocSum);
+  // bachi raqam: pehle baqi (select na ki gayi) invoices — sab se purani pehle; phir Advance
+  let rest=r2(amt-allocSum);const autoA=[];
+  _rp.rows.filter(r=>!r.sel||r.amt<r.rem-EPSZ).slice().sort((a,b)=>(a.sel?0:1)-(b.sel?0:1)||((a.inv_date||'')<(b.inv_date||'')?-1:(a.inv_date||'')>(b.inv_date||'')?1:a.id-b.id)).forEach(r=>{
+    if(rest<=EPSZ)return;const room=r2(r.rem-(r.sel?r.amt:0));const x=r2(Math.min(room,rest));if(x>EPSZ){autoA.push({r,x,after:r2(room-x)});rest=r2(rest-x);}});
+  const adv=rest;
   const pv=document.getElementById('rp-preview');const errs=[];
   if(!_rp.key)errs.push('Customer select karein');
   if(!(amt>0))errs.push('Amount 0 se zyada honi chahiye');
@@ -2273,15 +2458,16 @@ function rpRecalc(skipFill){
   let h='';
   if(amt>0&&_rp.key){
     h+='<div class="rp-pv-row head"><span>Payment Received</span><b>Rs.'+fn(amt)+'</b></div>';
-    if(!sel.length)h+='<div class="rp-pv-note">ℹ️ Koi invoice select nahi — poori raqam customer level par <b>Unallocated / Customer Advance</b> mein jaye gi. Koi invoice khud paid mark nahi hogi.</div>';
+    if(!sel.length&&autoA.length)h+='<div class="rp-pv-note">ℹ️ Koi invoice select nahi — raqam customer ke <b>baqi balance</b> se minus hogi (sab se purani invoice pehle). Advance sirf tab banta hai jab payment poore baqi se zyada ho.</div>';
     sel.forEach(r=>{const after=r2(r.rem-r.amt);h+='<div class="rp-pv-row"><span>'+esc(r.inv_no)+' <small>(baqi Rs.'+fn(r.rem)+')</small></span><b>Rs.'+fn(r.amt)+'</b></div><div class="rp-pv-sub">→ '+(after<=EPS?'<b style="color:var(--green)">PAID / CLEARED</b>':'<b style="color:var(--orange)">PARTIAL</b> — baqi Rs.'+fn(after))+'</div>';});
-    if(adv>EPSZ)h+='<div class="rp-pv-row adv"><span>💰 Customer Advance / Unallocated</span><b>Rs.'+fn(adv)+'</b></div>';
+    autoA.forEach(z=>{h+='<div class="rp-pv-row"><span>'+esc(z.r.inv_no)+' <small>(khud — purani baqi)</small></span><b>Rs.'+fn(z.x)+'</b></div><div class="rp-pv-sub">→ '+(z.after<=EPS?'<b style="color:var(--green)">PAID / CLEARED</b>':'<b style="color:var(--orange)">PARTIAL</b> — baqi Rs.'+fn(z.after))+'</div>';});
+    if(adv>EPSZ)h+='<div class="rp-pv-row adv"><span>💰 Customer Advance'+(_rp.rows.length?' (poora baqi clear hone ke baad)':'')+'</span><b>Rs.'+fn(adv)+'</b></div>';
   }
   if(errs.length&&(amt>0||_rp.key))h+='<div class="rp-pv-err">'+errs.map(esc).join('<br>')+'</div>';
   if(!h)h='<div class="pay-empty">Customer aur amount likhein — yahan preview nazar aaye ga.</div>';
   pv.innerHTML=h;
   const b=document.getElementById('rp-save-btn');if(b)b.disabled=!!errs.length||_rp.saving;
-  return {amt,sel,allocSum,adv,errs};
+  return {amt,sel,allocSum,adv,errs,autoA};
 }
 async function rpSave(){
   if(_rp.saving)return;
@@ -2304,14 +2490,14 @@ async function rpSave(){
   const ref=method==='cheque'?document.getElementById('rp-cheque').value.trim():document.getElementById('rp-ref').value.trim();
   const bank=method==='cheque'?document.getElementById('rp-bank').value.trim():'';
   const alloc=v.sel.map(r=>({inv:r.id,inv_no:r.inv_no,amt:r.amt}));
-  const msg='Save karein?\n\n'+_rp.name+' — Rs.'+fn(v.amt)+' ('+payLabel(method)+', '+date+')\n'+(alloc.length?alloc.map(x=>'• '+x.inv_no+': Rs.'+fn(x.amt)).join('\n')+'\n':'')+(v.adv>EPSZ?'• Customer Advance: Rs.'+fn(v.adv):'');
+  const msg='Save karein?\n\n'+_rp.name+' — Rs.'+fn(v.amt)+' ('+payLabel(method)+', '+date+')\n'+(alloc.length?alloc.map(x=>'• '+x.inv_no+': Rs.'+fn(x.amt)).join('\n')+'\n':'')+(v.autoA.length?v.autoA.map(z=>'• '+z.r.inv_no+' (purani baqi): Rs.'+fn(z.x)).join('\n')+'\n':'')+(v.adv>EPSZ?'• Customer Advance: Rs.'+fn(v.adv):'');
   if(!confirm(msg))return;
   _rp.saving=true;document.getElementById('rp-save-btn').disabled=true;
   try{
     await dbTx(()=>db.run('INSERT INTO payments(invoice_id,method,amount,pay_date,note,created_at,cust_name,ref_no,bank_name,alloc_json,source,uid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
       [0,method,v.amt,date,note,new Date().toISOString(),_rp.name,ref,bank,JSON.stringify(alloc),'received',_rp.uid]));
     const s=document.getElementById('rp-success');
-    s.innerHTML='✅ <b>Payment save ho gayi!</b><br>'+esc(_rp.name)+' — Rs.'+fn(v.amt)+(alloc.length?'<br>'+alloc.map(x=>esc(x.inv_no)+': Rs.'+fn(x.amt)).join(' • '):'')+(v.adv>EPSZ?'<br>💰 Advance: Rs.'+fn(v.adv):'')+'<br><span style="font-size:11px;">Khata, invoice aur dashboard update ho gaye.</span>';
+    s.innerHTML='✅ <b>Payment save ho gayi!</b><br>'+esc(_rp.name)+' — Rs.'+fn(v.amt)+(alloc.length||v.autoA.length?'<br>'+alloc.map(x=>esc(x.inv_no)+': Rs.'+fn(x.amt)).concat(v.autoA.map(z=>esc(z.r.inv_no)+': Rs.'+fn(z.x))).join(' • '):'')+(v.adv>EPSZ?'<br>💰 Advance: Rs.'+fn(v.adv):'')+'<br><span style="font-size:11px;">Khata, invoice aur dashboard update ho gaye.</span>';
     s.style.display='block';
     toast('✅ Payment saved: Rs.'+fn(v.amt),3000);
     const keep=_rp.name;
@@ -2624,11 +2810,202 @@ function openCustomerReport(custName){
     '<div style="font-size:22px;font-weight:800;color:var(--gold);">'+esc(c.name)+'</div><div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;">'+esc(c.city)+'   '+esc(c.mobile)+'</div>'+
     '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+sb(invs.length,'Invoices','#fff')+sb('Rs.'+fn(c.billed),'Billed','var(--gold)')+sb('Rs.'+fn(c.received),'Received','#7dffbc')+sb(c.unpaid>EPS?'Rs.'+fn(c.unpaid):'Clear','Baki',c.unpaid>EPS?'#ffcc44':'#7dffbc')+sb('Rs.'+fn(c.credit),'Advance','#7dffbc')+'</div>'+
     '<button class="btn btn-gold btn-sm" style="width:100%;justify-content:center;margin-top:10px;" data-cname="'+esc(c.name)+'" onclick="openReceivePayment(this.dataset.cname)">💰 Received Payment</button>'+
-    '<button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px;background:transparent;border:1.5px solid #ff8a8a;color:#ffb3b3;" data-cname="'+esc(L.custName)+'" onclick="delKhata(this.dataset.cname)">🗑 Khata khatam karein</button></div>'+
-    '<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin-bottom:8px;">Invoices ('+invs.length+')</div>'+cards;
+    '<div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-blue btn-sm" style="flex:1;justify-content:center;" data-cname="'+esc(c.name)+'" onclick="custRptPDF(this.dataset.cname)">📄 Report PDF</button><button class="btn btn-green btn-sm" style="flex:1;justify-content:center;" data-cname="'+esc(c.name)+'" onclick="custRptImage(this.dataset.cname)">📸 Report Image</button></div></div>'+
+    '<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin-bottom:8px;">Invoices ('+invs.length+')</div>'+cards+custPaysHTML(c,a);
   document.getElementById('rpt-back-btn').addEventListener('click',()=>{det.innerHTML='';renderReportList();});
   window.scrollTo(0,0);
 }
+
+// ============================================================
+//  REPORTS v18.5 — Customer report (invoices + payments) & Date wise report
+// ============================================================
+function rptTab(t){
+  document.getElementById('rtab-cust').classList.toggle('on',t==='cust');document.getElementById('rtab-date').classList.toggle('on',t==='date');
+  document.getElementById('rpt-cust-sec').style.display=t==='cust'?'block':'none';document.getElementById('rpt-date-sec').style.display=t==='date'?'block':'none';
+  if(t==='date'){drInit();renderDateReport();}else renderReportList();
+}
+function payWhere(p){
+  const parts=(p.allocs||[]).filter(x=>x.amt>EPSZ).map(x=>x.inv_no+' Rs.'+fn(x.amt));
+  if(p.unalloc>EPSZ)parts.push('Advance Rs.'+fn(p.unalloc));
+  return parts.join(' + ')||'—';
+}
+function custPays(c,a){return c.payIds.map(id=>a.payInfo[id]).filter(Boolean).sort((x,y)=>(x.pay_date||'')<(y.pay_date||'')?-1:(x.pay_date||'')>(y.pay_date||'')?1:x.id-y.id);}
+function custPaysHTML(c,a){
+  const ps=custPays(c,a);
+  const head='<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin:14px 0 8px;">Payments ('+ps.length+')</div>';
+  if(!ps.length)return head+'<div class="card" style="padding:12px;color:var(--text2);">Koi payment nahi</div>';
+  return head+'<div class="card" style="padding:4px 12px;">'+ps.slice().reverse().map(p=>payRowHTML(p,false)).join('')+
+    '<div class="dr-row tot"><div class="l">TOTAL</div><div class="r">Rs.'+fn(ps.reduce((s,p)=>s+(+p.amount||0),0))+'</div></div></div>';
+}
+function payRowHTML(p,showCust){
+  const a=ACC();const cn=showCust?(a.custs[p.key]?a.custs[p.key].name:(p.cust_name||'')):'';
+  return '<div class="dr-row"><div class="l"><div class="t1">'+esc(fmtD(p.pay_date))+' · '+(PAY_ICONS[p.method]||'💰')+' '+esc(payLabel(p.method))+(p.ref_no?' · '+esc(p.ref_no):'')+'</div>'+
+    (cn?'<div class="t2">'+esc(cn)+'</div>':'')+'<div class="dr-where">→ '+esc(payWhere(p))+'</div></div><div class="r" style="color:var(--green);">Rs.'+fn(p.amount)+'</div></div>';
+}
+function invRowHTML(t){
+  return '<div class="dr-row" onclick="openPreview('+t.id+')" style="cursor:pointer;"><div class="l"><div class="t1"><span class="inv-no-badge" style="font-size:11px;padding:1px 7px;">'+esc(t.inv_no)+'</span> '+esc(fmtD(t.inv_date))+'</div>'+
+    '<div class="t2">'+esc(t.cust_name)+'</div><div class="dr-where"><span class="pay-status-badge '+t.status+'" style="font-size:10px;padding:2px 7px;">'+statusBadge(t.status)+'</span>'+(t.ownRem>EPS?' baqi Rs.'+fn(t.ownRem):'')+'</div></div>'+
+    '<div class="r">Rs.'+fn(t.own)+(Math.abs(t.grand-t.own)>EPS?'<div class="dr-where" style="font-weight:600;">Prev bal samait<br>Rs.'+fn(t.grand)+'</div>':'')+'</div></div>';
+}
+// ---- date wise ----
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function drPreset(k){
+  const now=new Date();let f=new Date(now),t=new Date(now);
+  if(k==='yday'){f.setDate(f.getDate()-1);t=new Date(f);}
+  else if(k==='week'){const dow=(now.getDay()+6)%7;f.setDate(now.getDate()-dow);}   // Peer se
+  else if(k==='month'){f=new Date(now.getFullYear(),now.getMonth(),1);}
+  else if(k==='pmonth'){f=new Date(now.getFullYear(),now.getMonth()-1,1);t=new Date(now.getFullYear(),now.getMonth(),0);}
+  document.getElementById('dr-from').value=ymd(f);document.getElementById('dr-to').value=ymd(t);renderDateReport();
+}
+function drInit(){
+  const sel=document.getElementById('dr-cust');const cur=sel.value;
+  sel.innerHTML='<option value="">— Sab customers —</option>'+allCustomers().slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+esc(c.key)+'">'+esc(c.name)+'</option>').join('');
+  sel.value=cur;
+  if(!document.getElementById('dr-from').value){const n=new Date();document.getElementById('dr-from').value=ymd(new Date(n.getFullYear(),n.getMonth(),1));document.getElementById('dr-to').value=ymd(n);}
+}
+function dateRptData(){
+  let from=document.getElementById('dr-from').value,to=document.getElementById('dr-to').value;const ck=document.getElementById('dr-cust').value;
+  if(from&&to&&from>to){const x=from;from=to;to=x;}
+  const a=ACC();const inR=d=>(!from||(d||'')>=from)&&(!to||(d||'')<=to);
+  const cmp=(x,y,dx,dy)=>(dx||'')<(dy||'')?-1:(dx||'')>(dy||'')?1:x.id-y.id;
+  const invs=a.list.filter(t=>inR(t.inv_date)&&(!ck||t.key===ck)).sort((x,y)=>cmp(x,y,x.inv_date,y.inv_date));
+  const pays=Object.values(a.payInfo).filter(p=>inR(p.pay_date)&&(!ck||p.key===ck)).sort((x,y)=>cmp(x,y,x.pay_date,y.pay_date));
+  const byM={};pays.forEach(p=>{const l=payLabel(p.method);byM[l]=r2((byM[l]||0)+(+p.amount||0));});
+  return {a,from,to,ck,custName:ck&&a.custs[ck]?a.custs[ck].name:'',invs,pays,byM,
+    billed:r2(invs.reduce((s,t)=>s+t.own,0)),recv:r2(pays.reduce((s,p)=>s+(+p.amount||0),0))};
+}
+function fmtD(d){if(!d)return '';const x=String(d).split('-');return x.length===3?x[2]+'-'+x[1]+'-'+x[0]:d;}
+function renderDateReport(){
+  const box=document.getElementById('dr-result');if(!box||!db)return;
+  const D=dateRptData();const a=D.a;
+  let h='<div class="dr-sum"><div><b>'+D.invs.length+'</b><span>Invoices bani</span></div><div><b>Rs.'+fn(D.billed)+'</b><span>Bill raqam</span></div><div><b>'+D.pays.length+'</b><span>Payments aayi</span></div><div><b style="color:#7dffbc;">Rs.'+fn(D.recv)+'</b><span>Kul payment</span></div>'+
+    Object.keys(D.byM).map(k=>'<div><b style="color:#7dffbc;">Rs.'+fn(D.byM[k])+'</b><span>'+esc(k)+'</span></div>').join('')+'</div>';
+  h+='<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin:4px 0 8px;">🧾 Invoices jo bani ('+D.invs.length+')</div>';
+  h+=D.invs.length?'<div class="card" style="padding:4px 12px;">'+D.invs.map(t=>invRowHTML(t)).join('')+'<div class="dr-row tot"><div class="l">TOTAL</div><div class="r">Rs.'+fn(D.billed)+'</div></div></div>':'<div class="card" style="padding:12px;color:var(--text2);">Is muddat mein koi invoice nahi bani</div>';
+  h+='<div style="font-weight:800;color:var(--navy);font-size:14px;text-transform:uppercase;margin:14px 0 8px;">💰 Payments jo aayi ('+D.pays.length+')</div>';
+  h+=D.pays.length?'<div class="card" style="padding:4px 12px;">'+D.pays.map(p=>payRowHTML(p,true)).join('')+'<div class="dr-row tot"><div class="l">TOTAL</div><div class="r" style="color:var(--green);">Rs.'+fn(D.recv)+'</div></div></div>':'<div class="card" style="padding:12px;color:var(--text2);">Is muddat mein koi payment nahi aayi</div>';
+  box.innerHTML=h;
+}
+// ---- PDF (A4, auto page break, header har page par) ----
+const RNAVY=[10,63,99],RGOLD=[255,210,63];
+function rptDoc(title,sub){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  doc._rt={title,sub};return doc;
+}
+function rptHeadAll(doc){
+  const n=doc.internal.getNumberOfPages();const W=210;
+  for(let i=1;i<=n;i++){doc.setPage(i);
+    doc.setFillColor(...RNAVY);doc.rect(0,0,W,24,'F');doc.setFillColor(...RGOLD);doc.rect(0,24,W,1,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(...RGOLD);doc.text('Faisal Goraya Industry',10,10.5);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(225,238,248);doc.text('03338058007  |  Ali Pur Chattha',10,17);
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(255,255,255);doc.text(doc._rt.title,W-10,10.5,{align:'right'});
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(225,238,248);doc.text(doc._rt.sub,W-10,17,{align:'right'});
+    doc.setFontSize(8);doc.setTextColor(120);doc.text('FGI Invoice System  •  Printed '+fmtD(todayStr()),10,290);doc.text('Page '+i+' of '+n,W-10,290,{align:'right'});}
+}
+function rptBoxes(doc,y,items){
+  const W=190,g=3,w=(W-g*(items.length-1))/items.length;
+  items.forEach((it,i)=>{const x=10+i*(w+g);doc.setFillColor(240,245,250);doc.setDrawColor(200,212,225);doc.roundedRect(x,y,w,15,2,2,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...(it[2]||RNAVY));doc.text(String(it[0]),x+w/2,y+6.5,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90);doc.text(String(it[1]).toUpperCase(),x+w/2,y+11.8,{align:'center'});});
+  return y+19;
+}
+function rptSection(doc,y,txt){if(y>262){doc.addPage();y=32;}doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...RNAVY);doc.text(txt,10,y);return y+2;}
+function rptTable(doc,y,head,body,foot,colStyles){
+  doc.autoTable({startY:y,head:[head],body,foot:foot?[foot]:undefined,theme:'grid',margin:{top:30,left:10,right:10,bottom:14},
+    styles:{fontSize:9,cellPadding:2,valign:'middle',lineColor:[200,210,220],lineWidth:0.2,textColor:[20,30,40]},
+    headStyles:{fillColor:RNAVY,textColor:RGOLD,fontStyle:'bold',fontSize:8.5},footStyles:{fillColor:[232,239,246],textColor:RNAVY,fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[248,250,252]},columnStyles:colStyles||{},rowPageBreak:'avoid',showHead:'everyPage',showFoot:'lastPage'});
+  return doc.lastAutoTable.finalY+8;
+}
+const rsx=v=>'Rs. '+fn(v);
+function custRptBuild(custName){
+  const a=ACC();const c=a.custs[custKey(custName)];if(!c)return null;
+  const invs=c.invIds.map(i=>a.invs[i]).sort((x,y)=>(x.inv_date||'')<(y.inv_date||'')?-1:(x.inv_date||'')>(y.inv_date||'')?1:x.id-y.id);
+  const ps=custPays(c,a);
+  const doc=rptDoc('CUSTOMER REPORT',c.name.slice(0,40));
+  let y=32;doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(...RNAVY);doc.text(c.name,10,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90);doc.text([c.city,c.mobile].filter(Boolean).join('   |   '),10,y+5);y+=9;
+  y=rptBoxes(doc,y,[[invs.length,'Invoices'],[rsx(c.billed),'Billed'],[rsx(c.received),'Received',[20,120,60]],[c.unpaid>EPS?rsx(c.unpaid):'Clear','Baqi',[190,40,40]],[rsx(c.credit),'Advance',[11,122,107]]]);
+  y=rptSection(doc,y+2,'INVOICES ('+invs.length+')');
+  y=rptTable(doc,y+1,['#','Date','Invoice','Bill Raqam','Mila','Baqi','Status'],
+    invs.map((t,i)=>[i+1,fmtD(t.inv_date),t.inv_no,rsx(t.own),rsx(t.ownPaid),t.ownRem>EPS?rsx(t.ownRem):'—',t.status.toUpperCase()]),
+    ['','','TOTAL',rsx(c.billed),rsx(r2(c.billed-c.unpaid)),rsx(c.unpaid),''],
+    {0:{cellWidth:8,halign:'center'},1:{cellWidth:24},2:{cellWidth:24,fontStyle:'bold'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'center',cellWidth:22}});
+  y=rptSection(doc,y,'PAYMENTS ('+ps.length+')');
+  y=rptTable(doc,y+1,['#','Date','Tareeqa','Raqam','Kis invoice par'],
+    ps.map((p,i)=>[i+1,fmtD(p.pay_date),payLabel(p.method)+(p.ref_no?' ('+p.ref_no+')':''),rsx(p.amount),payWhere(p)]),
+    ['','','TOTAL',rsx(c.received),''],
+    {0:{cellWidth:8,halign:'center'},1:{cellWidth:24},2:{cellWidth:34},3:{halign:'right',cellWidth:28,fontStyle:'bold'},4:{fontSize:8.5}});
+  doc.setFont('helvetica','bold');doc.setFontSize(12);if(y>270){doc.addPage();y=34;}
+  doc.setTextColor(...RNAVY);doc.text('Final Status:  '+(c.unpaid>EPS?'Rs. '+fn(c.unpaid)+' BAQI':'CLEAR')+(c.credit>EPS?'   |   Advance Rs. '+fn(c.credit):''),10,y);
+  rptHeadAll(doc);return {doc,fname:'FGI_Report_'+c.name.replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'')+'_'+todayStr()+'.pdf',title:'📊 '+c.name};
+}
+function custRptPDF(n){try{const r=custRptBuild(n);if(r)openPdfPv(r.doc.output('blob'),r.title,r.fname);}catch(e){toast('❌ PDF nahi bani: '+e.message,4000);}}
+function dateRptBuild(){
+  const D=dateRptData();const a=D.a;
+  const rng=(D.from?fmtD(D.from):'shuru')+'  se  '+(D.to?fmtD(D.to):'aaj');
+  const doc=rptDoc('DATE WISE REPORT',rng);
+  let y=32;doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(...RNAVY);doc.text(rng+(D.custName?'   |   '+D.custName:'   |   Sab customers'),10,y);y+=4;
+  const bx=[[D.invs.length,'Invoices bani'],[rsx(D.billed),'Bill raqam'],[D.pays.length,'Payments'],[rsx(D.recv),'Kul payment',[20,120,60]]];
+  y=rptBoxes(doc,y,bx);
+  const mk=Object.keys(D.byM);if(mk.length){y=rptBoxes(doc,y-1,mk.slice(0,5).map(k=>[rsx(D.byM[k]),k,[20,120,60]]));}
+  y=rptSection(doc,y+2,'INVOICES JO BANI ('+D.invs.length+')');
+  y=rptTable(doc,y+1,['#','Date','Invoice','Customer','Bill Raqam','Status (ab)'],
+    D.invs.map((t,i)=>[i+1,fmtD(t.inv_date),t.inv_no,t.cust_name,rsx(t.own),t.status.toUpperCase()+(t.ownRem>EPS?' — baqi '+fn(t.ownRem):'')]),
+    ['','','','TOTAL',rsx(D.billed),''],
+    {0:{cellWidth:8,halign:'center'},1:{cellWidth:22},2:{cellWidth:22,fontStyle:'bold'},4:{halign:'right',cellWidth:28,fontStyle:'bold'},5:{cellWidth:40,fontSize:8}});
+  y=rptSection(doc,y,'PAYMENTS JO AAYI ('+D.pays.length+')');
+  y=rptTable(doc,y+1,['#','Date','Customer','Tareeqa','Raqam','Kis invoice par'],
+    D.pays.map((p,i)=>[i+1,fmtD(p.pay_date),a.custs[p.key]?a.custs[p.key].name:(p.cust_name||''),payLabel(p.method),rsx(p.amount),payWhere(p)]),
+    ['','','','TOTAL',rsx(D.recv),''],
+    {0:{cellWidth:8,halign:'center'},1:{cellWidth:22},3:{cellWidth:20},4:{halign:'right',cellWidth:26,fontStyle:'bold'},5:{fontSize:8,cellWidth:52}});
+  rptHeadAll(doc);
+  return {doc,fname:'FGI_DateReport_'+(D.from||'all')+'_'+(D.to||'')+'.pdf',title:'📅 Date wise Report'};
+}
+function dateRptPDF(){try{const r=dateRptBuild();openPdfPv(r.doc.output('blob'),r.title,r.fname);}catch(e){toast('❌ PDF nahi bani: '+e.message,4000);}}
+// ---- HD Image (PDF pages → ek lambi PNG) ----
+async function pdfBlobToPNG(blob){
+  const lib=await loadPdfJs();const pdf=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
+  const W=1440;const cs=[];let H=0;
+  for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const v1=pg.getViewport({scale:1});const vp=pg.getViewport({scale:W/v1.width});
+    const c=document.createElement('canvas');c.width=W;c.height=Math.round(vp.height);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;cs.push(c);H+=c.height+(i>1?16:0);}
+  const out=document.createElement('canvas');out.width=W;out.height=H;const x=out.getContext('2d');x.fillStyle='#d9dee5';x.fillRect(0,0,W,H);
+  let yy=0;cs.forEach((c,i)=>{if(i)yy+=16;x.drawImage(c,0,yy);yy+=c.height;});
+  return await new Promise(r=>out.toBlob(r,'image/png'));
+}
+async function rptImage(r){
+  if(!r)return;toast('📸 HD image ban rahi hai...',3000);
+  try{const png=await pdfBlobToPNG(r.doc.output('blob'));openFolderPicker('📸 Report Image','Image kahan save karein?',png,r.fname.replace(/\.pdf$/,'.png'));}
+  catch(e){toast('❌ Image nahi bani: '+e.message,4000);}
+}
+function custRptImage(n){rptImage(custRptBuild(n));}
+function dateRptImage(){rptImage(dateRptBuild());}
+// ---- PDF preview (pehle dekhein, phir Download / Share) ----
+let _pv=null,_pvZ=1,_pvPdf=null;
+function loadPdfJs(){return new Promise((res,rej)=>{if(window.pdfjsLib)return res(window.pdfjsLib);
+  const sc=document.createElement('script');sc.src='lib/pdf.min.js';
+  sc.onload=()=>{try{pdfjsLib.GlobalWorkerOptions.workerSrc='lib/pdf.worker.min.js';res(pdfjsLib);}catch(e){rej(e);}};
+  sc.onerror=()=>rej(new Error('preview library load nahi hui'));document.head.appendChild(sc);});}
+async function openPdfPv(blob,title,fname){
+  _pv={blob,title,fname};_pvZ=1;_pvPdf=null;
+  document.getElementById('pv-title').textContent=title||'📄 PDF';document.getElementById('pv-sub').textContent=fname;document.getElementById('pv-z').textContent='100%';
+  document.getElementById('pv-pages').innerHTML='<div class="pv-load">⏳ Preview ban raha hai...</div>';document.getElementById('pdf-pv').style.display='flex';
+  try{const lib=await loadPdfJs();_pvPdf=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
+    document.getElementById('pv-sub').textContent=fname+'  ·  '+_pvPdf.numPages+' page'+(_pvPdf.numPages>1?'s':'');await pvRender();}
+  catch(e){document.getElementById('pv-pages').innerHTML='<div class="pv-load">⚠️ Preview nahi ban saka ('+esc(e.message)+').<br>Neeche se Download / Share kar sakte hain.</div>';}
+}
+async function pvRender(){
+  if(!_pvPdf||!_pv)return;const box=document.getElementById('pv-pages');const pdf=_pvPdf;const tok=_pv;
+  const cw=Math.max(260,Math.min(box.clientWidth-16,1000))*_pvZ;const dpr=Math.min(3,Math.max(2,window.devicePixelRatio||1));
+  const cs=[];box.innerHTML='';for(let i=1;i<=pdf.numPages;i++){const c=document.createElement('canvas');c.className='pv-page';box.appendChild(c);cs.push(c);}
+  for(let i=1;i<=pdf.numPages;i++){if(_pv!==tok)return;
+    const pg=await pdf.getPage(i);const v1=pg.getViewport({scale:1});const vp=pg.getViewport({scale:Math.min(cw*dpr,3200)/v1.width});
+    const c=cs[i-1];c.width=Math.round(vp.width);c.height=Math.round(vp.height);c.style.width=cw+'px';c.style.height=Math.round(cw*v1.height/v1.width)+'px';
+    await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;}
+}
+function pvZoom(d){_pvZ=Math.max(1,Math.min(3,_pvZ+d*0.5));document.getElementById('pv-z').textContent=Math.round(_pvZ*100)+'%';pvRender();}
+function closePdfPv(){document.getElementById('pdf-pv').style.display='none';document.getElementById('pv-pages').innerHTML='';_pv=null;_pvPdf=null;}
+function pvAction(a){if(!_pv)return;_folderPickerBlob=_pv.blob;_folderPickerFilename=_pv.fname;_folderPickerCallback=null;folderPickerAction(a);}
 
 // ============================================================
 //  KHATA / LEDGER
@@ -2779,6 +3156,25 @@ function buildLedgerImageHTML(L){
 
 <!-- REPORT VIEW -->
 <div class="view" id="view-report">
+  <div class="rpt-tabs"><button id="rtab-cust" class="rtab on" onclick="rptTab('cust')">👤 Customer Report</button><button id="rtab-date" class="rtab" onclick="rptTab('date')">📅 Date wise Report</button></div>
+  <div id="rpt-date-sec" style="display:none;">
+    <div class="card" style="padding:14px;">
+      <div class="card-title">📅 Date wise Report</div>
+      <div class="rpt-presets">
+        <button class="btn btn-outline btn-sm" onclick="drPreset('today')">Aaj</button><button class="btn btn-outline btn-sm" onclick="drPreset('yday')">Kal</button>
+        <button class="btn btn-outline btn-sm" onclick="drPreset('week')">Is hafte</button><button class="btn btn-outline btn-sm" onclick="drPreset('month')">Is mahine</button>
+        <button class="btn btn-outline btn-sm" onclick="drPreset('pmonth')">Pichla mahina</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+        <div class="fr" style="flex:1;min-width:130px;margin:0;"><label>Se (From)</label><input type="date" id="dr-from" onchange="renderDateReport()"></div>
+        <div class="fr" style="flex:1;min-width:130px;margin:0;"><label>Tak (To)</label><input type="date" id="dr-to" onchange="renderDateReport()"></div>
+      </div>
+      <div class="fr" style="margin-top:10px;"><label>Customer (optional)</label><select id="dr-cust" onchange="renderDateReport()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:14px;background:#fff;"></select></div>
+      <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn btn-blue btn-sm" style="flex:1;justify-content:center;" onclick="dateRptPDF()">📄 Report PDF</button><button class="btn btn-green btn-sm" style="flex:1;justify-content:center;" onclick="dateRptImage()">📸 Report Image</button></div>
+    </div>
+    <div id="dr-result"></div>
+  </div>
+  <div id="rpt-cust-sec">
   <div class="card" style="padding:14px;">
     <div class="card-title">📊 Customer Report</div>
     <div class="fr">
@@ -2788,6 +3184,7 @@ function buildLedgerImageHTML(L){
     <div id="report-cust-list" style="margin-top:10px;"></div>
   </div>
   <div id="report-detail"></div>
+  </div>
 </div>
 </body>
 </html>
